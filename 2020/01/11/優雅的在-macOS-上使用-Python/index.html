@@ -170,59 +170,59 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="為什要要這樣做？"><a href="#為什要要這樣做？" class="headerlink" title="為什要要這樣做？"></a>為什要要這樣做？</h2><p>我們都知道 macOS 有 Python，為了不將預設的環境弄髒。比較推薦的做法是透過 <code>pyenv</code> 這套 Python 版本管理工具來安裝不同的 Python 版本，如此一來要切換不同的版本也方便，畢竟還是有很多專案是用 Python2 在維護。</p>
+                    <h2 id="為什要要這樣做？"><a href="#為什要要這樣做？" class="headerlink" title="為什要要這樣做？"></a>為什要要這樣做？</h2><p>我們都知道 macOS 有 Python，為了不將預設的環境弄髒。比較推薦的做法是透過 <code>pyenv</code> 這套 Python 版本管理工具來安裝不同的 Python 版本，如此一來要切換不同的版本也方便，畢竟還是有很多專案是用 Python2 在維護。</p>
 <p>如果你沒有使用不同的 Python 版本需求也可以無視這篇，但是建議至少用 <code>virtualenv</code> 來開發專案，才不會把內建的 Python 環境弄成一團亂。</p>
 <h2 id="檢查目前版本"><a href="#檢查目前版本" class="headerlink" title="檢查目前版本"></a>檢查目前版本</h2><p>目前我的 macOS 的 Python 是預設的 Python：</p>
 <p><code>which python</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/python</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/python</span><br></pre></td></tr></table></figure>
 
 <p><code>python</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">WARNING: Python 2.7 is not recommended.</span><br><span class="line">This version is included in macOS for compatibility with legacy software.</span><br><span class="line">Future versions of macOS will not include Python 2.7.</span><br><span class="line">Instead, it is recommended that you transition to using 'python3' from within Terminal.</span><br><span class="line"></span><br><span class="line">Python 2.7.16 (default, Nov  9 2019, 05:55:08)</span><br><span class="line">[GCC 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.32.4) (-macos10.15-objc-s on darwin</span><br><span class="line">Type "help", "copyright", "credits" or "license" for more information.</span><br><span class="line">>>></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">WARNING: Python 2.7 is not recommended.</span><br><span class="line">This version is included in macOS for compatibility with legacy software.</span><br><span class="line">Future versions of macOS will not include Python 2.7.</span><br><span class="line">Instead, it is recommended that you transition to using &apos;python3&apos; from within Terminal.</span><br><span class="line"></span><br><span class="line">Python 2.7.16 (default, Nov  9 2019, 05:55:08)</span><br><span class="line">[GCC 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.32.4) (-macos10.15-objc-s on darwin</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
 
 <h2 id="用-pyenv-來管理-Python-版本"><a href="#用-pyenv-來管理-Python-版本" class="headerlink" title="用 pyenv 來管理 Python 版本"></a>用 pyenv 來管理 Python 版本</h2><p>首先，先安裝 pyenv：</p>
 <p><code>brew install pyenv</code></p>
 <p>安裝完畢後確認自己的環境變數：</p>
 <p><code>echo $PATH</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</span><br></pre></td></tr></table></figure>
 
 <h3 id="初始設定設定"><a href="#初始設定設定" class="headerlink" title="初始設定設定"></a>初始設定設定</h3><p><code>~/.zshrc</code> 請自行替換成你的 shell 的設定檔位置（bash 的話是 <code>~/.bash_profile</code>）：</p>
-<p><code>echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc</code></p>
+<p><code>echo -e &#39;if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then\n  eval &quot;$(pyenv init -)&quot;\nfi&#39; &gt;&gt; ~/.zshrc</code></p>
 <p>重新載入 shell：</p>
 <p><code>source ~/.zshrc</code></p>
 <p>重新確認環境變數：</p>
 <p><code>echo $PATH</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Users/yiyuchang/.pyenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Users/yiyuchang/.pyenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</span><br></pre></td></tr></table></figure>
 
 <p>可以發現家目錄下多了一個 <code>.pyenv/shims</code> 管理這些套件，這也是 <code>pyenv</code> 進行神秘魔法的地方 🧙‍♂️</p>
 <h2 id="開始使用-pyenv"><a href="#開始使用-pyenv" class="headerlink" title="開始使用 pyenv"></a>開始使用 pyenv</h2><p>確認目前 Python 版本為系統版本：</p>
 <p><code>pyenv global</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">system</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">system</span><br></pre></td></tr></table></figure>
 
 <p>顯示可取用的 Python 版本<br><code>pyenv install --list</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Available versions:</span><br><span class="line">  2.1.3</span><br><span class="line">  2.2.3</span><br><span class="line">  2.3.7</span><br><span class="line">  2.4.0</span><br><span class="line">  2.4.1</span><br><span class="line">  (略)</span><br><span class="line">  stackless-3.4-dev</span><br><span class="line">  stackless-3.4.1</span><br><span class="line">  stackless-3.4.2</span><br><span class="line">  stackless-3.4.7</span><br><span class="line">  stackless-3.5.4</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Available versions:</span><br><span class="line">  2.1.3</span><br><span class="line">  2.2.3</span><br><span class="line">  2.3.7</span><br><span class="line">  2.4.0</span><br><span class="line">  2.4.1</span><br><span class="line">  (略)</span><br><span class="line">  stackless-3.4-dev</span><br><span class="line">  stackless-3.4.1</span><br><span class="line">  stackless-3.4.2</span><br><span class="line">  stackless-3.4.7</span><br><span class="line">  stackless-3.5.4</span><br></pre></td></tr></table></figure>
 
 <p>裡面有各式各樣的 Python interpreter，在這邊，我想使用官方的 3.8.1 版本，先進行安裝：</p>
 <p><code>pyenv install 3.8.1</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">python-build: use openssl@1.1 from homebrew</span><br><span class="line">python-build: use readline from homebrew</span><br><span class="line">Downloading Python-3.8.1.tar.xz...</span><br><span class="line">-> https://www.python.org/ftp/python/3.8.1/Python-3.8.1.tar.xz</span><br><span class="line">Installing Python-3.8.1...</span><br><span class="line">python-build: use readline from homebrew</span><br><span class="line">python-build: use zlib from xcode sdk</span><br><span class="line">Installed Python-3.8.1 to /Users/yiyuchang/.pyenv/versions/3.8.1</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">python-build: use openssl@1.1 from homebrew</span><br><span class="line">python-build: use readline from homebrew</span><br><span class="line">Downloading Python-3.8.1.tar.xz...</span><br><span class="line">-&gt; https://www.python.org/ftp/python/3.8.1/Python-3.8.1.tar.xz</span><br><span class="line">Installing Python-3.8.1...</span><br><span class="line">python-build: use readline from homebrew</span><br><span class="line">python-build: use zlib from xcode sdk</span><br><span class="line">Installed Python-3.8.1 to /Users/yiyuchang/.pyenv/versions/3.8.1</span><br></pre></td></tr></table></figure>
 
 <p>查看目前本地端所有的 Python 版本（有星號代表目前正在使用）：</p>
 <p><code>pyenv versions</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">* system (set by /Users/yiyuchang/.pyenv/version)</span><br><span class="line">  3.8.1</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">* system (set by /Users/yiyuchang/.pyenv/version)</span><br><span class="line">  3.8.1</span><br></pre></td></tr></table></figure>
 
 <p>將 Python 切換到剛才下載的 3.8.1：</p>
 <p><code>pyenv global 3.8.1</code><br><code>pyenv versions</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">  system</span><br><span class="line">* 3.8.1 (set by /Users/yiyuchang/.pyenv/version)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">  system</span><br><span class="line">* 3.8.1 (set by /Users/yiyuchang/.pyenv/version)</span><br></pre></td></tr></table></figure>
 
 <p>切換不一定要使用 <code>global</code>, <code>global</code> 代表全域的 Python 版本，另外兩種方式<code>local</code> 或是 <code>shell</code> 有興趣的朋友可以去了解一下，可以更彈性的進行 Python 版本管理</p>
 <p>接著確認 Python 是不是真的切換到我們剛才下載的 <code>3.8.1</code> 了：</p>
 <p><code>which python</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Users/yiyuchang/.pyenv/shims/python</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Users/yiyuchang/.pyenv/shims/python</span><br></pre></td></tr></table></figure>
 
 <p><code>python</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Python 3.8.1 (default, Jan 11 2020, 12:25:19)</span><br><span class="line">[Clang 11.0.0 (clang-1100.0.33.16)] on darwin</span><br><span class="line">Type "help", "copyright", "credits" or "license" for more information.</span><br><span class="line">>>></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Python 3.8.1 (default, Jan 11 2020, 12:25:19)</span><br><span class="line">[Clang 11.0.0 (clang-1100.0.33.16)] on darwin</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
 
 <p>大功告成！如此一來之後就可以輕鬆地在不同專案下使用 Python 了。不過建議在不同專案還是要使用 <code>virtualenv</code> 來管理，否則套件全部會裝在本機的全域的 Python 環境上，如果不同專案要用到不同版本的套件，又會變得一團糟！</p>
-</body></html>
+
                 </article>
                 <ul class="tags-postTags">
                     

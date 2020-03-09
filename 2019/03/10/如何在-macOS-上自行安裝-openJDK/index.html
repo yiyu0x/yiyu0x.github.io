@@ -170,7 +170,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><p>在執行 ghidra 的時候，跳出一條錯誤訊息</p>
+                    <p>在執行 ghidra 的時候，跳出一條錯誤訊息</p>
 <p><code>JDK 11+ could not be found and must be manually chosen!</code></p>
 <p>但是去 oracle java 的網站上只有看到第八版的 JDK</p>
 <p>於是找到了 openJDK，以下紀錄如何使用 openJDK 替換目前的 jave 環境</p>
@@ -179,11 +179,11 @@
 <p><code>cd ~/Downloads</code><br><code>tar xf openjdk-11.0.2_osx-x64_bin.tar.gz</code><br>(順便推薦 zsh，只要下 <code>x</code> 指令就能自動解壓縮)</p>
 <p>搬移檔案至 JVM<br><code>sudo mv jdk-11.0.2.jdk /Library/Java/JavaVirtualMachines/</code></p>
 <p>檢查是否已經替換新的 JAVA 環境</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">openjdk version "11.0.2" 2019-01-15</span><br><span class="line">OpenJDK Runtime Environment 18.9 (build 11.0.2+9)</span><br><span class="line">OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">openjdk version &quot;11.0.2&quot; 2019-01-15</span><br><span class="line">OpenJDK Runtime Environment 18.9 (build 11.0.2+9)</span><br><span class="line">OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ javac -version</span><br><span class="line">javac 11.0.2</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ javac -version</span><br><span class="line">javac 11.0.2</span><br></pre></td></tr></table></figure>
 
-</body></html>
+
                 </article>
                 <ul class="tags-postTags">
                     

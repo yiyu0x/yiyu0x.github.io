@@ -259,7 +259,7 @@ The exports variable is available within a module’s file-level scope, and is a
 							</div>
 						</div>
 						<span class="reading-time">
-							2
+							3
 							min read
 						</span>
 					</footer>
@@ -291,7 +291,7 @@ The exports variable is available within a module’s file-level scope, and is a
 								
 								
 								前言在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下 JavaScript 在比較物件時到底是依據什麼規則。
-先看幾種常見的情況12345678910> 100 > 10true> 100 > "10" //(字串與數字比較，會將字串自動轉為數字來比較)true> "100" > "10" //(兩者都是字串，實際上是按照字母順序來比較，下面的例子較明顯。並不是將兩個字
+先看幾種常見的情況12345678910&gt; 100 &gt; 10true&gt; 100 &gt; "10" //(字串與數字比較，會將字串自動轉為數字來比較)true&gt; "100" &gt; "10" //(兩者都是字串，實際上是按照字母順序來比
 								...
 							</p>
 						</div>
@@ -308,7 +308,7 @@ The exports variable is available within a module’s file-level scope, and is a
 							</div>
 						</div>
 						<span class="reading-time">
-							4
+							5
 							min read
 						</span>
 					</footer>
@@ -604,11 +604,9 @@ setup
 								
 								“This” in nodeJS以下討論 nodeJS 中的 this，與 javascript 中的 this 不同，請不要搞混了。
 function 外的 thisfunction 外的 this 指向 module.exports
-1console.log('outside: ', this) // {}
+1console.log('outside: ', this) // &#123;&#125;
 
-12module.exports.bar = 3console.log('outside: ', this) // outside:  { bar: 3 }
-
-切記
+12module.exports.bar = 3console.log('outside: ', this) // outside:  &#12
 								...
 							</p>
 						</div>
@@ -625,7 +623,7 @@ function 外的 thisfunction 外的 this 指向 module.exports
 							</div>
 						</div>
 						<span class="reading-time">
-							4
+							5
 							min read
 						</span>
 					</footer>
@@ -657,14 +655,14 @@ function 外的 thisfunction 外的 this 指向 module.exports
 								
 								
 								記錄幾個月前幫助同學遇到的一個問題，同時了解背後的原理。
-12345for (var i = 0; i 5; i++) {	setTimeout(() => {		console.log(i)	}, 0)}
+12345for (var i = 0; i &lt; 5; i++) &#123;	setTimeout(() =&gt; &#123;		console.log(i)	&#125;, 0)&#125;
 
 output:
 
 5 5 5 5 5
 
 很多人會認為 output 應該為 0 1 2 3 4 
-要記得 callback function 會被丟到 callback queue 等到 thread 有空才去執行，所以一共有 5 個 callback function
+要記得 callback function 會被丟到 callback queue 等到 thread 有空才去執行
 								...
 							</p>
 						</div>

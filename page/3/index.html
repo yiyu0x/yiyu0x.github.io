@@ -403,12 +403,12 @@ ret2libc
 本文將透過 2018-EOF 的 pwn3 來說明 ret2libc 的攻擊手法
 分析題目(題目給了一個 ELF 檔案 以及 libc.so.6)
 拿到題目第一步，先丟到 IDA 中逆向
- -->
+
 
 同時查看 ELF 檔案的保護狀態
- -->
 
-這兩個線
+
+這兩個線索加起來(沒有 
 								...
 							</p>
 						</div>
@@ -461,10 +461,9 @@ ret2libc
 UNIX Systems Programming: Communication, Concurrency and Threads: Communication, Concurrency and Threads (2nd Edition) 2nd Edition
 
 對於 argv 的操作為下
-1int main(int argc, char* argv[]) { }
+1int main(int argc, char* argv[]) &#123; &#125;
 
 回想起以前常常都是使用以下這種用法
-1int main
 								...
 							</p>
 						</div>

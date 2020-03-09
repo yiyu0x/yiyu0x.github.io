@@ -170,7 +170,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在練習 <code>quota</code> 用來配置每一個使用者的目錄用量， <code>quota</code> 是以分割區為單位，發現自己連硬碟掛載都不太熟悉，可以是平常都用遠端機器的緣故，較少掛載經驗，此篇文章記錄一下掛載過程。</p>
+                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在練習 <code>quota</code> 用來配置每一個使用者的目錄用量， <code>quota</code> 是以分割區為單位，發現自己連硬碟掛載都不太熟悉，可以是平常都用遠端機器的緣故，較少掛載經驗，此篇文章記錄一下掛載過程。</p>
 <h2 id="接上硬碟"><a href="#接上硬碟" class="headerlink" title="接上硬碟"></a>接上硬碟</h2><p>無論是實體硬碟，虛擬硬碟，接上後第一步應該確認是否成功讀取</p>
 <p><code>ls /dev/sd*</code></p>
 <h2 id="分割"><a href="#分割" class="headerlink" title="分割"></a>分割</h2><p>確認讀取之後，先用 fdisk 確認硬碟是否正確<br><code>fdisk -l /dev/sdb</code></p>
@@ -186,14 +186,14 @@
 <p>設定檔需要 UUID 資訊，可以透過 <code>blkid</code> 得知 (我的 sdb UUID 為 f6229601-6fae-4033-9e84-ee0815c9d725)</p>
 <p>之後在 /etc/fstab 尾端加上</p>
 <p>/etc/fstab:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UUID=f6229601-6fae-4033-9e84-ee0815c9d725 /DISK2  xfs   defaults,usrquota,grpquota        0 0</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UUID=f6229601-6fae-4033-9e84-ee0815c9d725 /DISK2  xfs   defaults,usrquota,grpquota        0 0</span><br></pre></td></tr></table></figure>
 
 <p><code>/DISK2</code> 為我們要掛載的目錄，後面為檔案系統，如果要用 quota 管理目錄，可以加上 <code>usrquota,grpquota</code></p>
 <p>之後記得要創建我們需要掛載的目錄，並且掛載它</p>
 <p><code>mkdir /DISK2</code></p>
 <p><code>mount /DISK2</code></p>
 <p>可以用 <code>df</code> 查看是否掛載成功</p>
-</body></html>
+
                 </article>
                 <ul class="tags-postTags">
                     
