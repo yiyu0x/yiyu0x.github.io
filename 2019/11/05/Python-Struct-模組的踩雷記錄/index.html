@@ -176,18 +176,18 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。</p>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。</p>
 <h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>情境是這樣的，我想要將一個正整數以及一個長度 3 的字串跟一個正整數結構化成 byte 的形式</p>
 <p>很直覺的使用了</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> struct</span><br><span class="line">struct.pack(<span class="string">"I3sI"</span>, <span class="number">1</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># \x01\x00\x00\x00abc\x00\x01\x00\x00\x00</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> struct</span><br><span class="line">struct.pack(<span class="string">"I3sI"</span>, <span class="number">1</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># \x01\x00\x00\x00abc\x00\x01\x00\x00\x00</span></span><br></pre></td></tr></tbody></table></figure>
 
-<p>但這個輸出並不符合我的預期，<code>正整數 4 bytes</code> + <code>長度三的字串 3 bytes</code> + <code>正整數 4 bytes</code>，結果應該要是 <code>11 bytes</code>。但是輸出卻是 <code>\x01\x00\x00\x00abc\x00\x01\x00\x00\x00</code> -&gt; <code>12 bytes</code></p>
+<p>但這個輸出並不符合我的預期，<code>正整數 4 bytes</code> + <code>長度三的字串 3 bytes</code> + <code>正整數 4 bytes</code>，結果應該要是 <code>11 bytes</code>。但是輸出卻是 <code>\x01\x00\x00\x00abc\x00\x01\x00\x00\x00</code> -> <code>12 bytes</code></p>
 <p>於是使用 calcsize 確認一下</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"I3sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"I3sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>的確也是 <code>12 bytes</code>，而且可以發現的是，是中間的字串變成了 <code>4 bytes</code></p>
 <p>於是實驗了一下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"3s"</span>)</span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line">struct.calcsize(<span class="string">"3sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"4sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"5sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"3s"</span>)</span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line">struct.calcsize(<span class="string">"3sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"4sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"5sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>可以發現 <code>3s</code> 的確是 <code>3 bytes</code>，但是當後面還有有其他 bytes 的話，則會補齊 <code>4 bytes</code>，然而我用 <code>4sI</code> 可以發現還是 <code>8 bytes</code> 無誤。</p>
 <p>第一個直覺就是猜想，是不是 struct 自動做了 word 大小為 4 的對齊。</p>
@@ -197,16 +197,16 @@
 </blockquote>
 <p>到這邊真相已經大白，但是還是沒解決問題</p>
 <p>這個問題的解法就是在 fmt 前面補上一些符號來告訴 struct 模組需不需要自動做對齊</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line">struct.pack(<span class="string">"@3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 以上兩週是一樣的，預設就是用 @，代表自動對齊</span></span><br><span class="line"></span><br><span class="line">struct.pack(<span class="string">"=3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 使用 =，代表不啟動對齊</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line">struct.pack(<span class="string">"@3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 以上兩週是一樣的，預設就是用 @，代表自動對齊</span></span><br><span class="line"></span><br><span class="line">struct.pack(<span class="string">"=3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 使用 =，代表不啟動對齊</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>文件還有貼心的寫下</p>
 <blockquote>
 <p>The form ‘!’ is available for those poor souls who claim they can’t remember whether network byte order is big-endian or little-endian.</p>
 </blockquote>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"!3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line">struct.pack(<span class="string">"&gt;3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line"><span class="comment"># 使用網路相關傳輸可以直接用 !，省去記下網路傳輸是 big-endian</span></span><br><span class="line">struct.pack(<span class="string">"&lt;3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"!3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line">struct.pack(<span class="string">">3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line"><span class="comment"># 使用網路相關傳輸可以直接用 !，省去記下網路傳輸是 big-endian</span></span><br><span class="line">struct.pack(<span class="string">"<3si"< span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</3si"<></span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br></span></pre></td></tr></tbody></table></figure>
 
-<p>這些符號總共有 <code>@</code>, <code>=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>!</code>，有興趣可以到<a href="https://docs.python.org/3.8/library/struct.html#struct-alignment" target="_blank" rel="noopener">官方文件</a>了解。有趣的是只有第一個(<code>@</code>)，也就是預設的模式會採用自動對齊！</p>
-
+<p>這些符號總共有 <code>@</code>, <code>=</code>, <code><</code>, <code>></code>, <code>!</code>，有興趣可以到<a href="https://docs.python.org/3.8/library/struct.html#struct-alignment" target="_blank" rel="noopener">官方文件</a>了解。有趣的是只有第一個(<code>@</code>)，也就是預設的模式會採用自動對齊！</p>
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -361,6 +361,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -371,10 +377,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -446,7 +448,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

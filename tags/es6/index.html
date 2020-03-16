@@ -213,7 +213,7 @@
 							</div>
 						</div>
 						<span class="reading-time">
-							3
+							2
 							min read
 						</span>
 					</footer>
@@ -246,9 +246,11 @@
 								
 								“This” in nodeJS以下討論 nodeJS 中的 this，與 javascript 中的 this 不同，請不要搞混了。
 function 外的 thisfunction 外的 this 指向 module.exports
-1console.log('outside: ', this) // &#123;&#125;
+1console.log('outside: ', this) // {}
 
-12module.exports.bar = 3console.log('outside: ', this) // outside:  &#12
+12module.exports.bar = 3console.log('outside: ', this) // outside:  { bar: 3 }
+
+切記
 								...
 							</p>
 						</div>
@@ -265,7 +267,7 @@ function 外的 thisfunction 外的 this 指向 module.exports
 							</div>
 						</div>
 						<span class="reading-time">
-							5
+							4
 							min read
 						</span>
 					</footer>
@@ -297,14 +299,14 @@ function 外的 thisfunction 外的 this 指向 module.exports
 								
 								
 								記錄幾個月前幫助同學遇到的一個問題，同時了解背後的原理。
-12345for (var i = 0; i &lt; 5; i++) &#123;	setTimeout(() =&gt; &#123;		console.log(i)	&#125;, 0)&#125;
+12345for (var i = 0; i 5; i++) {	setTimeout(() => {		console.log(i)	}, 0)}
 
 output:
 
 5 5 5 5 5
 
 很多人會認為 output 應該為 0 1 2 3 4 
-要記得 callback function 會被丟到 callback queue 等到 thread 有空才去執行
+要記得 callback function 會被丟到 callback queue 等到 thread 有空才去執行，所以一共有 5 個 callback function
 								...
 							</p>
 						</div>
@@ -368,6 +370,12 @@ output:
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -378,10 +386,6 @@ output:
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -453,7 +457,7 @@ output:
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <p>在執行 ghidra 的時候，跳出一條錯誤訊息</p>
+                    <html><head></head><body><p>在執行 ghidra 的時候，跳出一條錯誤訊息</p>
 <p><code>JDK 11+ could not be found and must be manually chosen!</code></p>
 <p>但是去 oracle java 的網站上只有看到第八版的 JDK</p>
 <p>於是找到了 openJDK，以下紀錄如何使用 openJDK 替換目前的 jave 環境</p>
@@ -185,11 +185,11 @@
 <p><code>cd ~/Downloads</code><br><code>tar xf openjdk-11.0.2_osx-x64_bin.tar.gz</code><br>(順便推薦 zsh，只要下 <code>x</code> 指令就能自動解壓縮)</p>
 <p>搬移檔案至 JVM<br><code>sudo mv jdk-11.0.2.jdk /Library/Java/JavaVirtualMachines/</code></p>
 <p>檢查是否已經替換新的 JAVA 環境</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">openjdk version &quot;11.0.2&quot; 2019-01-15</span><br><span class="line">OpenJDK Runtime Environment 18.9 (build 11.0.2+9)</span><br><span class="line">OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">openjdk version "11.0.2" 2019-01-15</span><br><span class="line">OpenJDK Runtime Environment 18.9 (build 11.0.2+9)</span><br><span class="line">OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)</span><br></pre></td></tr></tbody></table></figure>
 
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ javac -version</span><br><span class="line">javac 11.0.2</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ javac -version</span><br><span class="line">javac 11.0.2</span><br></pre></td></tr></tbody></table></figure>
 
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -340,6 +340,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -350,10 +356,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -425,7 +427,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

@@ -173,6 +173,57 @@
 			<article class="post-card post  no-image ">
 				
 				<div class="post-card-content">
+					<a class="post-card-content-link" title="了解javesvript中的var" href="/2019/03/25/了解javesvript中的var/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2019-03-25T10:02:35.000Z">
+									2019-03-25
+								</time>
+							</span>
+							<h2 class="post-card-title">了解javesvript中的var</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								記錄幾個月前幫助同學遇到的一個問題，同時了解背後的原理。
+12345for (var i = 0; i 5; i++) {	setTimeout(() => {
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							2
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
+			<article class="post-card post  no-image ">
+				
+				<div class="post-card-content">
 					<a class="post-card-content-link" title="如何在Linux上掛載外接硬碟" href="/2019/03/19/如何在Linux上掛載外接硬碟/">
 						<header class="post-card-header">
 							<span class="post-card-tags">
@@ -194,9 +245,12 @@
 								
 								
 								
-								
-								
-								前言最近在練習 quota 用來配置每一個使用者的目錄用量， quota 是以分割區為單位，發現自己連硬碟掛載都不太熟悉，可以是平常都用遠端機器的緣故，較少掛載
+								前言最近在練習 quota 用來配置每一個使用者的目錄用量， quota 是以分割區為單位，發現自己連硬碟掛載都不太熟悉，可以是平常都用遠端機器的緣故，較少掛載經驗，此篇文章記錄一下掛載過程。
+接上硬碟無論是實體硬碟，虛擬硬碟，接上後第一步應該確認是否成功讀取
+ls /dev/sd*
+分割確認讀取之後，先用 fdisk 確認硬碟是否正確fdisk -l /dev/sdb
+使用 fdisk 分割硬碟fdisk /dev/sdb
+進入 fdisk 程式後，使用 m 來查看指令，並
 								...
 							</p>
 						</div>
@@ -409,12 +463,12 @@ ret2libc
 本文將透過 2018-EOF 的 pwn3 來說明 ret2libc 的攻擊手法
 分析題目(題目給了一個 ELF 檔案 以及 libc.so.6)
 拿到題目第一步，先丟到 IDA 中逆向
-
+ -->
 
 同時查看 ELF 檔案的保護狀態
+ -->
 
-
-這兩個線索加起來(沒有 
+這兩個線
 								...
 							</p>
 						</div>
@@ -467,9 +521,10 @@ ret2libc
 UNIX Systems Programming: Communication, Concurrency and Threads: Communication, Concurrency and Threads (2nd Edition) 2nd Edition
 
 對於 argv 的操作為下
-1int main(int argc, char* argv[]) &#123; &#125;
+1int main(int argc, char* argv[]) { }
 
 回想起以前常常都是使用以下這種用法
+1int main
 								...
 							</p>
 						</div>
@@ -593,6 +648,12 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -603,10 +664,6 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -678,7 +735,7 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

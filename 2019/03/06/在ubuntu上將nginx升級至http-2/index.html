@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>架設 web server 時，把基本設定(virtual host)設定完之外，最麻煩的一件事情就是設定憑證。因為憑證有期限，除了申請憑證外還要排程去定期更新，否則自己忘記憑證到期的話，某一天網站就無法被正常存取了</p>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>架設 web server 時，把基本設定(virtual host)設定完之外，最麻煩的一件事情就是設定憑證。因為憑證有期限，除了申請憑證外還要排程去定期更新，否則自己忘記憑證到期的話，某一天網站就無法被正常存取了</p>
 <p>現在 cloudflare 有提供免費 SSL 服務，只需要按幾個按鍵就搞定了。但 SSL 畢竟是 server side 的事情，給 cloudflare 幫你做，還要開啟 CDN ，如果只是靜態網頁的話沒問題。需要用 reverse proxy 的話，CDN反而是幫倒忙，所以還是非自己設定不可</p>
 <p>於是想說趁更新更新憑證，順便幫 nginx 也改走 http/2</p>
 <h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>http/2 的優點在此不贅述，要將 nginx 啟動 http2，首先要確認你的 nginx 版本是否大於 <code>1.9.5</code></p>
@@ -184,7 +184,7 @@
 <p>$ nginx -v<br>nginx version: nginx/1.14.2</p>
 </blockquote>
 <p>接下來因為 http/2 強制要用 SSL，所以必須要申請憑證</p>
-<p>推薦用 <code>Let&#39;s encrypt</code> 並且用 <code>certbot</code> 管理，原因是 certbot 在版本 0.22 以上可以簽發 wildcard 憑證，如此一來就不需要像以前一樣，幫自己的每一個 sub domain 都申請一個憑證</p>
+<p>推薦用 <code>Let's encrypt</code> 並且用 <code>certbot</code> 管理，原因是 certbot 在版本 0.22 以上可以簽發 wildcard 憑證，如此一來就不需要像以前一樣，幫自己的每一個 sub domain 都申請一個憑證</p>
 <p>意思就是一張憑證可以在 <code>*.your-domain</code> 下使用</p>
 <h2 id="開工"><a href="#開工" class="headerlink" title="開工"></a>開工</h2><p>如果你希望申請憑證的同時幫你設定你的 nginx 設定檔，可以這麼做</p>
 <p>(預設是幫你申請 <code>/etc/nginx/sites-enabled</code> 下的 domain)</p>
@@ -192,7 +192,7 @@
 <p>或是，只需要簽發憑證，其他自己設定就好</p>
 <p><code>sudo certbot --nginx certonly</code></p>
 <p>憑證設定好，也確定 nginx 版本沒問題，只需要去 nginx 設定檔啟用 http/2 即可</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">listen              443 ssl http2;</span><br><span class="line">listen              [::]:443 ssl http2;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">listen              443 ssl http2;</span><br><span class="line">listen              [::]:443 ssl http2;</span><br></pre></td></tr></tbody></table></figure>
 
 <p>另外，不用擔心憑證過期的問題，certbot 會自動定期將憑證更新</p>
 <p>想確認的話，以下指令查看 certbot 是否被排程</p>
@@ -204,7 +204,7 @@
 <h2 id="驗證"><a href="#驗證" class="headerlink" title="驗證"></a>驗證</h2><p>要檢查是否成功啟用，可以用線上工具，像是 <a href="https://tools.keycdn.com/http2-test" target="_blank" rel="noopener">http2-test</a></p>
 <p>或者用 curl 查看回應檔頭是否成功啟用 http/2</p>
 <p><code>curl -I your-domain</code></p>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -363,6 +363,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -373,10 +379,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -448,7 +450,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

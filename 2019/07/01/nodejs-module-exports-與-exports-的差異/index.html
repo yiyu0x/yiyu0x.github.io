@@ -176,13 +176,13 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>nodejs 中有許多的特性或是方便的功能我們會使用，但實際上不知道內部處理的機制。本篇要探討的是匯出模組的兩種方式 <code>modules.exports</code> 以及 <code>exports</code></p>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>nodejs 中有許多的特性或是方便的功能我們會使用，但實際上不知道內部處理的機制。本篇要探討的是匯出模組的兩種方式 <code>modules.exports</code> 以及 <code>exports</code></p>
 <h2 id="結論-TL-DR"><a href="#結論-TL-DR" class="headerlink" title="結論(TL;DR)"></a>結論(TL;DR)</h2><blockquote>
 <p>The exports variable is available within a module’s file-level scope, and is assigned the value of module.exports before the module is evaluated.</p>
 </blockquote>
 <p>在不更改 <code>modules.exports</code> 與 <code>exports</code> 的前提下，兩者是一樣的。<br>使用 <code>require()</code> 引入模組，實際上是去 <code>modules.exports</code> 找模組，所以 <code>exports</code> 只是用來輔助 <code>modules.exports</code>。</p>
 <p>用程式碼角度來看就是:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = exports = <span class="function"><span class="keyword">function</span> <span class="title">Constructor</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ... etc.</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = exports = <span class="function"><span class="keyword">function</span> <span class="title">Constructor</span>(<span class="params"></span>) </span>{</span><br><span class="line">    <span class="comment">// ... etc.</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
 
 <ul>
 <li>兩者初始指向同一個物件</li>
@@ -191,19 +191,19 @@
 </ul>
 <p><a href="https://nodejs.org/dist/latest-v10.x/docs/api/modules.html#modules_exports" target="_blank" rel="noopener">Nodejs Doc - modules exports</a></p>
 <h2 id="實驗時間"><a href="#實驗時間" class="headerlink" title="實驗時間"></a>實驗時間</h2><h3 id="實驗一-兩者初始指向同一個物件"><a href="#實驗一-兩者初始指向同一個物件" class="headerlink" title="實驗一 (兩者初始指向同一個物件)"></a>實驗一 (兩者初始指向同一個物件)</h3><p>m.js:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//&#123; a: 'str_a' &#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//&#123; a: 'str_a' &#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports === exports); <span class="comment">//true</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports === exports); <span class="comment">//true</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>我們由以上實驗可以得知 <code>exports</code> 與 <code>module.exports</code> 是指向同一個物件</p>
 <h3 id="實驗二-module-exports-指向新物件，斷開關係"><a href="#實驗二-module-exports-指向新物件，斷開關係" class="headerlink" title="實驗二 (module.exports 指向新物件，斷開關係)"></a>實驗二 (module.exports 指向新物件，斷開關係)</h3><p>m.js:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//&#123; a: 'str_a' &#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//&#123; a: 'str_a' &#125;</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123; <span class="attr">b</span>: <span class="string">"str_b"</span> &#125;; <span class="comment">// 此時將 module.exports 重新給定一物件，斷開與 exports 之關係</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//&#123; a: 'str_a' &#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//&#123; b: 'str_b' &#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">module</span>.exports = { <span class="attr">b</span>: <span class="string">"str_b"</span> }; <span class="comment">// 此時將 module.exports 重新給定一物件，斷開與 exports 之關係</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ b: 'str_b' }</span></span><br></pre></td></tr></tbody></table></figure>
 
 <h3 id="實驗三-require-是去-module-exports-找模組"><a href="#實驗三-require-是去-module-exports-找模組" class="headerlink" title="實驗三 (require 是去 module.exports 找模組)"></a>實驗三 (require 是去 module.exports 找模組)</h3><p>m.js:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123; <span class="attr">a</span>: <span class="number">123</span> &#125;;</span><br><span class="line">exports.b = <span class="string">"456"</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = { <span class="attr">a</span>: <span class="number">123</span> };</span><br><span class="line">exports.b = <span class="string">"456"</span>;</span><br></pre></td></tr></tbody></table></figure>
 
 <p>main.js:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> x = <span class="built_in">require</span>(<span class="string">"./m.js"</span>);</span><br><span class="line"><span class="built_in">console</span>.log(x); <span class="comment">//&#123; a: 123 &#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> x = <span class="built_in">require</span>(<span class="string">"./m.js"</span>);</span><br><span class="line"><span class="built_in">console</span>.log(x); <span class="comment">//{ a: 123 }</span></span><br></pre></td></tr></tbody></table></figure>
 
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -362,6 +362,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -372,10 +378,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -447,7 +449,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

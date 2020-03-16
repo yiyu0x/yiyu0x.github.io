@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>容器技術近年來非常流行，相信各位在不同地方多少有聽過 <code>kubernetes</code>（或是它的簡稱 <code>k8s</code>）這項技術。但是很多人了解 <code>k8s</code> 之後會被這個技術嚇到，原因是因為有大量的名詞，像是 <code>Pod</code>, <code>Service</code> 等等（這些元件數量高達 60 多種），然後又有一大堆的架構圖，很多人可能還沒開始就先放棄了。</p>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>容器技術近年來非常流行，相信各位在不同地方多少有聽過 <code>kubernetes</code>（或是它的簡稱 <code>k8s</code>）這項技術。但是很多人了解 <code>k8s</code> 之後會被這個技術嚇到，原因是因為有大量的名詞，像是 <code>Pod</code>, <code>Service</code> 等等（這些元件數量高達 60 多種），然後又有一大堆的架構圖，很多人可能還沒開始就先放棄了。</p>
 <p>這篇文章的目的沒有要教大家了解 <code>k8s</code> 背後的觀念，而是要透過簡單的小實驗來讓大家了解 <code>k8s</code> 的作用到底為何？讓大家有點感覺，後續如果各位要深入了解，可能也會有點幫助。</p>
 <p>簡單來說 <code>k8s</code> 是一項可以管理容器的技術，而且可以分散式的管理。意思就是容器掛掉之後 <code>k8s</code> 會自動偵測並且讓容器重新啟動。當然還有非常多的功能，但是主要的核心目的就是保持應用程式的 <code>高可用性（high availability）</code>（簡稱 HA）。</p>
 <p>本篇實驗會透過一個簡單例子來讓大家看到 <code>k8s</code> 達成高可用性的成效。</p>
@@ -188,37 +188,37 @@
 <p><code>docker run -d -p 3000:3000 yiyu0x/current-time</code></p>
 <p>這個容器會在 localhost 3000 port 開一個顯示目前時間的 API：</p>
 <p>如果順利的話訪問 <code>localhost:3000</code> 會得到：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Current time is 4:2:48</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Current time is 4:2:48</span><br></pre></td></tr></tbody></table></figure>
 
 <p>我們可以後過 <code>docker ps</code> 來確認這個 container 正確無誤的運作：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">d5662a916aed        yiyu0x/current-time   &quot;docker-entrypoint.s…&quot;   10 seconds ago      Up 8 seconds        0.0.0.0:3000-&gt;3000/tcp   tender_hypatia</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">d5662a916aed        yiyu0x/current-time   "docker-entrypoint.s…"   10 seconds ago      Up 8 seconds        0.0.0.0:3000->3000/tcp   tender_hypatia</span><br></pre></td></tr></tbody></table></figure>
 
 <p>但是我們如果去戳 <code>localhost:3000/bye</code> 這個位置的話，會發現容器掛掉了：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br></pre></td></tr></tbody></table></figure>
 
 <p>這個行為模擬出當應用程式意外結束的情況。</p>
 <h2 id="導入-k8s"><a href="#導入-k8s" class="headerlink" title="導入 k8s"></a>導入 k8s</h2><p>建立一個 <code>pod</code> 內容是剛才的 <code>current-time</code> 的 <code>container</code>：<br><code>kubectl run --image=yiyu0x/current-time curr-time --generator=run-pod/v1</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ kubectl get po</span><br><span class="line">NAME        READY   STATUS              RESTARTS   AGE</span><br><span class="line">curr-time   0/1     ContainerCreating   0          16s</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ kubectl get po</span><br><span class="line">NAME        READY   STATUS              RESTARTS   AGE</span><br><span class="line">curr-time   0/1     ContainerCreating   0          16s</span><br></pre></td></tr></tbody></table></figure>
 
 <p>將他 <code>expose</code> 出去：</p>
 <p><code>kubectl expose pod curr-time --port 3000 --type=NodePort</code></p>
 <p>取得位置並且訪問：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ minikube service curr-time --url         </span><br><span class="line">http://192.168.64.6:30948</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ minikube service curr-time --url         </span><br><span class="line">http://192.168.64.6:30948</span><br></pre></td></tr></tbody></table></figure>
 
 <p>此時建議再開一個 terminal 的 tab 使用:<br><code>watch kubectl get po</code><br>（感謝學長 Jerry Wang 指正，可以用 <code>kubectl get po -w</code> 就不用額外安裝 watch 指令了！）</p>
 <p>監測該 <code>pod</code> 的狀態並且去戳 <code>http://192.168.64.6:30948/bye</code></p>
 <p>你會發現容器掛掉後幾秒鐘，又自己重新跑起來了，並且 RESTARTS 的數量變成 1 了（原本是 0）：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME        READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time   1/1     Running   1          8m56s</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME        READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time   1/1     Running   1          8m56s</span><br></pre></td></tr></tbody></table></figure>
 
 <h2 id="更強大的高可用性-replicas"><a href="#更強大的高可用性-replicas" class="headerlink" title="更強大的高可用性 - replicas"></a>更強大的高可用性 - replicas</h2><p>透過以上例子已經可以感覺到 <code>k8s</code> 的威力，但是其實 <code>docker</code> 本身就可以監測容器的狀態並且重新啟動了。<code>k8s</code> 更強大的地方在於它可以一次建立多個 <code>pod</code> 並且在一個 <code>pod</code> 掛掉時透過 <code>loadbalancer</code> 馬上把流量切換到其他 <code>pod</code> 中，這樣子使用者完全感覺不出來原來服務有掛掉過。</p>
 <p>建立 <code>replicas</code>：<br><code>kubectl run curr-time --image=yiyu0x/current-time --replicas=3 --port 3000</code></p>
 <p>對外打開：<br><code>kubectl expose deployment curr-time --port=3000 --type=NodePort</code></p>
 <p>一樣透過 <code>watch kubectl get po</code> 來監控 <code>pod</code>：</p>
 <p>（2019/1/17 更新：或是用 <code>kubectl get po -w</code>）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po                                       </span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   1/1     Running   3          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running   2          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running   2          7m41s</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po                                       </span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   1/1     Running   3          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running   2          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running   2          7m41s</span><br></pre></td></tr></tbody></table></figure>
 
 <p>然後戳一下 API 的 bye 位置，會發現：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po                                       </span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS      RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   0/1     Completed   3          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running     2          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running     2          8m40s</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po                                       </span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS      RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   0/1     Completed   3          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running     2          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running     2          8m40s</span><br></pre></td></tr></tbody></table></figure>
 
 <p>三個服務中的容器一個掛掉其他兩個還是正常運作中，使用者根本感覺不出來（流量會被導入到正常運作的 pod 中）後面的容器原來掛掉了！</p>
 <h2 id="更更更強大的高可用性"><a href="#更更更強大的高可用性" class="headerlink" title="更更更強大的高可用性"></a>更更更強大的高可用性</h2><p>以上例子使用 <code>minikube</code> 來實驗，只有一個節點。真實情況甚至可以把好幾台機器全部給 <code>k8s</code> 進行管理。這樣子甚至連機器掛掉都可以保證服務不中斷，這才是真正的高可用性！</p>
@@ -230,7 +230,7 @@
 </ul>
 <p>原因在於我認為先體驗一次這個技術的效果再去學習這個技術細解，有時候可能會比起直接去記憶那些硬生生的名詞來得有效果，所以看完這篇文章之後，如果不太懂裡面的細解可以再去看官方文件或是查閱其他 <code>k8s</code> 的概念講解文章。</p>
 <p>看完之後再回來自己玩過一次，我相信會有不一樣的感覺的！</p>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -381,6 +381,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -391,10 +397,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -466,7 +468,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

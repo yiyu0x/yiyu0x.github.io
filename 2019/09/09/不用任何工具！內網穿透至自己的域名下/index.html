@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
 <p>不久前才寫了一篇 <a href="https://blog.yiyu0x.tk/2019/06/03/%E7%94%A8-serveo-%E4%BE%86%E7%A9%BF%E9%80%8F%E5%85%A7%E7%B6%B2%E5%90%A7/" target="_blank" rel="noopener">用 serveo 來穿透內網吧</a>，結果馬上就要打臉自己了 👋</p>
 </blockquote>
 <p>上一篇文章提到 serveo.net 比起 ngrok 可以自訂 sub domain ，更加方便（不會每一次產生網址都像一堆亂碼一樣不方便記憶）。但是自己在這一陣子使用下發現，serveo.net 的網站似乎常常掛掉，而且打通 reverse ssh 的速度似乎沒有 ngrok 來得快！</p>
@@ -188,10 +188,10 @@
 <li>NS server 設定一組 A record 指向 VPS</li>
 <li>nginx （用來做 reverse proxy）</li>
 </ul>
-<h2 id="架構"><a href="#架構" class="headerlink" title="架構"></a>架構</h2><p><img alt="1" class="post-img b-lazy" data-img="./a.png" data-index="0" data-src="./a.png"></p>
+<h2 id="架構"><a href="#架構" class="headerlink" title="架構"></a>架構</h2><p><img alt="1" class="post-img b-lazy" data-img="/2019/09/09/不用任何工具！內網穿透至自己的域名下/./a.png" data-index="0" data-src="/2019/09/09/不用任何工具！內網穿透至自己的域名下/./a.png"></p>
 <h2 id="開工"><a href="#開工" class="headerlink" title="開工"></a>開工</h2><p>首先先在 <code>/etc/nginx/sites-available</code> 下新建設定檔，檔名建議用你的 virtual host 來命名，在這邊以 reverse 舉例</p>
 <p>/etc/nginx/sites-available/reverse:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">  server_name reverse.yiyu0x.tk; #改為自己的 domain</span><br><span class="line">  location / &#123;</span><br><span class="line">      proxy_pass http://localhost:5487/; #設定為內網任意 port，到時候用來打 reverse ssh</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">server {</span><br><span class="line">  server_name reverse.yiyu0x.tk; #改為自己的 domain</span><br><span class="line">  location / {</span><br><span class="line">      proxy_pass http://localhost:5487/; #設定為內網任意 port，到時候用來打 reverse ssh</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 
 <p>設定完畢之後，記得 <code>ln -s</code> 至 <code>/etc/nginx/sites-enable</code> 並且重新啟動 nginx （啟動前可以用 nginx -t 來檢查是否有語法錯誤）</p>
 <p>（如果你的內網穿透需要 https，可以用 certbot 來輕鬆幫你新增免費憑證並且管理憑證）</p>
@@ -201,23 +201,23 @@
 <p>但是指令這麼長，非常難記憶，如果這篇文章只有這樣子我想大家還是會回去用 ngrok 或是 serveo.net。</p>
 <p>在使用 ssh 服務時，可以使用金鑰來達成免密碼登入。以及在 <code>~/.ssh/config</code> 下新增設定來簡化登入 ssh 流程</p>
 <p>例如:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host &lt;vps-name&gt;         #自行設定想要的名稱</span><br><span class="line">    hostname &lt;vps-ip&gt;   #vps ip 位置</span><br><span class="line">    user &lt;name&gt;         #遠端使用者名稱</span><br><span class="line">    IdentityFile &lt;path&gt; #私鑰位置</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host <vps-name>         #自行設定想要的名稱</vps-name></span><br><span class="line">    hostname <vps-ip>   #vps ip 位置</vps-ip></span><br><span class="line">    user <name>         #遠端使用者名稱</name></span><br><span class="line">    IdentityFile <path> #私鑰位置</path></span><br></pre></td></tr></tbody></table></figure>
 
 <p>設定完畢之後，指令可以簡化為</p>
 <p><code>ssh -R 5487:localhost:1234 vps-name</code></p>
 <p>但是這樣還是不夠好！我們在 local 的 port 可能會因為每一個服務不同而需要穿透不同的 port。</p>
 <p>於是我們可以透過修改 <code>~/.bashrc</code> 來設定 alias</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> rev-ssh=<span class="string">'rev-ssh'</span></span><br><span class="line"><span class="keyword">function</span> rev-<span class="function"><span class="title">ssh</span></span>() &#123;</span><br><span class="line">	ssh -R 5487:localhost:<span class="variable">$1</span> y-gcp</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> rev-ssh=<span class="string">'rev-ssh'</span></span><br><span class="line"><span class="keyword">function</span> rev-<span class="function"><span class="title">ssh</span></span>() {</span><br><span class="line">	ssh -R 5487:localhost:<span class="variable">$1</span> y-gcp</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 
 <p>設定完之後，記得下 <code>source ~/.bashrc</code> 來讓 bash 重新讀取一次設定檔</p>
-<p>如此一來，指令簡化為 <code>rev-ssh &lt;your-port&gt;</code></p>
+<p>如此一來，指令簡化為 <code>rev-ssh <your-port></your-port></code></p>
 <h2 id="驗收"><a href="#驗收" class="headerlink" title="驗收"></a>驗收</h2><p>可以透過 <code>python3 -m http.server 6666</code> 在當下目錄開一個 http 服務來瀏覽檔案</p>
 <p>再使用 <code>rev-ssh 6666</code> 來將 local 的 6666 port 打一條 reverse ssh 至自己的 vps（按照我以上的設定就是 reverse.yiyu0x.tk）</p>
 <p>現在就可以與 ngrok 和 serveo.net 正式再見。再也不會因為這兩家服務掛掉而沒有辦法穿透內網了！</p>
 <h2 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h2><ul>
 <li><a href="https://blog.longwin.com.tw/2016/03/linux-bash-alias-take-parameter-2016/" target="_blank" rel="noopener">Bash alias 如何傳入參數($1)</a></li>
 </ul>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -368,6 +368,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -378,10 +384,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -453,7 +455,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

@@ -176,15 +176,15 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <p>有時候會需要暫時的 public ip 來運行環境，比較常見的需求像是</p>
+                    <html><head></head><body><p>有時候會需要暫時的 public ip 來運行環境，比較常見的需求像是</p>
 <ul>
 <li>分享一個檔案給內網外的朋友</li>
 <li>測試環境需要 SSL 憑證 (https)</li>
 <li>API 的 callback url (需要 https)</li>
 </ul>
 <p>雖然要在本地端使用憑證不是不能，只是設定需要一些時間。之前我有這樣的需求時都是透過 <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a>。長久使用下來還算方便，美中不足的點是 ngrok 分享出來的外網網址不是很乾淨</p>
-<!--  -->
-<p><img alt="1" class="post-img b-lazy" data-img="ngrok.png" data-index="0" data-src="ngrok.png"></p>
+<!-- <img src="/2019/06/03/用-serveo-來穿透內網吧/ngrok.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/06/03/用-serveo-來穿透內網吧/ngrok.png" data-index="0" data-src="/2019/06/03/用-serveo-來穿透內網吧/ngrok.png"></p>
 <p>以上的 ngrok 的截圖，分享出來的網址是 <code>https://50bb33a3.ngrok.io</code></p>
 <p>然而就在前幾天發現更棒的方案，<a href="https://serveo.net/" target="_blank" rel="noopener">serveo</a>。</p>
 <p>serveo 透過 ssh 的方式將一個具有 public ip 的 domain 映射到內網，最棒的地方在於因為是透過 ssh，所以不需要安裝套件，而且映射出來的 domain 還可以自訂！</p>
@@ -192,12 +192,12 @@
 <p>他的官網上簡潔明瞭的一句話:</p>
 <p><code>ssh -R 80:localhost:3000 serveo.net</code></p>
 <p>簡單一行指令就會自動產生一個 domain 來映射到內網的 3000 port</p>
-<!--  -->
-<p><img alt="2" class="post-img b-lazy" data-img="serveo.png" data-index="1" data-src="serveo.png"></p>
+<!-- <img src="/2019/06/03/用-serveo-來穿透內網吧/serveo.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/06/03/用-serveo-來穿透內網吧/serveo.png" data-index="1" data-src="/2019/06/03/用-serveo-來穿透內網吧/serveo.png"></p>
 <p>也可以用剛才提到的自訂子域名的方式</p>
 <p><code>ssh -R yiyu:80:localhost:8888 serveo.net</code></p>
-<!--  -->
-<p><img alt="3" class="post-img b-lazy" data-img="serveo_yiyu.png" data-index="2" data-src="serveo_yiyu.png"></p>
+<!-- <img src="/2019/06/03/用-serveo-來穿透內網吧/serveo_yiyu.png"> -->
+<p><img alt="3" class="post-img b-lazy" data-img="/2019/06/03/用-serveo-來穿透內網吧/serveo_yiyu.png" data-index="2" data-src="/2019/06/03/用-serveo-來穿透內網吧/serveo_yiyu.png"></p>
 <p>這樣子可以透過 <code>https://yiyu.serveo.net</code> 來訪問內網 8888 port</p>
 <p>如此一來要分享某一個目錄下的檔案可以先透過 python3 來啟動一個簡單的 HFS</p>
 <p><code>python3 -m http.server</code></p>
@@ -205,7 +205,7 @@
 <p><code>ssh -R yiyu:80:localhost:8000 serveo.net</code></p>
 <p>(python3 的 http.server 預設開 8000 port)</p>
 <p>如此一來人家就可以透過 <code>https://yiyu.serveo.net</code> 來取得路徑下的檔案了，非常方便 😄</p>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -356,6 +356,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -366,10 +372,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -441,7 +443,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

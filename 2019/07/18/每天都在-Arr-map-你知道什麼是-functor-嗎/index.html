@@ -176,8 +176,8 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>程式設計的方法論大體來說可以分為兩種， <code>functional programming (FP)</code> 以及 <code>object oriented programming (OOP)</code>。<br>然而不同的程式語言可能也會提倡不同的設計方法，舉一個明確的例子，在 Java 的 Hello, world 程式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Hello! World!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>程式設計的方法論大體來說可以分為兩種， <code>functional programming (FP)</code> 以及 <code>object oriented programming (OOP)</code>。<br>然而不同的程式語言可能也會提倡不同的設計方法，舉一個明確的例子，在 Java 的 Hello, world 程式：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>{</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>{</span><br><span class="line">        System.out.println(<span class="string">"Hello! World!"</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 
 <p>整個程式必須包覆在一個與檔案名稱同名的物件中。</p>
 <p>Java 這個語言可以說先天就是一門物件導向式的語言(這個說法可能有些爭議)。但這兩種設計方式都只是方法，並沒有說哪一種語言就只能歸類於哪一種設計方式中。</p>
@@ -188,7 +188,7 @@
 <p>而在 <code>FP</code> 的概念則是有 <code>Immutable object</code>, <code>Lambda calculus</code>, <code>First class</code> 等等。</p>
 <h3 id="Immutable-object"><a href="#Immutable-object" class="headerlink" title="Immutable object"></a>Immutable object</h3><p>代表創造了該物件之後，內容就無法再被修改。這樣的特性先天就具備了在多個執行緒下的安全性。想想看，某個物件如果被多個 threads 共用，不會因為 thread A 改了某物件的內容，進而影響了 thread B。這也代表不用使用像 Lock 之類的機制來保證安全性。</p>
 <p>舉例來說：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.map(<span class="built_in">Math</span>.sqrt); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">// numbers 還是 [1, 4, 9]</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.map(<span class="built_in">Math</span>.sqrt); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">// numbers 還是 [1, 4, 9]</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>我們可以說 map() 這個函式確保了 Immutable，甚至還有套件庫可以讓全部資料型態都保持 Immutable (<a href="https://github.com/immutable-js/immutable-js" target="_blank" rel="noopener">immutable-js</a>)。</p>
 <h3 id="First-class"><a href="#First-class" class="headerlink" title="First class"></a>First class</h3><p>在 JavaScript 中，我們知道 function :</p>
@@ -212,7 +212,7 @@
 </blockquote>
 <p>相信大家都用過 <code>map()</code>。以 Array.prototype.map() 為例，在 <code>map()</code> 的處理過程中，會先把 Array 中的每一個 element 單獨丟進 function 處理，並且將各別結果放至新的 Array 後回傳。</p>
 <p>引用 MDN 的範例:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.map(<span class="built_in">Math</span>.sqrt); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">/* numbers 還是 [1, 4, 9]，這證明了 map() 不會去變動到 numbers 的值，</span></span><br><span class="line"><span class="comment">   map 內部是做了 immutable 的機制，Array.prototype 底下的這些高階函式</span></span><br><span class="line"><span class="comment">   大多都具有這樣函數式編程裡非常注重的特性 - immutable，不會去改變資料</span></span><br><span class="line"><span class="comment">   來源本身原有的值 </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.map(<span class="built_in">Math</span>.sqrt); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">/* numbers 還是 [1, 4, 9]，這證明了 map() 不會去變動到 numbers 的值，</span></span><br><span class="line"><span class="comment">   map 內部是做了 immutable 的機制，Array.prototype 底下的這些高階函式</span></span><br><span class="line"><span class="comment">   大多都具有這樣函數式編程裡非常注重的特性 - immutable，不會去改變資料</span></span><br><span class="line"><span class="comment">   來源本身原有的值 </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>在 <a href="https://hackernoon.com/functors-in-javascript-20a647b8f39f" target="_blank" rel="noopener">functors-in-javascript</a> 中有一張非常可愛且簡單明瞭的圖片說明了這件事</p>
 <p><img alt="example_img" class="post-img b-lazy" data-img="https://cdn-images-1.medium.com/max/1600/1*GbH6_EAvPrtQGc9fiVZpMA.gif" data-index="0" data-src="https://cdn-images-1.medium.com/max/1600/1*GbH6_EAvPrtQGc9fiVZpMA.gif"></p>
@@ -224,7 +224,7 @@
 <p>FP 的表達能力其實不遜色於 OOP。大部分時候，只是我們對 FP 的了解不夠深入而已。</p>
 <p>像是此篇未提及的 <code>applicative</code> 就是 <code>functor</code> 的進化版，如果說 <code>functor</code> 是把箱子(容器)中的每一個元素各別丟進 function 處理，那麼 <code>applicative</code> 可以想像為連 function 都在箱子(容器)中。我們必須從兩的不同的箱子拿出我們要的內容來做運算。</p>
 <p>希望這篇文章不但能讓你了解何謂 <code>functor</code>，還可以進而知道 <code>FP</code> 還有其他你平常沒有發現的特性。</p>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -379,6 +379,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -389,10 +395,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -464,7 +466,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

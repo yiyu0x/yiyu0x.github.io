@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="緣起"><a href="#緣起" class="headerlink" title="緣起"></a>緣起</h2><p>自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。</p>
+                    <html><head></head><body><h2 id="緣起"><a href="#緣起" class="headerlink" title="緣起"></a>緣起</h2><p>自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。</p>
 <p>然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。</p>
 <p>在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不是天天寫，時常會忘記。</p>
 <h2 id="目標"><a href="#目標" class="headerlink" title="目標"></a>目標</h2><p>希望將 container 跑起來時，裡面的 database 是已經定義好 Schema 的情況，讓後端服務可以直接進行互動。長期目標是連資料庫內容都要映射到 container 之外，方便日後移轉。不過這篇文章不會提到。</p>
@@ -186,16 +186,16 @@
 <p><code>ENTRYPOINT</code> 跟 <code>CMD</code> 類似，但是內容不會被 <code>docker run</code> 後面給的指令覆蓋掉，那些指令會附加在 <code>ENTRYPOINT</code> 之後</p>
 <p>除此之外將檔案複製進 container 要用 <code>COPY</code> 還是 <code>ADD</code> 也有一些不同看法。<code>ADD</code> 基本上就是 <code>COPY</code> 的增強版，除了可以將檔案複製進容器，也可以填入一串網址。如果填入的來源是壓縮檔，那麼會自動進行壓縮。</p>
 <p>所以沒有特別需求的話，單純想複製檔案進容器，還是推薦用 <code>COPY</code> 比較簡單明瞭一點。</p>
-<h2 id="撰寫-Docker-file"><a href="#撰寫-Docker-file" class="headerlink" title="撰寫 Docker file"></a>撰寫 Docker file</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mariadb:<span class="number">10.4</span>.<span class="number">8</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> init.sql /docker-entrypoint-initdb.d/</span></span><br><span class="line"><span class="keyword">ENV</span> MYSQL_ROOT_PASSWORD root</span><br><span class="line"><span class="keyword">ENV</span> MYSQL_DATABASE token_db</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3306</span></span><br></pre></td></tr></table></figure>
+<h2 id="撰寫-Docker-file"><a href="#撰寫-Docker-file" class="headerlink" title="撰寫 Docker file"></a>撰寫 Docker file</h2><figure class="highlight docker"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mariadb:<span class="number">10.4</span>.<span class="number">8</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> init.sql /docker-entrypoint-initdb.d/</span></span><br><span class="line"><span class="keyword">ENV</span> MYSQL_ROOT_PASSWORD root</span><br><span class="line"><span class="keyword">ENV</span> MYSQL_DATABASE token_db</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3306</span></span><br></pre></td></tr></tbody></table></figure>
 
 <p>在撰寫 Docker file 時，記得 image 要附上版本，否則預設是 latest。往後部署到其他伺服器有可能最新版本已經不再是這一版了，此時就可能出現不同版本行為不一的情況。建議一定要指定版本號。</p>
 <p>我想要在容器跑起來時自動將 database schema 也一併創建好，此時可以將你的 .sql 檔案放入 <code>/docker-entrypoint-initdb.d</code> 這個目錄，此目錄中的 .sql 檔案會在資料庫啟動時自動被執行(在 MySQL image 也是)，如此一來可以省下不少寫 script 去自動表格的時間。</p>
 <p>接下來設定好環境變數讓你的 MariaDB  自動建立好資料庫以及設定 root 密碼，詳細有哪些環境變數可以設定，在 <a href="https://hub.docker.com/_/mariadb" target="_blank" rel="noopener">MariaDB 的 image 文件中</a>。</p>
 <h2 id="備份與復原"><a href="#備份與復原" class="headerlink" title="備份與復原"></a>備份與復原</h2><p>使用容器部署服務時，可以很方便地將服務進行轉移。但今天的服務是資料庫，有時候我們希望將資料庫的內容從容器內備份出來，才不會因為容器意外停止了而遺失資料。</p>
 <p>做到這件事情的方法有很多，可以掛載目錄位置進容器，透過這樣的方式將資料庫相關的檔案與容器外的主機共用。但今天使用的方式是使用 <code>MySQL</code> 提供的 <code>mysqldump</code> 指令來將資料庫內容備份。</p>
-<h3 id="備份"><a href="#備份" class="headerlink" title="備份"></a>備份</h3><p><code>docker exec &lt;cotainer-id&gt; /usr/bin/mysqldump -u root --password=root &lt;db-name&gt; &gt; backup.sql</code></p>
+<h3 id="備份"><a href="#備份" class="headerlink" title="備份"></a>備份</h3><p><code>docker exec <cotainer-id> /usr/bin/mysqldump -u root --password=root <db-name> > backup.sql</db-name></cotainer-id></code></p>
 <p><code>backup.sql</code> 的名稱可以隨意命名，它是將資料庫內容匯出的 sql 檔案。</p>
-<h3 id="復原"><a href="#復原" class="headerlink" title="復原"></a>復原</h3><p><code>cat backup.sql | docker exec -i &lt;cotainer-id&gt; /usr/bin/mysql -u root --password=root &lt;db-name&gt;</code></p>
+<h3 id="復原"><a href="#復原" class="headerlink" title="復原"></a>復原</h3><p><code>cat backup.sql | docker exec -i <cotainer-id> /usr/bin/mysql -u root --password=root <db-name></db-name></cotainer-id></code></p>
 <p>備份與復原可以幫助你在轉移服務到其他主機時，先將原本服務的資料庫內容取出，並且在其他主機回復內容。</p>
 <h2 id="持久化儲存"><a href="#持久化儲存" class="headerlink" title="持久化儲存"></a>持久化儲存</h2><p>以上方法很明顯有一個問題，那就是你無法得知 container 在哪一個時候遇到意外而終止，這樣子也無法在適當的時機備份，有可能造成資料遺失！</p>
 <p>想要達成持久化儲存勢必要使用到 <code>VOLUME</code> 功能，除此之外還需要一個背景知識，mariaDB（MySQL）的資料儲存位置在 <code>/var/lib/mysql</code>。</p>
@@ -206,11 +206,11 @@
 <p><code>docker run -it -d -v db-data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root db</code></p>
 <p>如此一來，容器內的 <code>/var/lib/mysql</code> 映射至外部的 <code>db-data</code>，不管容器存在與否 <code>db-data</code> 都會存在！</p>
 <p>我們也可以用 <code>docker volume inspect db-data</code> 來查看該 <code>VOLUME</code> 的資訊</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;CreatedAt&quot;: &quot;2019-11-14T02:17:21Z&quot;,</span><br><span class="line">        &quot;Driver&quot;: &quot;local&quot;,</span><br><span class="line">        &quot;Labels&quot;: &#123;&#125;,</span><br><span class="line">        &quot;Mountpoint&quot;: &quot;/var/lib/docker/volumes/db-data/_data&quot;,</span><br><span class="line">        &quot;Name&quot;: &quot;db-data&quot;,</span><br><span class="line">        &quot;Options&quot;: &#123;&#125;,</span><br><span class="line">        &quot;Scope&quot;: &quot;local&quot;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    {</span><br><span class="line">        "CreatedAt": "2019-11-14T02:17:21Z",</span><br><span class="line">        "Driver": "local",</span><br><span class="line">        "Labels": {},</span><br><span class="line">        "Mountpoint": "/var/lib/docker/volumes/db-data/_data",</span><br><span class="line">        "Name": "db-data",</span><br><span class="line">        "Options": {},</span><br><span class="line">        "Scope": "local"</span><br><span class="line">    }</span><br><span class="line">]</span><br></pre></td></tr></tbody></table></figure>
 
 <p>可以發現它在本機位置的真實路徑為 <code>/var/lib/docker/volumes/db-data/_data</code>。</p>
 <h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>有了 Docker 之後讓很多事情變得很方便，但是自己在學習撰寫 Dockerfile 的過程中以及部署 Docker 服務時，時常被一些類似的指令與行為搞混。希望藉由記錄建構環境流程，一方面加深自己印象，一方面讓更多有類似需求的夥伴可以參考 😊</p>
-
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -361,6 +361,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -371,10 +377,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -446,7 +448,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 

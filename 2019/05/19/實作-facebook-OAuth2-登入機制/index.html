@@ -176,7 +176,7 @@
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前幾週看到 <a href="https://github.com/kamranahmedse/developer-roadmap" target="_blank" rel="noopener">developer-roadmap</a> 中的後端能力技能樹，看到了 OAuth2 這個聽過多次但是沒有實際實作過的驗證機制。於是開啟了自己實作的想法。</p>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前幾週看到 <a href="https://github.com/kamranahmedse/developer-roadmap" target="_blank" rel="noopener">developer-roadmap</a> 中的後端能力技能樹，看到了 OAuth2 這個聽過多次但是沒有實際實作過的驗證機制。於是開啟了自己實作的想法。</p>
 <p>完整的做法放在 <a href="https://github.com/yiyu0x/oAuth2-fb-tutorial" target="_blank" rel="noopener">oAuth-fb-tutorial</a> 中，以下紀錄了如何配置以及申請 token。</p>
 <h2 id="setup"><a href="#setup" class="headerlink" title="setup"></a>setup</h2><ol start="0">
 <li><p>首先，先在 <a href="https://developers.facebook.com/" target="_blank" rel="noopener">facebook for developers</a> 註冊應用程式</p>
@@ -184,23 +184,23 @@
 <li><p>在此專案目錄下建立 .env, 並且將你的資料填入</p>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">facebook_client_id=</span><br><span class="line">facebook_secret_id=</span><br><span class="line">redirect_uri=</span><br><span class="line">facebook_console_id=</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">facebook_client_id=</span><br><span class="line">facebook_secret_id=</span><br><span class="line">redirect_uri=</span><br><span class="line">facebook_console_id=</span><br></pre></td></tr></tbody></table></figure>
 
 <p><code>facebook_client_id</code> 以及 <code>facebook_secret_id</code> 在註冊完的應用程式設定中可以找到</p>
-<!--  -->
-<p><img alt="1" class="post-img b-lazy" data-img="fb-dev.png" data-index="0" data-src="fb-dev.png"></p>
+<!-- <img src="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev.png" data-index="0" data-src="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev.png"></p>
 <p>分別為 <code>應用程式編號</code> 以及 <code>應用程式密鑰</code></p>
 <p><code>redirect_uri</code> 則填入 ip:3000/facebook/callback ，這邊要注意的是臉書不允許用 http，所以無法只接用 localhost， 這邊推薦大家用 <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a> 來將一個外網網址映射到 localhost:3000/callback/facebook</p>
-<!--  -->
-<p><img alt="2" class="post-img b-lazy" data-img="ngrok.png" data-index="1" data-src="ngrok.png"></p>
+<!-- <img src="/2019/05/19/實作-facebook-OAuth2-登入機制/ngrok.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/05/19/實作-facebook-OAuth2-登入機制/ngrok.png" data-index="1" data-src="/2019/05/19/實作-facebook-OAuth2-登入機制/ngrok.png"></p>
 <p>例如我的 ngrok 幫我映射的 URL 為 <a href="https://7bfbb3ed.ngrok.io" target="_blank" rel="noopener">https://7bfbb3ed.ngrok.io</a></p>
 <p>則 <code>redirect_uri</code> 就填入 <code>https://7bfbb3ed.ngrok.io/facebook/callback</code></p>
 <p>除了在 <code>.env</code> 填入以外， 也要記得在剛才應用程式設定中填入 <code>有效的 OAuth 重新導向 URI</code> 之中</p>
-<!--  -->
-<p><img alt="3" class="post-img b-lazy" data-img="fb-dev2.png" data-index="2" data-src="fb-dev2.png"></p>
+<!-- <img src="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev2.png"> -->
+<p><img alt="3" class="post-img b-lazy" data-img="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev2.png" data-index="2" data-src="/2019/05/19/實作-facebook-OAuth2-登入機制/fb-dev2.png"></p>
 <p>最後一個 <code>facebook_console_id</code> 則是自己的 facebook 帳戶 token</p>
 <p>取得方式為:</p>
-<p><code>curl -X GET &quot;https://graph.facebook.com/oauth/access_token?client_id={id}&amp;client_secret={id}&amp;grant_type=client_credentials&quot;</code></p>
+<p><code>curl -X GET "https://graph.facebook.com/oauth/access_token?client_id={id}&client_secret={id}&grant_type=client_credentials"</code></p>
 <p><code>client_id</code> 與 <code>client_secret</code> 與 .env 的前兩個欄位相同</p>
 <ol start="2">
 <li><p><code>npm i</code><br>(安裝所需套件)</p>
@@ -208,9 +208,9 @@
 <li><p><code>npm run server</code><br>(此時瀏覽 localhost:3000 即可)</p>
 </li>
 </ol>
-<h2 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h2><!--  -->
-<p><img alt="4" class="post-img b-lazy" data-img="demo.png" data-index="3" data-src="demo.png"></p>
-
+<h2 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h2><!-- <img src="/2019/05/19/實作-facebook-OAuth2-登入機制/demo.png"> -->
+<p><img alt="4" class="post-img b-lazy" data-img="/2019/05/19/實作-facebook-OAuth2-登入機制/demo.png" data-index="3" data-src="/2019/05/19/實作-facebook-OAuth2-登入機制/demo.png"></p>
+</body></html>
                 </article>
                 <ul class="tags-postTags">
                     
@@ -361,6 +361,12 @@
       
       
       <li>
+        <a href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">從駭客角度告訴你為何不要隨意複製指令</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
       </li>
       
@@ -371,10 +377,6 @@
       </li>
       
       
-      
-      <li>
-        <a href="/2020/01/08/快速體驗-kubernetes-的強大之處/">快速體驗 kubernetes 的強大之處</a>
-      </li>
       
       
       
@@ -446,7 +448,7 @@
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 14px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 17.33px;">資訊安全</a>
 	</div>
 </article>
 
