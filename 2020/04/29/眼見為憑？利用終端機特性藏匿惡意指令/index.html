@@ -184,7 +184,8 @@
 <li>vim</li>
 </ul>
 <p>然而我們透過工具所看到的檔案內容，可以完全相信嗎？</p>
-<h2 id="眼見為憑？"><a href="#眼見為憑？" class="headerlink" title="眼見為憑？"></a>眼見為憑？</h2><h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><p><a href="https://asciinema.org/a/325079" target="_blank" rel="noopener"><img alt="asciicast" class="post-img b-lazy" data-img="https://asciinema.org/a/325079.svg" data-index="0" data-src="https://asciinema.org/a/325079.svg"></a></p>
+<h2 id="眼見為憑？"><a href="#眼見為憑？" class="headerlink" title="眼見為憑？"></a>眼見為憑？</h2><h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><script type="text/javascript" src="https://asciinema.org/a/325079.js" id="asciicast-325079" async></script>
+
 <p>看過上述例子之後，你還敢只用 <code>cat</code> 確認檔案內容嗎？</p>
 <p>為何會發生這種事？原因在於終端機本身就會辨認幾個具有意義的特殊字元，你可能用過一些特別的工具可以讓終端機印出有顏色的字，就是利用到這種特性。</p>
 <p>那這些特殊字元可以操作終端機的哪些行為呢？</p>
@@ -196,7 +197,8 @@
 </ul>
 <p>上述範例，就是透過移動終端機游標，讓兩行指令都印在同一個位置上（位置重疊，只會顯示覆蓋的指令），如此一來就可以隱藏被覆蓋的指令。</p>
 <h3 id="curl"><a href="#curl" class="headerlink" title="curl"></a>curl</h3><p>我們換 <code>curl -s</code> 試試</p>
-<p><a href="https://asciinema.org/a/325095" target="_blank" rel="noopener"><img alt="asciicast" class="post-img b-lazy" data-img="https://asciinema.org/a/325095.svg" data-index="1" data-src="https://asciinema.org/a/325095.svg"></a></p>
+<script type="text/javascript" src="https://asciinema.org/a/325095.js" id="asciicast-325095" async></script>
+
 <p>看完這個例子之後，我相信你再也不敢相信肉眼看到的內容。</p>
 <h3 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h3><p>如果要確認檔案的內容想要用 <code>cat</code> 的話，可以加上參數 <code>v</code>，顯示不可視字元。</p>
 <p>以第一個例子來說：<code>cat -v script.sh</code></p>
