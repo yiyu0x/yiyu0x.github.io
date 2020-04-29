@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>不用任何工具！內網穿透至自己的域名下 | yiyu0x's blog</title>
+	<title>眼見為憑？利用終端機特性藏匿惡意指令 | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -50,14 +50,14 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="不用任何工具！內網穿透至自己的域名下 | yiyu0x's blog">
+	<meta property="og:title" content="眼見為憑？利用終端機特性藏匿惡意指令 | yiyu0x's blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.site/2019/09/09/不用任何工具！內網穿透至自己的域名下/">
+	<meta property="og:url" content="https://blog.yiyu0x.site/2020/04/29/眼見為憑？利用終端機特性藏匿惡意指令/">
 
 	
-	<meta property="article:published_time" content="2019-09-09T00:09:00+08:00"> 
+	<meta property="article:published_time" content="2020-04-29T14:04:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="yiyu0x's blog, /2019/09/09/不用任何工具！內網穿透至自己的域名下/">
+	<meta property="article:published_first" content="yiyu0x's blog, /2020/04/29/眼見為憑？利用終端機特性藏匿惡意指令/">
 	
 
 	
@@ -162,67 +162,58 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2019-09-08T16:00:37.000Z">
-                    2019-09-9
+                <time class="post-full-meta-date" datetime="2020-04-29T06:19:30.000Z">
+                    2020-04-29
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">不用任何工具！內網穿透至自己的域名下</h1>
+            <h1 class="post-full-title">眼見為憑？利用終端機特性藏匿惡意指令</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
-<p>不久前才寫了一篇 <a href="https://blog.yiyu0x.tk/2019/06/03/%E7%94%A8-serveo-%E4%BE%86%E7%A9%BF%E9%80%8F%E5%85%A7%E7%B6%B2%E5%90%A7/" target="_blank" rel="noopener">用 serveo 來穿透內網吧</a>，結果馬上就要打臉自己了 👋</p>
-</blockquote>
-<p>上一篇文章提到 serveo.net 比起 ngrok 可以自訂 sub domain ，更加方便（不會每一次產生網址都像一堆亂碼一樣不方便記憶）。但是自己在這一陣子使用下發現，serveo.net 的網站似乎常常掛掉，而且打通 reverse ssh 的速度似乎沒有 ngrok 來得快！</p>
-<p>但是他的指令 <code>ssh -R 80:localhost:3000 serveo.net</code> 讓我讓我靈機一動，反正都是 reverse ssh。只要有自己的 domain 以及自己的 vps，我也能自己架設。</p>
-<p>設定好 domain 再使用 reverse proxy，等到需要時再打一條 reverse ssh 似乎也不是多困難的事，憑證的事情交給 certbot 解決就好。</p>
-<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><ul>
-<li>VPS</li>
-<li>Domain</li>
-<li>NS server 設定一組 A record 指向 VPS</li>
-<li>nginx （用來做 reverse proxy）</li>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>對於 Linux 使用者或是軟體工程師來說，終端機是每天必須用到的軟體之一。尤其是那些注重開發效率以及有在維護伺服器的工程師來說，我們都不希望雙手離開鍵盤，分散注意力。這種情況下，當我們要稍微檢視檔案內容時，會使用到以下幾個常用的工具：</p>
+<ul>
+<li>cat</li>
+<li>less</li>
+<li>more</li>
+<li>vim</li>
 </ul>
-<h2 id="架構"><a href="#架構" class="headerlink" title="架構"></a>架構</h2><p><img alt="1" class="post-img b-lazy" data-img="/2019/09/09/不用任何工具！內網穿透至自己的域名下/./a.png" data-index="0" data-src="/2019/09/09/不用任何工具！內網穿透至自己的域名下/./a.png"></p>
-<h2 id="開工"><a href="#開工" class="headerlink" title="開工"></a>開工</h2><p>首先先在 <code>/etc/nginx/sites-available</code> 下新建設定檔，檔名建議用你的 virtual host 來命名，在這邊以 reverse 舉例</p>
-<p>/etc/nginx/sites-available/reverse:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">server {</span><br><span class="line">  server_name reverse.yiyu0x.tk; #改為自己的 domain</span><br><span class="line">  location / {</span><br><span class="line">      proxy_pass http://localhost:5487/; #設定為內網任意 port，到時候用來打 reverse ssh</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<p>設定完畢之後，記得 <code>ln -s</code> 至 <code>/etc/nginx/sites-enable</code> 並且重新啟動 nginx （啟動前可以用 nginx -t 來檢查是否有語法錯誤）</p>
-<p>（如果你的內網穿透需要 https，可以用 certbot 來輕鬆幫你新增免費憑證並且管理憑證）</p>
-<p>做到這邊已經完成了一半，接下來就剩下打通道了！</p>
-<p><code>ssh -R 5487:localhost:1234 user@domain.com</code></p>
-<p>前面的 5487 代表遠端的 port，看你前面設定多少這邊就用多少，因為要與 VPS 上開的 port 綁定，所以建議設定一組自己記得起來的，記得遠端的防火牆要打開！</p>
-<p>但是指令這麼長，非常難記憶，如果這篇文章只有這樣子我想大家還是會回去用 ngrok 或是 serveo.net。</p>
-<p>在使用 ssh 服務時，可以使用金鑰來達成免密碼登入。以及在 <code>~/.ssh/config</code> 下新增設定來簡化登入 ssh 流程</p>
-<p>例如:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host <vps-name>         #自行設定想要的名稱</vps-name></span><br><span class="line">    hostname <vps-ip>   #vps ip 位置</vps-ip></span><br><span class="line">    user <name>         #遠端使用者名稱</name></span><br><span class="line">    IdentityFile <path> #私鑰位置</path></span><br></pre></td></tr></tbody></table></figure>
-
-<p>設定完畢之後，指令可以簡化為</p>
-<p><code>ssh -R 5487:localhost:1234 vps-name</code></p>
-<p>但是這樣還是不夠好！我們在 local 的 port 可能會因為每一個服務不同而需要穿透不同的 port。</p>
-<p>於是我們可以透過修改 <code>~/.bashrc</code> 來設定 alias</p>
-<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> rev-ssh=<span class="string">'rev-ssh'</span></span><br><span class="line"><span class="keyword">function</span> rev-<span class="function"><span class="title">ssh</span></span>() {</span><br><span class="line">	ssh -R 5487:localhost:<span class="variable">$1</span> y-gcp</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<p>設定完之後，記得下 <code>source ~/.bashrc</code> 來讓 bash 重新讀取一次設定檔</p>
-<p>如此一來，指令簡化為 <code>rev-ssh <your-port></your-port></code></p>
-<h2 id="驗收"><a href="#驗收" class="headerlink" title="驗收"></a>驗收</h2><p>可以透過 <code>python3 -m http.server 6666</code> 在當下目錄開一個 http 服務來瀏覽檔案</p>
-<p>再使用 <code>rev-ssh 6666</code> 來將 local 的 6666 port 打一條 reverse ssh 至自己的 vps（按照我以上的設定就是 reverse.yiyu0x.tk）</p>
-<p>現在就可以與 ngrok 和 serveo.net 正式再見。再也不會因為這兩家服務掛掉而沒有辦法穿透內網了！</p>
-<h2 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h2><ul>
-<li><a href="https://blog.longwin.com.tw/2016/03/linux-bash-alias-take-parameter-2016/" target="_blank" rel="noopener">Bash alias 如何傳入參數($1)</a></li>
+<p>然而我們透過工具所看到的檔案內容，可以完全相信嗎？</p>
+<h2 id="眼見為憑？"><a href="#眼見為憑？" class="headerlink" title="眼見為憑？"></a>眼見為憑？</h2><h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><p><a href="https://asciinema.org/a/325079" target="_blank" rel="noopener"><img alt="asciicast" class="post-img b-lazy" data-img="https://asciinema.org/a/325079.svg" data-index="0" data-src="https://asciinema.org/a/325079.svg"></a></p>
+<p>看過上述例子之後，你還敢只用 <code>cat</code> 確認檔案內容嗎？</p>
+<p>為何會發生這種事？原因在於終端機本身就會辨認幾個具有意義的特殊字元，你可能用過一些特別的工具可以讓終端機印出有顏色的字，就是利用到這種特性。</p>
+<p>那這些特殊字元可以操作終端機的哪些行為呢？</p>
+<ul>
+<li>移動游標到任意位置</li>
+<li>刪除任意印出的字元</li>
+<li>操作終端機視窗</li>
+<li>將不同按鍵對應到的終端機行為進行覆寫</li>
 </ul>
+<p>上述範例，就是透過移動終端機游標，讓兩行指令都印在同一個位置上（位置重疊，只會顯示覆蓋的指令），如此一來就可以隱藏被覆蓋的指令。</p>
+<h3 id="curl"><a href="#curl" class="headerlink" title="curl"></a>curl</h3><p>我們換 <code>curl -s</code> 試試</p>
+<p><a href="https://asciinema.org/a/325095" target="_blank" rel="noopener"><img alt="asciicast" class="post-img b-lazy" data-img="https://asciinema.org/a/325095.svg" data-index="1" data-src="https://asciinema.org/a/325095.svg"></a></p>
+<p>看完這個例子之後，我相信你再也不敢相信肉眼看到的內容。</p>
+<h3 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h3><p>如果要確認檔案的內容想要用 <code>cat</code> 的話，可以加上參數 <code>v</code>，顯示不可視字元。</p>
+<p>以第一個例子來說：<code>cat -v script.sh</code></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"evil!"</span></span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">^[[2Aecho <span class="string">"Hello World!"</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>^[[2A</code> 就是告訴終端機將游標往上移動兩行，繼續從該位置印出（覆蓋原本的 echo “evil!”）。</p>
+<p>可以的話，還是建議使用文字編輯器打開確認內容會比起直接印出內容在終端機來得可信。</p>
+<p>如果想要自己測試的話可以使用以下指令</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -e <span class="string">'#!/bin/sh\n\necho "evil!"\nexit 0\n\033[2Aecho "Hello World!"\n'</span> > script.sh</span><br><span class="line">chmod a+x script.sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>或是你想深入了解終端機控制字元以及不同終端機的狀況可以參考 <a href="https://www.infosecmatter.com/terminal-escape-injection/#what-are-the-escape-sequences" target="_blank" rel="noopener">Terminal Escape Injection</a>。</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/tools/" rel="tag"># tools</a>
+                        <a href="/tags/資訊安全/" rel="tag"># 資訊安全</a>
                     </li>
                     
                 </ul>
@@ -233,14 +224,10 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="使用 docker 來輕鬆建構資料庫" href="/2019/10/21/使用-docker-來輕鬆建構資料庫/">
-            ← 使用 docker 來輕鬆建構資料庫
-        </a>
-        
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="Javascript 中的連續賦值" href="/2019/08/13/Javascript-中的連續賦值/">
-            Javascript 中的連續賦值 →
+        <a class="next-post" title="從駭客角度告訴你為何不要隨意複製指令" href="/2020/03/16/從駭客角度告訴你為何不要隨意複製指令/">
+            從駭客角度告訴你為何不要隨意複製指令 →
         </a>
         
     </nav>
@@ -262,7 +249,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#架構"><span class="toc-text">架構</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開工"><span class="toc-text">開工</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#驗收"><span class="toc-text">驗收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考"><span class="toc-text">參考</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#眼見為憑？"><span class="toc-text">眼見為憑？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cat"><span class="toc-text">cat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#curl"><span class="toc-text">curl</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#結論"><span class="toc-text">結論</span></a></li></ol></li></ol>
     </div>
 </div>
 
