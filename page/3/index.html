@@ -170,6 +170,58 @@
 	<div class="inner">
 		<div class="post-feed">
 			
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="telegram-bot API 懶人包" href="/2019/05/07/telegram-bot-API-懶人包/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="telegram-bot API 懶人包" href="/2019/05/07/telegram-bot-API-懶人包/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2019-05-06T16:42:51.000Z">
+									2019-05-07
+								</time>
+							</span>
+							<h2 class="post-card-title">telegram-bot API 懶人包</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								
+								
+								前言這幾天接觸了 telegram API，用來串一些間單的程式並且將結果發送給自己，一開始用的是 node-telegram-bot-api ，但昨天發現裡頭
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							4
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
 			<article class="post-card post  no-image ">
 				
 				<div class="post-card-content">
@@ -194,10 +246,13 @@
 								
 								
 								
-								
-								
 								“This” in nodeJS以下討論 nodeJS 中的 this，與 javascript 中的 this 不同，請不要搞混了。
-function 外的 
+function 外的 thisfunction 外的 this 指向 module.exports
+1console.log('outside: ', this) // {}
+
+12module.exports.bar = 3console.log('outside: ', this) // outside:  { bar: 3 }
+
+切記
 								...
 							</p>
 						</div>
@@ -704,6 +759,12 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
       
       
       <li>
+        <a href="/2020/07/11/在-K8S-中使用-Traefik-作為-Ingress-Controllers/">在 K8S 中使用 Traefik 作為 Ingress Controllers</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2020/04/29/眼見為憑？利用終端機特性藏匿惡意指令/">眼見為憑？利用終端機特性藏匿惡意指令</a>
       </li>
       
@@ -714,10 +775,6 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
       </li>
       
       
-      
-      <li>
-        <a href="/2020/02/15/重新看懂指標與陣列之間的交互關係/">重新看懂指標與陣列之間的交互關係</a>
-      </li>
       
       
       
@@ -793,7 +850,7 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 14px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 20.67px;">資訊安全</a>
+		<a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.33px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 17.33px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 20.67px;">資訊安全</a>
 	</div>
 </article>
 
