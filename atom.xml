@@ -342,9 +342,9 @@
     
       <category term="javascript" scheme="https://blog.yiyu0x.site/tags/javascript/"/>
     
-      <category term="es6" scheme="https://blog.yiyu0x.site/tags/es6/"/>
-    
       <category term="nodejs" scheme="https://blog.yiyu0x.site/tags/nodejs/"/>
+    
+      <category term="es6" scheme="https://blog.yiyu0x.site/tags/es6/"/>
     
   </entry>
   
@@ -404,9 +404,9 @@
     </summary>
     
     
-      <category term="docker" scheme="https://blog.yiyu0x.site/tags/docker/"/>
-    
       <category term="macos" scheme="https://blog.yiyu0x.site/tags/macos/"/>
+    
+      <category term="docker" scheme="https://blog.yiyu0x.site/tags/docker/"/>
     
       <category term="mysql" scheme="https://blog.yiyu0x.site/tags/mysql/"/>
     
