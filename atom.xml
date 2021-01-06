@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.site/"/>
-  <updated>2020-08-31T13:00:00.989Z</updated>
+  <updated>2021-01-06T13:52:41.981Z</updated>
   <id>https://blog.yiyu0x.site/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>在 macOS 上使用 VPN 的 DNS 踩雷紀錄</title>
+    <link href="https://blog.yiyu0x.site/2021/01/06/%E5%9C%A8-macOS-%E4%B8%8A%E4%BD%BF%E7%94%A8-VPN-%E7%9A%84%E8%B8%A9%E9%9B%B7%E7%B4%80%E9%8C%84/"/>
+    <id>https://blog.yiyu0x.site/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/</id>
+    <published>2021-01-06T11:01:45.000Z</published>
+    <updated>2021-01-06T13:52:41.981Z</updated>
+    
+    <content type="html"><![CDATA[<html><head></head><body><h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><p>macOS 中的 DNS 順序並沒有意義（儘管系統還讓你移動順序），決定 DNS Server 使用隨機方式來選擇。如果想要指定特定網域使用特定的 DNS Server，請使用 <code>scutil</code> 指令設定。</p><h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到 VPN 內的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p><p><img src="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/./dns.png" alt="dns.png"></p><p>接著使用網頁存取該 DNS 下的 domain 發生存取失敗，但使用 dig 指令卻又可以正常解析</p><p>於是設計一個實驗，先將 <code>8.8.8.8</code> 與 <code>1.1.1.1</code> 這兩組外部 DNS 移除，發先服務都可以正常存取</p><p>發現 macOS 實際上根本不參考 DNS Server 列表，而是隨機挑一個列表中的 DNS Server 來用</p><h1 id="解決"><a href="#解決" class="headerlink" title="解決"></a>解決</h1><p>列出本機上 dns 設定</p><p><code>scutil --dns</code></p><p>我們需要設定特定的網域使用特定的 DNS Server 來解析</p><p>首先建立目錄</p><p><code>sudo mkdir /etc/resolver</code></p><p>設定（請自行替換對應設定）</p><p><code>echo 'nameserver 10.1.2.1' > /etc/resolver/mydomain.org</code><br><code>echo 'nameserver 10.1.2.2' > /etc/resolver/mydomain.org</code></p><p>設定之後再度訪問 <code>website.mydomain.org</code> 就可以正常存取了</p><h3 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h3><ul><li><a href="https://medium.com/@jamieeduncan/i-recently-moved-to-a-macbook-for-my-primary-work-laptop-7c704dbaff59" target="_blank" rel="noopener">Domain-specific DNS server on your Macbook Pro</a></li></ul></body></html>]]></content>
+    
+    <summary type="html">
+    
+      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
+    
+    </summary>
+    
+    
+      <category term="macOS" scheme="https://blog.yiyu0x.site/tags/macOS/"/>
+    
+      <category term="DNS" scheme="https://blog.yiyu0x.site/tags/DNS/"/>
+    
+  </entry>
   
   <entry>
     <title>與 minikube 共享 local docker image</title>
@@ -342,9 +364,9 @@
     
       <category term="javascript" scheme="https://blog.yiyu0x.site/tags/javascript/"/>
     
-      <category term="nodejs" scheme="https://blog.yiyu0x.site/tags/nodejs/"/>
-    
       <category term="es6" scheme="https://blog.yiyu0x.site/tags/es6/"/>
+    
+      <category term="nodejs" scheme="https://blog.yiyu0x.site/tags/nodejs/"/>
     
   </entry>
   
@@ -404,31 +426,11 @@
     </summary>
     
     
-      <category term="macos" scheme="https://blog.yiyu0x.site/tags/macos/"/>
-    
       <category term="docker" scheme="https://blog.yiyu0x.site/tags/docker/"/>
     
+      <category term="macos" scheme="https://blog.yiyu0x.site/tags/macos/"/>
+    
       <category term="mysql" scheme="https://blog.yiyu0x.site/tags/mysql/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>nodeJS 中的 fs module 介紹</title>
-    <link href="https://blog.yiyu0x.site/2019/05/19/nodeJS-%E4%B8%AD%E7%9A%84-fs-module-%E4%BB%8B%E7%B4%B9/"/>
-    <id>https://blog.yiyu0x.site/2019/05/19/nodeJS-中的-fs-module-介紹/</id>
-    <published>2019-05-19T13:37:00.000Z</published>
-    <updated>2020-02-15T12:29:49.223Z</updated>
-    
-    <content type="html"><![CDATA[<html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在學習任何一個語言一定都會遇到檔案讀寫，在 nodeJS 中的檔案讀寫幾乎都能透過 fs 這個 module 來完成。</p><p>而且在 <a href="https://nodejs.org/api/fs.html" target="_blank" rel="noopener">fs API</a> 中有這麼一段話</p><p><code>All file system operations have synchronous and asynchronous forms.</code></p><p>對於開發者來說實在是非常棒，不像有些 module 同步與異步是分開成兩個不同的 module。</p><h2 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h2><h3 id="讀取文件"><a href="#讀取文件" class="headerlink" title="讀取文件"></a>讀取文件</h3><p>以下要注意第二個參數要指定編碼，否則印出來會是 raw data 的形式:</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><Buffer 68 65 6c 6c 6f 2c 20 77 6f 72 6c 64 0a></span><br></pre></td></tr></tbody></table></figure><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//asynchronous</span></span><br><span class="line">fs.readFile(<span class="string">'./a.txt'</span>, <span class="string">'utf8'</span>, (err, data) => {</span><br><span class="line"><span class="built_in">console</span>.log(data)</span><br><span class="line">})</span><br><span class="line"><span class="comment">//synchronous</span></span><br><span class="line"><span class="keyword">let</span> data = fs.readFileSync(<span class="string">'./a.txt'</span>, <span class="string">'utf8'</span>)</span><br><span class="line"><span class="built_in">console</span>.log(data)</span><br></pre></td></tr></tbody></table></figure><h3 id="寫入文件"><a href="#寫入文件" class="headerlink" title="寫入文件"></a>寫入文件</h3><h4 id="writeFile"><a href="#writeFile" class="headerlink" title="writeFile"></a>writeFile</h4><p>寫入文件時，第一個參數為路徑，第二個參數為寫入字串，第三個參數為編碼(預設為 utf-8)</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//asynchronous</span></span><br><span class="line">fs.writeFile(<span class="string">'./b.txt'</span>, <span class="string">'hi'</span>, (err) => {</span><br><span class="line"><span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'done.'</span>)</span><br><span class="line">}</span><br><span class="line"><span class="comment">//synchronous</span></span><br><span class="line">fs.writeFileSync(<span class="string">'./b.txt'</span>, <span class="string">'hi'</span>)</span><br></pre></td></tr></tbody></table></figure><h4 id="appendFile"><a href="#appendFile" class="headerlink" title="appendFile"></a>appendFile</h4><p>若無此檔案，會自動建立，若有，則附加至尾端<br>(第一個參數為路徑，第二個參數為寫入字串，第三個參數為編碼(預設為 utf-8))</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">fs.appendFile(<span class="string">'./c.txt'</span>, <span class="string">'append txt'</span>, (err) => {</span><br><span class="line"><span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'done.'</span>)</span><br><span class="line">})</span><br><span class="line"><span class="comment">//同樣也有 writeFileSync</span></span><br><span class="line"><span class="keyword">try</span> {</span><br><span class="line">fs.appendFileSync(<span class="string">'message.txt'</span>, <span class="string">'data to append'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'The "data to append" was appended to file!'</span>);</span><br><span class="line">} <span class="keyword">catch</span> (err) {</span><br><span class="line"><span class="comment">/* Handle the error */</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><h3 id="開檔案"><a href="#開檔案" class="headerlink" title="開檔案"></a>開檔案</h3><p>以上 API 第一參數也可以放 fd，用 open 可以設定詳細權限並且回傳 fd。</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">fs.open(<span class="string">'./a.txt'</span>, <span class="string">'r'</span>,(err, fd) => {</span><br><span class="line"><span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line">fs.readFile(fd, <span class="string">'utf-8'</span>, (err, data) => {</span><br><span class="line"><span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line"><span class="built_in">console</span>.log(data)</span><br><span class="line">})</span><br><span class="line">})</span><br><span class="line"><span class="comment">//fs.open 也一樣有同步版本，在此不贅述</span></span><br></pre></td></tr></tbody></table></figure><h3 id="刪檔案"><a href="#刪檔案" class="headerlink" title="刪檔案"></a>刪檔案</h3><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fs.unlink(<span class="string">'a.txt'</span>, (err) => {</span><br><span class="line"><span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'deleted.'</span>)</span><br><span class="line">})</span><br><span class="line"><span class="comment">//fs.unlink 也一樣有同步版本，在此不贅述</span></span><br></pre></td></tr></tbody></table></figure></body></html>]]></content>
-    
-    <summary type="html">
-    
-      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
-    
-    </summary>
-    
-    
-      <category term="nodejs" scheme="https://blog.yiyu0x.site/tags/nodejs/"/>
     
   </entry>
   
