@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>在 macOS 上使用 VPN 的 DNS 踩雷紀錄 | yiyu0x's blog</title>
+	<title>在 macOS 單網卡多個介面的 DNS 踩雷紀錄 | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -50,7 +50,7 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="在 macOS 上使用 VPN 的 DNS 踩雷紀錄 | yiyu0x's blog">
+	<meta property="og:title" content="在 macOS 單網卡多個介面的 DNS 踩雷紀錄 | yiyu0x's blog">
 	<meta property="og:description" content>
 	<meta property="og:url" content="https://blog.yiyu0x.org/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/">
 
@@ -170,14 +170,15 @@
                 
                 
             </div>
-            <h1 class="post-full-title">在 macOS 上使用 VPN 的 DNS 踩雷紀錄</h1>
+            <h1 class="post-full-title">在 macOS 單網卡多個介面的 DNS 踩雷紀錄</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
                     <html><head></head><body><h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><p>macOS 中的 DNS 順序並沒有意義（儘管系統還讓你移動順序），決定 DNS Server 使用隨機方式來選擇。如果想要指定特定網域使用特定的 DNS Server，請使用 <code>scutil</code> 指令設定。</p>
-<h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到 VPN 內的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p>
+<h1 id="環境"><a href="#環境" class="headerlink" title="環境"></a>環境</h1><p>我在同一張網卡上設定兩個 IP，一組對內一組對外，對內的用來與實驗室內網環境溝通。</p>
+<h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到內網的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p>
 <p><img alt="dns.png" class="post-img b-lazy" data-img="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/./dns.png" data-index="0" data-src="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/./dns.png"></p>
 <p>接著使用網頁存取該 DNS 下的 domain 發生存取失敗，但使用 dig 指令卻又可以正常解析</p>
 <p>於是設計一個實驗，先將 <code>8.8.8.8</code> 與 <code>1.1.1.1</code> 這兩組外部 DNS 移除，發先服務都可以正常存取</p>
@@ -238,7 +239,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#TL-DR"><span class="toc-text">TL;DR</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DNS-解析發生問題"><span class="toc-text">DNS 解析發生問題</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解決"><span class="toc-text">解決</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#參考"><span class="toc-text">參考</span></a></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#TL-DR"><span class="toc-text">TL;DR</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#環境"><span class="toc-text">環境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DNS-解析發生問題"><span class="toc-text">DNS 解析發生問題</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解決"><span class="toc-text">解決</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#參考"><span class="toc-text">參考</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -340,7 +341,7 @@
       
       
       <li>
-        <a href="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/">在 macOS 上使用 VPN 的 DNS 踩雷紀錄</a>
+        <a href="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/">在 macOS 單網卡多個介面的 DNS 踩雷紀錄</a>
       </li>
       
       

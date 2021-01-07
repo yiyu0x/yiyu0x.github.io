@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.org/"/>
-  <updated>2021-01-06T13:52:41.981Z</updated>
+  <updated>2021-01-07T03:32:28.341Z</updated>
   <id>https://blog.yiyu0x.org/</id>
   
   <author>
@@ -17,13 +17,13 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>在 macOS 上使用 VPN 的 DNS 踩雷紀錄</title>
+    <title>在 macOS 單網卡多個介面的 DNS 踩雷紀錄</title>
     <link href="https://blog.yiyu0x.org/2021/01/06/%E5%9C%A8-macOS-%E4%B8%8A%E4%BD%BF%E7%94%A8-VPN-%E7%9A%84%E8%B8%A9%E9%9B%B7%E7%B4%80%E9%8C%84/"/>
     <id>https://blog.yiyu0x.org/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/</id>
     <published>2021-01-06T11:01:45.000Z</published>
-    <updated>2021-01-06T13:52:41.981Z</updated>
+    <updated>2021-01-07T03:32:28.341Z</updated>
     
-    <content type="html"><![CDATA[<html><head></head><body><h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><p>macOS 中的 DNS 順序並沒有意義（儘管系統還讓你移動順序），決定 DNS Server 使用隨機方式來選擇。如果想要指定特定網域使用特定的 DNS Server，請使用 <code>scutil</code> 指令設定。</p><h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到 VPN 內的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p><p><img src="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/./dns.png" alt="dns.png"></p><p>接著使用網頁存取該 DNS 下的 domain 發生存取失敗，但使用 dig 指令卻又可以正常解析</p><p>於是設計一個實驗，先將 <code>8.8.8.8</code> 與 <code>1.1.1.1</code> 這兩組外部 DNS 移除，發先服務都可以正常存取</p><p>發現 macOS 實際上根本不參考 DNS Server 列表，而是隨機挑一個列表中的 DNS Server 來用</p><h1 id="解決"><a href="#解決" class="headerlink" title="解決"></a>解決</h1><p>列出本機上 dns 設定</p><p><code>scutil --dns</code></p><p>我們需要設定特定的網域使用特定的 DNS Server 來解析</p><p>首先建立目錄</p><p><code>sudo mkdir /etc/resolver</code></p><p>設定（請自行替換對應設定）</p><p><code>echo 'nameserver 10.1.2.1' > /etc/resolver/mydomain.org</code><br><code>echo 'nameserver 10.1.2.2' > /etc/resolver/mydomain.org</code></p><p>設定之後再度訪問 <code>website.mydomain.org</code> 就可以正常存取了</p><h3 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h3><ul><li><a href="https://medium.com/@jamieeduncan/i-recently-moved-to-a-macbook-for-my-primary-work-laptop-7c704dbaff59" target="_blank" rel="noopener">Domain-specific DNS server on your Macbook Pro</a></li></ul></body></html>]]></content>
+    <content type="html"><![CDATA[<html><head></head><body><h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><p>macOS 中的 DNS 順序並沒有意義（儘管系統還讓你移動順序），決定 DNS Server 使用隨機方式來選擇。如果想要指定特定網域使用特定的 DNS Server，請使用 <code>scutil</code> 指令設定。</p><h1 id="環境"><a href="#環境" class="headerlink" title="環境"></a>環境</h1><p>我在同一張網卡上設定兩個 IP，一組對內一組對外，對內的用來與實驗室內網環境溝通。</p><h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到內網的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p><p><img src="/2021/01/06/在-macOS-上使用-VPN-的踩雷紀錄/./dns.png" alt="dns.png"></p><p>接著使用網頁存取該 DNS 下的 domain 發生存取失敗，但使用 dig 指令卻又可以正常解析</p><p>於是設計一個實驗，先將 <code>8.8.8.8</code> 與 <code>1.1.1.1</code> 這兩組外部 DNS 移除，發先服務都可以正常存取</p><p>發現 macOS 實際上根本不參考 DNS Server 列表，而是隨機挑一個列表中的 DNS Server 來用</p><h1 id="解決"><a href="#解決" class="headerlink" title="解決"></a>解決</h1><p>列出本機上 dns 設定</p><p><code>scutil --dns</code></p><p>我們需要設定特定的網域使用特定的 DNS Server 來解析</p><p>首先建立目錄</p><p><code>sudo mkdir /etc/resolver</code></p><p>設定（請自行替換對應設定）</p><p><code>echo 'nameserver 10.1.2.1' > /etc/resolver/mydomain.org</code><br><code>echo 'nameserver 10.1.2.2' > /etc/resolver/mydomain.org</code></p><p>設定之後再度訪問 <code>website.mydomain.org</code> 就可以正常存取了</p><h3 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h3><ul><li><a href="https://medium.com/@jamieeduncan/i-recently-moved-to-a-macbook-for-my-primary-work-laptop-7c704dbaff59" target="_blank" rel="noopener">Domain-specific DNS server on your Macbook Pro</a></li></ul></body></html>]]></content>
     
     <summary type="html">
     
