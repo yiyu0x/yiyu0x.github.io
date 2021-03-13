@@ -187,16 +187,16 @@
 <p>本文將透過 2018-EOF 的 pwn3 來說明 ret2libc 的攻擊手法</p>
 <h2 id="分析題目"><a href="#分析題目" class="headerlink" title="分析題目"></a>分析題目</h2><p>(題目給了一個 ELF 檔案 以及 libc.so.6)</p>
 <p>拿到題目第一步，先丟到 IDA 中逆向</p>
-<!-- <img src="/posts/4/IDA-F5.png"> -->
-<p><img alt="1" class="post-img b-lazy" data-img="/posts/4/IDA-F5.png" data-index="0" data-src="/posts/4/IDA-F5.png"></p>
+<!-- <img src="/2019/03/02/IDA-F5.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/03/02/IDA-F5.png" data-index="0" data-src="/2019/03/02/IDA-F5.png"></p>
 <p>同時查看 ELF 檔案的保護狀態</p>
-<!-- <img src="/posts/4/checksec.png"> -->
-<p><img alt="2" class="post-img b-lazy" data-img="/posts/4/checksec.png" data-index="1" data-src="/posts/4/checksec.png"></p>
+<!-- <img src="/2019/03/02/checksec.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/03/02/checksec.png" data-index="1" data-src="/2019/03/02/checksec.png"></p>
 <p>這兩個線索加起來(沒有 canary, 使用 read 函數)，第一個想到的就是 BOF</p>
 <p>但是程式中並沒有現成的 function 可以用，我們的目的是 get shell</p>
 <p>然而在題目給的 libc.so.6 中，發現了 execve</p>
-<!-- <img src="/posts/4/one_gadget.png"> -->
-<p><img alt="3" class="post-img b-lazy" data-img="/posts/4/one_gadget.png" data-index="2" data-src="/posts/4/one_gadget.png"></p>
+<!-- <img src="/2019/03/02/one_gadget.png"> -->
+<p><img alt="3" class="post-img b-lazy" data-img="/2019/03/02/one_gadget.png" data-index="2" data-src="/2019/03/02/one_gadget.png"></p>
 <h2 id="困難點"><a href="#困難點" class="headerlink" title="困難點"></a>困難點</h2><p>我們並不知道 libc.so.6 load 進 memory 之後的記憶體位置是多少，只知道 execve 相對於 libc.so.6 的 offset 是多少 (0xf1147)</p>
 <p>但是程式中有一個 puts 函數，如果我們能利用他來印出 GOT 的 main 位置並且與 binary 裡面的 main 位置相減，就知道整個函式庫載入到 memory 的哪個位置了</p>
 <h2 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h2><p>先備知識：</p>

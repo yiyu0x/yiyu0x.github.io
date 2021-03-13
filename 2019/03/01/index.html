@@ -188,8 +188,8 @@
 
 <p>於是開始研究了 C 語言的 argv 到底傳了什麼東西給 main function</p>
 <h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>在記憶體中 argv 是一個指標，指向 char 陣列，每一陣列的內容就是不同的 argv 字串，如下圖所示。</p>
-<!-- <img src="/posts/6/argv_in_mem.png"> -->
-<p><img alt="1" class="post-img b-lazy" data-img="/posts/6/argv_in_mem.png" data-index="0" data-src="/posts/6/argv_in_mem.png"></p>
+<!-- <img src="/2019/03/01/argv_in_mem.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/03/01/argv_in_mem.png" data-index="0" data-src="/2019/03/01/argv_in_mem.png"></p>
 <blockquote>
 <p>圖片來源 (<a href="https://softwareengineering.stackexchange.com/questions/385819/why-is-c-c-main-argv-declared-as-char-argv-rather-than-just-char-argv" target="_blank" rel="noopener">https://softwareengineering.stackexchange.com/questions/385819/why-is-c-c-main-argv-declared-as-char-argv-rather-than-just-char-argv</a>)</p>
 </blockquote>
@@ -201,8 +201,8 @@
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">./a.out</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe5c0</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe4c0</span><br></pre></td></tr></tbody></table></figure>
 
 <p>把結果對印至上圖，如同以下：</p>
-<!-- <img src="/posts/6/proof.png"> -->
-<p><img alt="2" class="post-img b-lazy" data-img="/posts/6/./proof.png" data-index="1" data-src="/posts/6/./proof.png"></p>
+<!-- <img src="/2019/03/01/proof.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/03/01/./proof.png" data-index="1" data-src="/2019/03/01/./proof.png"></p>
 <p>如果將陣列的第二格位置與第一格相減，可以發現長度為 8</p>
 <p><code>0x7fffffffe5c0 - 0x7fffffffe5b8 = 8</code></p>
 <p>而這個 8 就是 <code>./a.out</code> 這個字串的長度 (<code>.</code>, <code>/</code>, <code>a</code>, <code>.</code>, <code>o</code>, <code>u</code>, <code>t</code>, <code>\0</code>)</p>

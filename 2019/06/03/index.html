@@ -183,8 +183,8 @@
 <li>API 的 callback url (需要 https)</li>
 </ul>
 <p>雖然要在本地端使用憑證不是不能，只是設定需要一些時間。之前我有這樣的需求時都是透過 <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a>。長久使用下來還算方便，美中不足的點是 ngrok 分享出來的外網網址不是很乾淨</p>
-<!-- <img src="/posts/6/ngrok.png"> -->
-<p><img alt="1" class="post-img b-lazy" data-img="/posts/6/ngrok.png" data-index="0" data-src="/posts/6/ngrok.png"></p>
+<!-- <img src="/2019/06/03/ngrok.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/06/03/ngrok.png" data-index="0" data-src="/2019/06/03/ngrok.png"></p>
 <p>以上的 ngrok 的截圖，分享出來的網址是 <code>https://50bb33a3.ngrok.io</code></p>
 <p>然而就在前幾天發現更棒的方案，<a href="https://serveo.net/" target="_blank" rel="noopener">serveo</a>。</p>
 <p>serveo 透過 ssh 的方式將一個具有 public ip 的 domain 映射到內網，最棒的地方在於因為是透過 ssh，所以不需要安裝套件，而且映射出來的 domain 還可以自訂！</p>
@@ -192,12 +192,12 @@
 <p>他的官網上簡潔明瞭的一句話:</p>
 <p><code>ssh -R 80:localhost:3000 serveo.net</code></p>
 <p>簡單一行指令就會自動產生一個 domain 來映射到內網的 3000 port</p>
-<!-- <img src="/posts/6/serveo.png"> -->
-<p><img alt="2" class="post-img b-lazy" data-img="/posts/6/serveo.png" data-index="1" data-src="/posts/6/serveo.png"></p>
+<!-- <img src="/2019/06/03/serveo.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/06/03/serveo.png" data-index="1" data-src="/2019/06/03/serveo.png"></p>
 <p>也可以用剛才提到的自訂子域名的方式</p>
 <p><code>ssh -R yiyu:80:localhost:8888 serveo.net</code></p>
-<!-- <img src="/posts/6/serveo_yiyu.png"> -->
-<p><img alt="3" class="post-img b-lazy" data-img="/posts/6/serveo_yiyu.png" data-index="2" data-src="/posts/6/serveo_yiyu.png"></p>
+<!-- <img src="/2019/06/03/serveo_yiyu.png"> -->
+<p><img alt="3" class="post-img b-lazy" data-img="/2019/06/03/serveo_yiyu.png" data-index="2" data-src="/2019/06/03/serveo_yiyu.png"></p>
 <p>這樣子可以透過 <code>https://yiyu.serveo.net</code> 來訪問內網 8888 port</p>
 <p>如此一來要分享某一個目錄下的檔案可以先透過 python3 來啟動一個簡單的 HFS</p>
 <p><code>python3 -m http.server</code></p>

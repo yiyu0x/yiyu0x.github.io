@@ -187,17 +187,17 @@
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">facebook_client_id=</span><br><span class="line">facebook_secret_id=</span><br><span class="line">redirect_uri=</span><br><span class="line">facebook_console_id=</span><br></pre></td></tr></tbody></table></figure>
 
 <p><code>facebook_client_id</code> 以及 <code>facebook_secret_id</code> 在註冊完的應用程式設定中可以找到</p>
-<!-- <img src="/posts/6/fb-dev.png"> -->
-<p><img alt="1" class="post-img b-lazy" data-img="/posts/6/fb-dev.png" data-index="0" data-src="/posts/6/fb-dev.png"></p>
+<!-- <img src="/2019/05/19/fb-dev.png"> -->
+<p><img alt="1" class="post-img b-lazy" data-img="/2019/05/19/fb-dev.png" data-index="0" data-src="/2019/05/19/fb-dev.png"></p>
 <p>分別為 <code>應用程式編號</code> 以及 <code>應用程式密鑰</code></p>
 <p><code>redirect_uri</code> 則填入 ip:3000/facebook/callback ，這邊要注意的是臉書不允許用 http，所以無法只接用 localhost， 這邊推薦大家用 <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a> 來將一個外網網址映射到 localhost:3000/callback/facebook</p>
-<!-- <img src="/posts/6/ngrok.png"> -->
-<p><img alt="2" class="post-img b-lazy" data-img="/posts/6/ngrok.png" data-index="1" data-src="/posts/6/ngrok.png"></p>
+<!-- <img src="/2019/05/19/ngrok.png"> -->
+<p><img alt="2" class="post-img b-lazy" data-img="/2019/05/19/ngrok.png" data-index="1" data-src="/2019/05/19/ngrok.png"></p>
 <p>例如我的 ngrok 幫我映射的 URL 為 <a href="https://7bfbb3ed.ngrok.io" target="_blank" rel="noopener">https://7bfbb3ed.ngrok.io</a></p>
 <p>則 <code>redirect_uri</code> 就填入 <code>https://7bfbb3ed.ngrok.io/facebook/callback</code></p>
 <p>除了在 <code>.env</code> 填入以外， 也要記得在剛才應用程式設定中填入 <code>有效的 OAuth 重新導向 URI</code> 之中</p>
-<!-- <img src="/posts/6/fb-dev2.png"> -->
-<p><img alt="3" class="post-img b-lazy" data-img="/posts/6/fb-dev2.png" data-index="2" data-src="/posts/6/fb-dev2.png"></p>
+<!-- <img src="/2019/05/19/fb-dev2.png"> -->
+<p><img alt="3" class="post-img b-lazy" data-img="/2019/05/19/fb-dev2.png" data-index="2" data-src="/2019/05/19/fb-dev2.png"></p>
 <p>最後一個 <code>facebook_console_id</code> 則是自己的 facebook 帳戶 token</p>
 <p>取得方式為:</p>
 <p><code>curl -X GET "https://graph.facebook.com/oauth/access_token?client_id={id}&client_secret={id}&grant_type=client_credentials"</code></p>
@@ -208,8 +208,8 @@
 <li><p><code>npm run server</code><br>(此時瀏覽 localhost:3000 即可)</p>
 </li>
 </ol>
-<h2 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h2><!-- <img src="/posts/6/demo.png"> -->
-<p><img alt="4" class="post-img b-lazy" data-img="/posts/6/demo.png" data-index="3" data-src="/posts/6/demo.png"></p>
+<h2 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h2><!-- <img src="/2019/05/19/demo.png"> -->
+<p><img alt="4" class="post-img b-lazy" data-img="/2019/05/19/demo.png" data-index="3" data-src="/2019/05/19/demo.png"></p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">

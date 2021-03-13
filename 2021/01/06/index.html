@@ -179,7 +179,7 @@
                     <html><head></head><body><h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><p>macOS 中的 DNS 順序並沒有意義（儘管系統還讓你移動順序），決定 DNS Server 使用隨機方式來選擇。如果想要指定特定網域使用特定的 DNS Server，請使用 <code>scutil</code> 指令設定。</p>
 <h1 id="環境"><a href="#環境" class="headerlink" title="環境"></a>環境</h1><p>我在同一張網卡上設定兩個 IP，一組對內一組對外，對內的用來與實驗室內網環境溝通。</p>
 <h1 id="DNS-解析發生問題"><a href="#DNS-解析發生問題" class="headerlink" title="DNS 解析發生問題"></a>DNS 解析發生問題</h1><p>為了碰得到內網的服務，將兩組內網的 DNS Server 設定上 DNS Server 列表中</p>
-<p><img alt="dns.png" class="post-img b-lazy" data-img="/posts/6/./dns.png" data-index="0" data-src="/posts/6/./dns.png"></p>
+<p><img alt="dns.png" class="post-img b-lazy" data-img="/2021/01/06/./dns.png" data-index="0" data-src="/2021/01/06/./dns.png"></p>
 <p>接著使用網頁存取該 DNS 下的 domain 發生存取失敗，但使用 dig 指令卻又可以正常解析</p>
 <p>於是設計一個實驗，先將 <code>8.8.8.8</code> 與 <code>1.1.1.1</code> 這兩組外部 DNS 移除，發先服務都可以正常存取</p>
 <p>發現 macOS 實際上根本不參考 DNS Server 列表，而是隨機挑一個列表中的 DNS Server 來用</p>
