@@ -43,6 +43,8 @@
 	
 
 	
+	<link rel="manifest" href="/manifest.json">
+	
 
 	
 	<link rel="alternate" href="https://blog.yiyu0x.site/atom.xml" title="yiyu0x's blog">
@@ -455,15 +457,16 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
 </footer>
 	
 
-
 <script>
-    if(window.navigator && navigator.serviceWorker) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister()
-            }
-        })
-    }
+    "serviceWorker"in navigator&&window.addEventListener("load",function(){
+        navigator.serviceWorker.register("/sw.js")
+            .then(function(e){
+                console.log("ServiceWorker registration successful with scope: ",e.scope)
+            })
+            .catch(function(e){
+                console.log("ServiceWorker registration failed: ",e)
+            })
+    });
 </script>
 
 
@@ -483,7 +486,7 @@ UNIX Systems Programming: Communication, Concurrency and Threads: Communication,
         
         
         
-            searchFunc("/");
+            searchFuncSW("/");
         
         
     })

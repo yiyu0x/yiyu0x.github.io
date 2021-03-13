@@ -43,6 +43,8 @@
 	
 
 	
+	<link rel="manifest" href="/manifest.json">
+	
 
 	
 	<link rel="alternate" href="https://blog.yiyu0x.site/atom.xml" title="yiyu0x's blog">
@@ -397,15 +399,16 @@
 </footer>
 	
 
-
 <script>
-    if(window.navigator && navigator.serviceWorker) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister()
-            }
-        })
-    }
+    "serviceWorker"in navigator&&window.addEventListener("load",function(){
+        navigator.serviceWorker.register("/sw.js")
+            .then(function(e){
+                console.log("ServiceWorker registration successful with scope: ",e.scope)
+            })
+            .catch(function(e){
+                console.log("ServiceWorker registration failed: ",e)
+            })
+    });
 </script>
 
 
@@ -425,7 +428,7 @@
         
         
         
-            searchFunc("/");
+            searchFuncSW("/");
         
         
     })
@@ -442,10 +445,7 @@
 
 </body>
 </html>
-m">
-        
-        <div class="search-overlay-logo">
-        	<img src="https://img.icons8.com/color/64/000000/sashimi.png" alt="yiyu0x's blog">
+alt="yiyu0x's blog">
         </div>
         
         <input id="local-search-input" class="search-input" type="text" name="search" placeholder="Search ...">
@@ -469,15 +469,16 @@ m">
 </footer>
 	
 
-
 <script>
-    if(window.navigator && navigator.serviceWorker) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister()
-            }
-        })
-    }
+    "serviceWorker"in navigator&&window.addEventListener("load",function(){
+        navigator.serviceWorker.register("/sw.js")
+            .then(function(e){
+                console.log("ServiceWorker registration successful with scope: ",e.scope)
+            })
+            .catch(function(e){
+                console.log("ServiceWorker registration failed: ",e)
+            })
+    });
 </script>
 
 
@@ -497,7 +498,7 @@ m">
         
         
         
-            searchFunc("/");
+            searchFuncSW("/");
         
         
     })
