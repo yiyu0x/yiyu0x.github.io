@@ -3,7 +3,7 @@
   "short_name": "yiyu0x",
   "theme_color": "#313131",
   "background_color": "#444547",
-  "display": "browser",
+  "display": "standalone",
   "scope": "/",
   "start_url": "/",
   "icons": [
