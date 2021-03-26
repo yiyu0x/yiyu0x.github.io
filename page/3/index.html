@@ -175,6 +175,57 @@
 			<article class="post-card post  no-image ">
 				
 				<div class="post-card-content">
+					<a class="post-card-content-link" title="在 macOS 上使用 docker 運行 mysql" href="/2019/05/20/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2019-05-20T06:04:49.000Z">
+									2019-05-20
+								</time>
+							</span>
+							<h2 class="post-card-title">在 macOS 上使用 docker 運行 mysql</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								前言想測試 mysql 的指令又不喜歡污染自己的機器，docker 是你的好選擇。但是在 docker 跑 mysql 會遇到一些小雷點，在這邊紀錄一下。
+正文
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							4
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
+			<article class="post-card post  no-image ">
+				
+				<div class="post-card-content">
 					<a class="post-card-content-link" title="nodeJS 中的 fs module 介紹" href="/2019/05/19/">
 						<header class="post-card-header">
 							<span class="post-card-tags">
@@ -196,10 +247,11 @@
 								
 								
 								
-								
-								
 								前言在學習任何一個語言一定都會遇到檔案讀寫，在 nodeJS 中的檔案讀寫幾乎都能透過 fs 這個 module 來完成。
 而且在 fs API 中有這麼一段話
+All file system operations have synchronous and asynchronous forms.
+對於開發者來說實在是非常棒，不像有些 module 同步與異步是分開成兩個不同的 module。
+常用操作讀取文件以下要注意第二個參數要指定編碼，否則印出來會是 raw data 的
 								...
 							</p>
 						</div>
@@ -646,70 +698,6 @@ JDK 11+ could not be found and must be manually chosen!
 				</div>
 			</article>
 			
-			<article class="post-card post  no-image ">
-				
-				<div class="post-card-content">
-					<a class="post-card-content-link" title="buffer overflow搭配ret2libc之攻擊手法介紹" href="/2019/03/02/">
-						<header class="post-card-header">
-							<span class="post-card-tags">
-								
-								| 
-								
-								<time datetime="2019-03-02T05:13:17.000Z">
-									2019-03-02
-								</time>
-							</span>
-							<h2 class="post-card-title">buffer overflow搭配ret2libc之攻擊手法介紹</h2>
-						</header>
-						<div class="post-card-excerpt">
-							<p>
-								
-								
-								
-								
-								
-								
-								
-								前言buffer overflow 以下簡稱為 BOF。
-BOF 是一個常見的攻擊手法，透過 BOF 可以達成各種不同的目的，像是：
-
-ret2text
-ret2shellcode
-ret2syscall
-ret2libc
-
-本文將透過 2018-EOF 的 pwn3 來說明 ret2libc 的攻擊手法
-分析題目(題目給了一個 ELF 檔案 以及 libc.so.6)
-拿到題目第一步，先丟到 IDA 中逆向
- -->
-
-同時查看 ELF 檔案的保護狀態
- -->
-
-這兩個線
-								...
-							</p>
-						</div>
-					</a>
-					<footer class="post-card-meta">
-						<div class="author-list">
-							<div class="author-list-item">
-								<div class="author-name-tooltip">yiyu0x</div>
-								
-								<a href="/about" class="static-avatar">
-									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
-								</a>
-								
-							</div>
-						</div>
-						<span class="reading-time">
-							4
-							min read
-						</span>
-					</footer>
-				</div>
-			</article>
-			
 		</div>
 	</div>
 </div>
@@ -754,6 +742,12 @@ ret2libc
       
       
       <li>
+        <a href="/2021/03/26/">一次 Traefik 與 TLS 的踩雷經驗</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2021/01/06/">在 macOS 單網卡多個介面的 DNS 踩雷紀錄</a>
       </li>
       
@@ -764,10 +758,6 @@ ret2libc
       </li>
       
       
-      
-      <li>
-        <a href="/2020/07/11/">在 K8S 中使用 Traefik 作為 Ingress Controllers</a>
-      </li>
       
       
       
@@ -849,7 +839,7 @@ ret2libc
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 17.33px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 20.67px;">docker</a> <a href="/tags/es6/" style="font-size: 20.67px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 20.67px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 17.33px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 20.67px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 14px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 17.33px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 17.33px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 17.33px;">tools</a> <a href="/tags/個人/" style="font-size: 20.67px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 20.67px;">資訊安全</a>
+		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 19px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 21.5px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
 	</div>
 </article>
 

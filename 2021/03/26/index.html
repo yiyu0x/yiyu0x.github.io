@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>如何在Linux上掛載外接硬碟 | yiyu0x's blog</title>
+	<title>一次 Traefik 與 TLS 的踩雷經驗 | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -52,14 +52,14 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="如何在Linux上掛載外接硬碟 | yiyu0x's blog">
+	<meta property="og:title" content="一次 Traefik 與 TLS 的踩雷經驗 | yiyu0x's blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.org/2019/03/19/">
+	<meta property="og:url" content="https://blog.yiyu0x.org/2021/03/26/">
 
 	
-	<meta property="article:published_time" content="2019-03-19T18:03:00+08:00"> 
+	<meta property="article:published_time" content="2021-03-26T18:03:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="yiyu0x's blog, /2019/03/19/">
+	<meta property="article:published_first" content="yiyu0x's blog, /2021/03/26/">
 	
 
 	
@@ -164,49 +164,68 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2019-03-19T10:47:15.000Z">
-                    2019-03-19
+                <time class="post-full-meta-date" datetime="2021-03-26T10:07:37.000Z">
+                    2021-03-26
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">如何在Linux上掛載外接硬碟</h1>
+            <h1 class="post-full-title">一次 Traefik 與 TLS 的踩雷經驗</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在練習 <code>quota</code> 用來配置每一個使用者的目錄用量， <code>quota</code> 是以分割區為單位，發現自己連硬碟掛載都不太熟悉，可以是平常都用遠端機器的緣故，較少掛載經驗，此篇文章記錄一下掛載過程。</p>
-<h2 id="接上硬碟"><a href="#接上硬碟" class="headerlink" title="接上硬碟"></a>接上硬碟</h2><p>無論是實體硬碟，虛擬硬碟，接上後第一步應該確認是否成功讀取</p>
-<p><code>ls /dev/sd*</code></p>
-<h2 id="分割"><a href="#分割" class="headerlink" title="分割"></a>分割</h2><p>確認讀取之後，先用 fdisk 確認硬碟是否正確<br><code>fdisk -l /dev/sdb</code></p>
-<p>使用 fdisk 分割硬碟<br><code>fdisk /dev/sdb</code></p>
-<p>進入 fdisk 程式後，使用 <code>m</code> 來查看指令，並且用 <code>n</code> 新增分割區，依提示完成分割 (分割完畢記得用 <code>w</code> 寫入分割表)</p>
-<p>重新確認是否有分割表出現</p>
-<p><code>fdisk -l /dev/sdb</code></p>
-<h2 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h2><p>如果想要格式化成 ext4</p>
-<p><code>mkfs -t ext4 /dev/sdb</code></p>
-<p>如果想要格式化成 xfs (因爲 <code>-t</code> 會出現問題，所以加上參數 <code>-f</code> 來強制格式化)</p>
-<p><code>mkfs.xfs -f /dev/sdb</code></p>
-<h2 id="掛載"><a href="#掛載" class="headerlink" title="掛載"></a>掛載</h2><p>掛載之前，要將硬碟資訊寫入在 <code>/etc/fstab</code></p>
-<p>設定檔需要 UUID 資訊，可以透過 <code>blkid</code> 得知 (我的 sdb UUID 為 f6229601-6fae-4033-9e84-ee0815c9d725)</p>
-<p>之後在 /etc/fstab 尾端加上</p>
-<p>/etc/fstab:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UUID=f6229601-6fae-4033-9e84-ee0815c9d725 /DISK2  xfs   defaults,usrquota,grpquota        0 0</span><br></pre></td></tr></tbody></table></figure>
+                    <html><head></head><body><h2 id="問題點"><a href="#問題點" class="headerlink" title="問題點"></a>問題點</h2><p>部署 ArgoCD 進 Kubernetes 完畢時，發現 ArgoCD 開了 80, 443 兩個 Service Port，對應到的 Container Port 都同樣是 8080。如果你用 http 請求 ArgoCD 的 Web 時，他會請你跳轉到 https。</p>
+<p>為了讓外部的 User 可以使用 ArgoCD，我設定了 Traefik 的 IngressRoute 來存取該資源，但是卻一直沒有成功。</p>
+<p>我的架構環境為</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">                    |</span><br><span class="line">Nginx-proxy（外部）  | -> K8s-worker(Traefik/Ingress) -> ArgoCD-server(service)</span><br><span class="line">                    |</span><br></pre></td></tr></tbody></table></figure>
 
-<p><code>/DISK2</code> 為我們要掛載的目錄，後面為檔案系統，如果要用 quota 管理目錄，可以加上 <code>usrquota,grpquota</code></p>
-<p>之後記得要創建我們需要掛載的目錄，並且掛載它</p>
-<p><code>mkdir /DISK2</code></p>
-<p><code>mount /DISK2</code></p>
-<p>可以用 <code>df</code> 查看是否掛載成功</p>
+<h2 id="Debug"><a href="#Debug" class="headerlink" title="Debug"></a>Debug</h2><h3 id="IngressRoute"><a href="#IngressRoute" class="headerlink" title="IngressRoute"></a>IngressRoute</h3><p>為了簡化環境（debug），於是我從 Cluster 內部去打 Ingress，發現回應一直都是 404，但是我把 Service 做 port forward 到 local 端，卻可以正常運作，所以推測是 ArgoCD 的 IngressRoute 規則有誤，而我使用的規則是ArgoCD 官方文件提到的：</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">traefik.containo.us/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">IngressRoute</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">  namespace:</span> <span class="string">argocd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  entryPoints:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">websecure</span></span><br><span class="line"><span class="attr">  routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">      match:</span> <span class="string">Host(`argocd.example.com`)</span></span><br><span class="line"><span class="attr">      priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">      services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">          port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">      match:</span> <span class="string">Host(`argocd.example.com`)</span> <span class="string">&&</span> <span class="string">Headers(`Content-Type`,</span> <span class="string">`application/grpc`)</span></span><br><span class="line"><span class="attr">      priority:</span> <span class="number">11</span></span><br><span class="line"><span class="attr">      services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">          port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">          scheme:</span> <span class="string">h2c</span></span><br><span class="line"><span class="attr">  tls:</span></span><br><span class="line"><span class="attr">    certResolver:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">    options:</span> <span class="string">{}</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>於是我使用（從 Cluster 節點上直接打 Ingress）</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl https://argocd.example.com -k</span><br><span class="line">> href="https://argocd.example.com/">Temporary Redirect.</span><br><span class="line"></span><br><span class="line">curl https://argocd.example.com -k -L</span><br><span class="line">> curl: (47) Maximum (50) redirects followed</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我查了 Traefik 的官方文件發現</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">There are 3 ways to configure the backend protocol for communication between Traefik and your pods:</span><br><span class="line"></span><br><span class="line">    Setting the scheme explicitly (http/https/h2c)</span><br><span class="line">    Configuring the name of the kubernetes service port to start with https (https)</span><br><span class="line">    Setting the kubernetes service port to use port 443 (https)</span><br><span class="line"></span><br><span class="line">If you do not configure the above, Traefik will assume an http connection.</span><br></pre></td></tr></tbody></table></figure>
+
+<p>簡單來說，Treafik 並不會因為你使用 https 去打 Ingress，就使用該協定幫你打後端的 Pod (or Service)，如果你指定 Service 為 443 Port 那麼他就幫你用 https 去跟後端的 Pod 建立連線，而預設都是走 http 連線。</p>
+<p>所以應該將 yaml 檔案改為</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">    match:</span> <span class="string">Host(`argocd.example.com`)</span></span><br><span class="line"><span class="attr">    priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">    services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">        port:</span> <span class="number">443</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>或是指定 protocol</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">    match:</span> <span class="string">Host(`argocd.tcs-proxy.cscc`)</span></span><br><span class="line"><span class="attr">    priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">    services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">        port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">        scheme:</span> <span class="string">https</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>來強制 IngressRoute 與 ArgoCD 使用 https 建立連線。</p>
+<p>另外，因為 ArgoCD 的憑證是自行簽發的，Traefik 並認不得該單位，所以 Traefik 必須設定 <code>--serversTransport.insecureSkipVerify=true</code> 來忽略憑證的驗證</p>
+<h3 id="Reverse-Proxy-to-Cluster"><a href="#Reverse-Proxy-to-Cluster" class="headerlink" title="Reverse Proxy to Cluster"></a>Reverse Proxy to Cluster</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">                    |</span><br><span class="line">Nginx-proxy（外部）  |  -> K8s-worker(Traefik/Ingress) -> ArgoCD-server(service)</span><br><span class="line">                    |</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我的情境中，Cluster 外部還有一台 Load Balancer 會將流量導致 Cluster 的 Worker Nodes，但是 Traefik 已經有憑證了，後端的 ArgoCD 也有，我並不想要有這麼多的憑證會造成連線的效能耗損，於是查到可以使用 tls passthrough 的方式來讓 Nginx 不處理封包的加密解密，直接將該封包 reverse proxy 到後端。</p>
+<p>但是該方式會產生一個問題，Nginx 如果不做解密，那麼也看不到封包 L7 的 Host 欄位，於是原本的 virtual host 方式就無法正常路由，解決方式為使用 TLS 的 SNI 來判斷路由。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">stream {</span><br><span class="line">    map $ssl_preread_server_name $name {</span><br><span class="line">        # 在此設定不同 SNI 對應到不同後端;</span><br><span class="line">        argocd.tcs-proxy.cscc K8S_WORKER_443;</span><br><span class="line">        default https_default_backend;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    upstream K8S_WORKER_443 {</span><br><span class="line">        server worker-node-1:443;</span><br><span class="line">        server worker-node-2:443;</span><br><span class="line">        server worker-node-3:443;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    server {</span><br><span class="line">        listen 443;</span><br><span class="line">        proxy_pass $name; # 如果沒有路由需求，也可以直接設定 proxy_pass K8S_WORKER_443;</span><br><span class="line">        ssl_preread on; # 該選項需要打開，才有辦法讀取 SNI</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>要注意的是，通常 Nginx 的設定都會在 http directive，但是 tls passthrough 必須要設定在 stream directive 下，意味著原本的 log formatter 也無法使用了（可以去 nginx.conf 看一下）。</p>
+<p>所以我們必須增加新的 log formatter 在 steam directive 下方</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">stream {</span><br><span class="line">    log_format proxy '$remote_addr - [$time_local] '</span><br><span class="line">                    '$protocol $status $bytes_sent $bytes_received '</span><br><span class="line">                    '$session_time "$upstream_addr" '</span><br><span class="line">                    '"$upstream_bytes_sent" "$upstream_bytes_received" "$upstream_connect_time" '</span><br><span class="line">                    '$remote_addr $remote_port $server_addr $server_port';</span><br><span class="line">    server {</span><br><span class="line">        access_log      /var/log/tcp-stream-access.log proxy;</span><br><span class="line">        #...</span><br><span class="line">        #...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如此一來會發現外層的 Nginx 沒有上憑證也可以正常使用叢集內部憑證來對連線進行加密！</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/Linux/" rel="tag"># Linux</a>
+                        <a href="/tags/nginx/" rel="tag"># nginx</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/kuberentes/" rel="tag"># kuberentes</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/traefik/" rel="tag"># traefik</a>
                     </li>
                     
                 </ul>
@@ -217,14 +236,10 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="了解javesvript中的var" href="/2019/03/25/">
-            ← 了解javesvript中的var
-        </a>
-        
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="如何在 macOS 上自行安裝 openJDK" href="/2019/03/10/">
-            如何在 macOS 上自行安裝 openJDK →
+        <a class="next-post" title="在 macOS 單網卡多個介面的 DNS 踩雷紀錄" href="/2021/01/06/">
+            在 macOS 單網卡多個介面的 DNS 踩雷紀錄 →
         </a>
         
     </nav>
@@ -246,7 +261,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#接上硬碟"><span class="toc-text">接上硬碟</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分割"><span class="toc-text">分割</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#格式化"><span class="toc-text">格式化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#掛載"><span class="toc-text">掛載</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#問題點"><span class="toc-text">問題點</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Debug"><span class="toc-text">Debug</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IngressRoute"><span class="toc-text">IngressRoute</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Reverse-Proxy-to-Cluster"><span class="toc-text">Reverse Proxy to Cluster</span></a></li></ol></li></ol>
     </div>
 </div>
 
