@@ -191,8 +191,9 @@
 <p>首先建立目錄，位置必須是 <code>/etc/resolver</code></p>
 <p><code>sudo mkdir /etc/resolver</code></p>
 <p>裡面的檔名依照 domain 去設定，假設我要指定 mydomain.org 下的 nameserver，我的檔名就是 <code>mydomain.org</code></p>
-<p><code>echo 'nameserver 10.1.2.1' > /etc/resolver/mydomain.org</code><br><code>echo 'nameserver 10.1.2.2' > /etc/resolver/mydomain.org</code></p>
-<p>設定之後再度訪問 <code>website.mydomain.org</code> 就可以正常存取了</p>
+<p>接者把該 domain 用到的 nameserver 寫上，格式與 <code>/etc/resolv.conf</code> 一樣</p>
+<p><code>echo 'nameserver 10.0.0.1' > /etc/resolver/mydomain.org</code><br><code>echo 'nameserver 10.0.0.2' > /etc/resolver/mydomain.org</code></p>
+<p>設定之後再度訪問 <code>website.mydomain.org</code> 就可以正常解析了</p>
 <h3 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h3><ul>
 <li><a href="https://medium.com/@jamieeduncan/i-recently-moved-to-a-macbook-for-my-primary-work-laptop-7c704dbaff59" target="_blank" rel="noopener">Domain-specific DNS server on your Macbook Pro</a></li>
 </ul>
