@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>不用任何工具！內網穿透至自己的域名下 | yiyu0x's blog</title>
+	<title>不停機替換 Kubernetes CRI | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -52,14 +52,14 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="不用任何工具！內網穿透至自己的域名下 | yiyu0x's blog">
+	<meta property="og:title" content="不停機替換 Kubernetes CRI | yiyu0x's blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.org/2019/09/09/">
+	<meta property="og:url" content="https://blog.yiyu0x.org/2021/04/17/">
 
 	
-	<meta property="article:published_time" content="2019-09-09T00:09:00+08:00"> 
+	<meta property="article:published_time" content="2021-04-17T14:04:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="yiyu0x's blog, /2019/09/09/">
+	<meta property="article:published_first" content="yiyu0x's blog, /2021/04/17/">
 	
 
 	
@@ -164,67 +164,66 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2019-09-08T16:00:37.000Z">
-                    2019-09-9
+                <time class="post-full-meta-date" datetime="2021-04-17T06:34:42.000Z">
+                    2021-04-17
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">不用任何工具！內網穿透至自己的域名下</h1>
+            <h1 class="post-full-title">不停機替換 Kubernetes CRI</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
-<p>不久前才寫了一篇 <a href="https://blog.yiyu0x.tk/2019/06/03/%E7%94%A8-serveo-%E4%BE%86%E7%A9%BF%E9%80%8F%E5%85%A7%E7%B6%B2%E5%90%A7/" target="_blank" rel="noopener">用 serveo 來穿透內網吧</a>，結果馬上就要打臉自己了 👋</p>
-</blockquote>
-<p>上一篇文章提到 serveo.net 比起 ngrok 可以自訂 sub domain ，更加方便（不會每一次產生網址都像一堆亂碼一樣不方便記憶）。但是自己在這一陣子使用下發現，serveo.net 的網站似乎常常掛掉，而且打通 reverse ssh 的速度似乎沒有 ngrok 來得快！</p>
-<p>但是他的指令 <code>ssh -R 80:localhost:3000 serveo.net</code> 讓我讓我靈機一動，反正都是 reverse ssh。只要有自己的 domain 以及自己的 vps，我也能自己架設。</p>
-<p>設定好 domain 再使用 reverse proxy，等到需要時再打一條 reverse ssh 似乎也不是多困難的事，憑證的事情交給 certbot 解決就好。</p>
-<h2 id="事前準備"><a href="#事前準備" class="headerlink" title="事前準備"></a>事前準備</h2><ul>
-<li>VPS</li>
-<li>Domain</li>
-<li>NS server 設定一組 A record 指向 VPS</li>
-<li>nginx （用來做 reverse proxy）</li>
-</ul>
-<h2 id="架構"><a href="#架構" class="headerlink" title="架構"></a>架構</h2><p><img alt="1" class="post-img b-lazy" data-img="/2019/09/09/./a.png" data-index="0" data-src="/2019/09/09/./a.png"></p>
-<h2 id="開工"><a href="#開工" class="headerlink" title="開工"></a>開工</h2><p>首先先在 <code>/etc/nginx/sites-available</code> 下新建設定檔，檔名建議用你的 virtual host 來命名，在這邊以 reverse 舉例</p>
-<p>/etc/nginx/sites-available/reverse:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">server {</span><br><span class="line">  server_name reverse.yiyu0x.tk; #改為自己的 domain</span><br><span class="line">  location / {</span><br><span class="line">      proxy_pass http://localhost:5487/; #設定為內網任意 port，到時候用來打 reverse ssh</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+                    <html><head></head><body><h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>今天嘗試將 CRI 從預設的 dockershim 替換至 CRI-O，網路上的教學都是教你更換完畢之後使用 kubeadm 重新起一個 Cluster。但我的情境需要對現有的 Cluster 做替換，於是自己研究了一下如何不停機替換 CRI。</p>
+<h2 id="替換-CRI"><a href="#替換-CRI" class="headerlink" title="替換 CRI"></a>替換 CRI</h2><p>首先將你需要替換的節點先設 drain</p>
+<p><code>kubectl drain worker-node-1 --ignore-daemonsets</code></p>
+<p>之後進入節點，將原本的 CRI dockershim 關閉</p>
+<p><code>systemctl stop docker</code></p>
+<p>我打算替換成 CRI-O，所以請先確定你想要替換的 CRI 已經安裝完畢，並且已經啟動：</p>
+<p><code>systemctl status crio</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">● crio.service - Container Runtime Interface for OCI (CRI-O)</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/crio.service; enabled; vendor preset: disabled)</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 15min ago</span><br><span class="line">     Docs: https://github.com/cri-o/cri-o</span><br><span class="line"> Main PID: 22001 (crio)</span><br><span class="line">    Tasks: 21</span><br><span class="line">   Memory: 1.1G</span><br><span class="line">   CGroup: /system.slice/crio.service</span><br><span class="line">           └─22001 /usr/bin/crio</span><br></pre></td></tr></tbody></table></figure>
 
-<p>設定完畢之後，記得 <code>ln -s</code> 至 <code>/etc/nginx/sites-enable</code> 並且重新啟動 nginx （啟動前可以用 nginx -t 來檢查是否有語法錯誤）</p>
-<p>（如果你的內網穿透需要 https，可以用 certbot 來輕鬆幫你新增免費憑證並且管理憑證）</p>
-<p>做到這邊已經完成了一半，接下來就剩下打通道了！</p>
-<p><code>ssh -R 5487:localhost:1234 user@domain.com</code></p>
-<p>前面的 5487 代表遠端的 port，看你前面設定多少這邊就用多少，因為要與 VPS 上開的 port 綁定，所以建議設定一組自己記得起來的，記得遠端的防火牆要打開！</p>
-<p>但是指令這麼長，非常難記憶，如果這篇文章只有這樣子我想大家還是會回去用 ngrok 或是 serveo.net。</p>
-<p>在使用 ssh 服務時，可以使用金鑰來達成免密碼登入。以及在 <code>~/.ssh/config</code> 下新增設定來簡化登入 ssh 流程</p>
-<p>例如:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Host <vps-name>         #自行設定想要的名稱</vps-name></span><br><span class="line">    hostname <vps-ip>   #vps ip 位置</vps-ip></span><br><span class="line">    user <name>         #遠端使用者名稱</name></span><br><span class="line">    IdentityFile <path> #私鑰位置</path></span><br></pre></td></tr></tbody></table></figure>
+<p>接著照著網路上的教學，修改 <code>/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf</code></p>
+<p>並且增加</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Environment="KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m"</span><br></pre></td></tr></tbody></table></figure>
 
-<p>設定完畢之後，指令可以簡化為</p>
-<p><code>ssh -R 5487:localhost:1234 vps-name</code></p>
-<p>但是這樣還是不夠好！我們在 local 的 port 可能會因為每一個服務不同而需要穿透不同的 port。</p>
-<p>於是我們可以透過修改 <code>~/.bashrc</code> 來設定 alias</p>
-<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> rev-ssh=<span class="string">'rev-ssh'</span></span><br><span class="line"><span class="keyword">function</span> rev-<span class="function"><span class="title">ssh</span></span>() {</span><br><span class="line">	ssh -R 5487:localhost:<span class="variable">$1</span> y-gcp</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>但是重啟 kubelet 之後會發現毫無作用（用 <code>systemctl status kubelet</code> 可以檢查啟動參數）</p>
+<p>為何會毫無作用，是因為該檔案是 kubeadm 啟動時讀取的，但是我打算不停機所以不考慮使用 kubeadm 重啟，我打算在每一個節點上重啟 kubelet 來替換，所以需要針對 kubelet 來設定啟動參數。</p>
+<p>於是我在該檔案找到了 EnvironmentFile 參數，並且值為 <code>/etc/sysconfig/kubelet</code></p>
+<p>於是我在 <code>/etc/sysconfig/kubelet</code> 加入了</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure>
 
-<p>設定完之後，記得下 <code>source ~/.bashrc</code> 來讓 bash 重新讀取一次設定檔</p>
-<p>如此一來，指令簡化為 <code>rev-ssh <your-port></your-port></code></p>
-<h2 id="驗收"><a href="#驗收" class="headerlink" title="驗收"></a>驗收</h2><p>可以透過 <code>python3 -m http.server 6666</code> 在當下目錄開一個 http 服務來瀏覽檔案</p>
-<p>再使用 <code>rev-ssh 6666</code> 來將 local 的 6666 port 打一條 reverse ssh 至自己的 vps（按照我以上的設定就是 reverse.yiyu0x.tk）</p>
-<p>現在就可以與 ngrok 和 serveo.net 正式再見。再也不會因為這兩家服務掛掉而沒有辦法穿透內網了！</p>
-<h2 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h2><ul>
-<li><a href="https://blog.longwin.com.tw/2016/03/linux-bash-alias-take-parameter-2016/" target="_blank" rel="noopener">Bash alias 如何傳入參數($1)</a></li>
-</ul>
+<p>之後重啟 kubelet</p>
+<p><code>systemctl daemon-reload</code><br><code>systemctl restart kubelet</code></p>
+<p>可以看到啟動參數已經吃進去了</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">● kubelet.service - kubelet: The Kubernetes Node Agent</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/kubelet.service; enabled; vendor preset: disabled)</span><br><span class="line">  Drop-In: /usr/lib/systemd/system/kubelet.service.d</span><br><span class="line">           └─10-kubeadm.conf</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 22min ago</span><br><span class="line">     Docs: https://kubernetes.io/docs/</span><br><span class="line"> Main PID: 22114 (kubelet)</span><br><span class="line">    Tasks: 16</span><br><span class="line">   Memory: 51.2M</span><br><span class="line">   CGroup: /system.slice/kubelet.service</span><br><span class="line">           └─22114 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --network-plugin=cni --pod-infra-container-image=k8s.gcr.io/pause:3.2 --feature-gates=AllAlpha=false,RunAsGroup=true --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint=unix:///var/run/crio/crio.sock --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure>
+
+<p>使用</p>
+<p><code>kubectl get node -o wide</code></p>
+<p>也可以發現 CRI 已經更換</p>
+<p>重新讓該節點可以被使用</p>
+<p><code>kubectl uncordon worker-node-1</code></p>
+<h2 id="注意事項"><a href="#注意事項" class="headerlink" title="注意事項"></a>注意事項</h2><ol>
+<li><p>替換 Control Plane 節點時請一定要把原本的 CRI 關閉，否則系統元件會佔用你節點上的 Port，導致使用新的 CRI 無法順利將系統元件跑起來！</p>
+</li>
+<li><p>部署完畢後 coredns 報錯</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">container_linux.go:349: starting container process caused "error adding seccomp rule for syscall socket: requested action matches default action of filter"               │   Warning  FailedCreatePodSandBox  36m  kubelet, worker-node-2  Failed to create pod sandbox: rpc error: code = Unknown desc = container create failed: time="2021-04-17</span><br><span class="line">│ T02:23:10-04:00" level=error msg="container_linux.go:349: starting container process caused \"error adding seccomp rule for syscall socket: requested action matches def  │ ault action of filter\""</span><br></pre></td></tr></tbody></table></figure>
+
+<p>看到這篇：<a href="https://github.com/cri-o/cri-o/issues/4491" target="_blank" rel="noopener">https://github.com/cri-o/cri-o/issues/4491</a></p>
+<p>將 runc 升級為 1.0.0-rc93 後解決</p>
+<p><code>yum update runc -y</code></p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/tools/" rel="tag"># tools</a>
+                        <a href="/tags/kubernetes/" rel="tag"># kubernetes</a>
                     </li>
                     
                 </ul>
@@ -235,14 +234,10 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="使用 docker 來輕鬆建構資料庫" href="/2019/10/21/">
-            ← 使用 docker 來輕鬆建構資料庫
-        </a>
-        
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="Javascript 中的連續賦值" href="/2019/08/13/">
-            Javascript 中的連續賦值 →
+        <a class="next-post" title="一次 Traefik 與 TLS 的踩雷經驗" href="/2021/03/26/">
+            一次 Traefik 與 TLS 的踩雷經驗 →
         </a>
         
     </nav>
@@ -264,7 +259,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事前準備"><span class="toc-text">事前準備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#架構"><span class="toc-text">架構</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#開工"><span class="toc-text">開工</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#驗收"><span class="toc-text">驗收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#參考"><span class="toc-text">參考</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#問題"><span class="toc-text">問題</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#替換-CRI"><span class="toc-text">替換 CRI</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#注意事項"><span class="toc-text">注意事項</span></a></li></ol>
     </div>
 </div>
 

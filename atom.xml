@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.org/"/>
-  <updated>2021-03-26T11:35:53.545Z</updated>
+  <updated>2021-04-17T07:36:33.228Z</updated>
   <id>https://blog.yiyu0x.org/</id>
   
   <author>
@@ -15,6 +15,26 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>不停機替換 Kubernetes CRI</title>
+    <link href="https://blog.yiyu0x.org/2021/04/17/"/>
+    <id>https://blog.yiyu0x.org/2021/04/17/</id>
+    <published>2021-04-17T06:34:42.000Z</published>
+    <updated>2021-04-17T07:36:33.228Z</updated>
+    
+    <content type="html"><![CDATA[<html><head></head><body><h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>今天嘗試將 CRI 從預設的 dockershim 替換至 CRI-O，網路上的教學都是教你更換完畢之後使用 kubeadm 重新起一個 Cluster。但我的情境需要對現有的 Cluster 做替換，於是自己研究了一下如何不停機替換 CRI。</p><h2 id="替換-CRI"><a href="#替換-CRI" class="headerlink" title="替換 CRI"></a>替換 CRI</h2><p>首先將你需要替換的節點先設 drain</p><p><code>kubectl drain worker-node-1 --ignore-daemonsets</code></p><p>之後進入節點，將原本的 CRI dockershim 關閉</p><p><code>systemctl stop docker</code></p><p>我打算替換成 CRI-O，所以請先確定你想要替換的 CRI 已經安裝完畢，並且已經啟動：</p><p><code>systemctl status crio</code></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">● crio.service - Container Runtime Interface for OCI (CRI-O)</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/crio.service; enabled; vendor preset: disabled)</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 15min ago</span><br><span class="line">     Docs: https://github.com/cri-o/cri-o</span><br><span class="line"> Main PID: 22001 (crio)</span><br><span class="line">    Tasks: 21</span><br><span class="line">   Memory: 1.1G</span><br><span class="line">   CGroup: /system.slice/crio.service</span><br><span class="line">           └─22001 /usr/bin/crio</span><br></pre></td></tr></tbody></table></figure><p>接著照著網路上的教學，修改 <code>/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf</code></p><p>並且增加</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Environment="KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m"</span><br></pre></td></tr></tbody></table></figure><p>但是重啟 kubelet 之後會發現毫無作用（用 <code>systemctl status kubelet</code> 可以檢查啟動參數）</p><p>為何會毫無作用，是因為該檔案是 kubeadm 啟動時讀取的，但是我打算不停機所以不考慮使用 kubeadm 重啟，我打算在每一個節點上重啟 kubelet 來替換，所以需要針對 kubelet 來設定啟動參數。</p><p>於是我在該檔案找到了 EnvironmentFile 參數，並且值為 <code>/etc/sysconfig/kubelet</code></p><p>於是我在 <code>/etc/sysconfig/kubelet</code> 加入了</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure><p>之後重啟 kubelet</p><p><code>systemctl daemon-reload</code><br><code>systemctl restart kubelet</code></p><p>可以看到啟動參數已經吃進去了</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">● kubelet.service - kubelet: The Kubernetes Node Agent</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/kubelet.service; enabled; vendor preset: disabled)</span><br><span class="line">  Drop-In: /usr/lib/systemd/system/kubelet.service.d</span><br><span class="line">           └─10-kubeadm.conf</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 22min ago</span><br><span class="line">     Docs: https://kubernetes.io/docs/</span><br><span class="line"> Main PID: 22114 (kubelet)</span><br><span class="line">    Tasks: 16</span><br><span class="line">   Memory: 51.2M</span><br><span class="line">   CGroup: /system.slice/kubelet.service</span><br><span class="line">           └─22114 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --network-plugin=cni --pod-infra-container-image=k8s.gcr.io/pause:3.2 --feature-gates=AllAlpha=false,RunAsGroup=true --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint=unix:///var/run/crio/crio.sock --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure><p>使用</p><p><code>kubectl get node -o wide</code></p><p>也可以發現 CRI 已經更換</p><p>重新讓該節點可以被使用</p><p><code>kubectl uncordon worker-node-1</code></p><h2 id="注意事項"><a href="#注意事項" class="headerlink" title="注意事項"></a>注意事項</h2><ol><li><p>替換 Control Plane 節點時請一定要把原本的 CRI 關閉，否則系統元件會佔用你節點上的 Port，導致使用新的 CRI 無法順利將系統元件跑起來！</p></li><li><p>部署完畢後 coredns 報錯</p></li></ol><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">container_linux.go:349: starting container process caused "error adding seccomp rule for syscall socket: requested action matches default action of filter"               │   Warning  FailedCreatePodSandBox  36m  kubelet, worker-node-2  Failed to create pod sandbox: rpc error: code = Unknown desc = container create failed: time="2021-04-17</span><br><span class="line">│ T02:23:10-04:00" level=error msg="container_linux.go:349: starting container process caused \"error adding seccomp rule for syscall socket: requested action matches def  │ ault action of filter\""</span><br></pre></td></tr></tbody></table></figure><p>看到這篇：<a href="https://github.com/cri-o/cri-o/issues/4491" target="_blank" rel="noopener">https://github.com/cri-o/cri-o/issues/4491</a></p><p>將 runc 升級為 1.0.0-rc93 後解決</p><p><code>yum update runc -y</code></p></body></html>]]></content>
+    
+    <summary type="html">
+    
+      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
+    
+    </summary>
+    
+    
+      <category term="kubernetes" scheme="https://blog.yiyu0x.org/tags/kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>一次 Traefik 與 TLS 的踩雷經驗</title>
@@ -411,26 +431,6 @@
     
     
       <category term="javascript" scheme="https://blog.yiyu0x.org/tags/javascript/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>用 serveo 來穿透內網吧</title>
-    <link href="https://blog.yiyu0x.org/2019/06/03/"/>
-    <id>https://blog.yiyu0x.org/2019/06/03/</id>
-    <published>2019-06-03T13:57:55.000Z</published>
-    <updated>2020-03-09T15:32:29.191Z</updated>
-    
-    <content type="html"><![CDATA[<html><head></head><body><p>有時候會需要暫時的 public ip 來運行環境，比較常見的需求像是</p><ul><li>分享一個檔案給內網外的朋友</li><li>測試環境需要 SSL 憑證 (https)</li><li>API 的 callback url (需要 https)</li></ul><p>雖然要在本地端使用憑證不是不能，只是設定需要一些時間。之前我有這樣的需求時都是透過 <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a>。長久使用下來還算方便，美中不足的點是 ngrok 分享出來的外網網址不是很乾淨</p><!-- <img src="/2019/06/03/ngrok.png"> --><p><img src="/2019/06/03/ngrok.png" alt="1"></p><p>以上的 ngrok 的截圖，分享出來的網址是 <code>https://50bb33a3.ngrok.io</code></p><p>然而就在前幾天發現更棒的方案，<a href="https://serveo.net/" target="_blank" rel="noopener">serveo</a>。</p><p>serveo 透過 ssh 的方式將一個具有 public ip 的 domain 映射到內網，最棒的地方在於因為是透過 ssh，所以不需要安裝套件，而且映射出來的 domain 還可以自訂！</p><p>這樣的服務居然不要收費，真的太佛心了！</p><p>他的官網上簡潔明瞭的一句話:</p><p><code>ssh -R 80:localhost:3000 serveo.net</code></p><p>簡單一行指令就會自動產生一個 domain 來映射到內網的 3000 port</p><!-- <img src="/2019/06/03/serveo.png"> --><p><img src="/2019/06/03/serveo.png" alt="2"></p><p>也可以用剛才提到的自訂子域名的方式</p><p><code>ssh -R yiyu:80:localhost:8888 serveo.net</code></p><!-- <img src="/2019/06/03/serveo_yiyu.png"> --><p><img src="/2019/06/03/serveo_yiyu.png" alt="3"></p><p>這樣子可以透過 <code>https://yiyu.serveo.net</code> 來訪問內網 8888 port</p><p>如此一來要分享某一個目錄下的檔案可以先透過 python3 來啟動一個簡單的 HFS</p><p><code>python3 -m http.server</code></p><p>然後再穿透內網</p><p><code>ssh -R yiyu:80:localhost:8000 serveo.net</code></p><p>(python3 的 http.server 預設開 8000 port)</p><p>如此一來人家就可以透過 <code>https://yiyu.serveo.net</code> 來取得路徑下的檔案了，非常方便 😄</p></body></html>]]></content>
-    
-    <summary type="html">
-    
-      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
-    
-    </summary>
-    
-    
-      <category term="tools" scheme="https://blog.yiyu0x.org/tags/tools/"/>
     
   </entry>
   

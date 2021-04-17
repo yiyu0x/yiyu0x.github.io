@@ -172,6 +172,62 @@
 	<div class="inner">
 		<div class="post-feed">
 			
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="用 serveo 來穿透內網吧" href="/2019/06/03/">
+					<div class="post-card-image b-lazy" data-src="https://cdn.pixabay.com/photo/2015/02/25/11/39/robot-648622_960_720.jpg"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="用 serveo 來穿透內網吧" href="/2019/06/03/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2019-06-03T13:57:55.000Z">
+									2019-06-03
+								</time>
+							</span>
+							<h2 class="post-card-title">用 serveo 來穿透內網吧</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								
+								
+								有時候會需要暫時的 public ip 來運行環境，比較常見的需求像是
+
+分享一個檔案給內網外的朋友
+測試環境需要 SSL 憑證 (https)
+API 的 c
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							2
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
 			<article class="post-card post  no-image ">
 				
 				<div class="post-card-content">
@@ -196,10 +252,10 @@
 								
 								
 								
-								
-								
 								前言想測試 mysql 的指令又不喜歡污染自己的機器，docker 是你的好選擇。但是在 docker 跑 mysql 會遇到一些小雷點，在這邊紀錄一下。
-正文
+正文起手式，把 mysql 的 image 拉下來docker pull mysql
+之後就可以把 container 跑起來docker run -p 3306:3306 -d --name mysql -e MYSQL_ROOT_PASSWORD=password mysql
+MYSQL_ROOT_PASSWORD 後
 								...
 							</p>
 						</div>
@@ -649,55 +705,6 @@ JDK 11+ could not be found and must be manually chosen!
 				</div>
 			</article>
 			
-			<article class="post-card post  no-image ">
-				
-				<div class="post-card-content">
-					<a class="post-card-content-link" title="在ubuntu上將nginx升級至http/2" href="/2019/03/06/">
-						<header class="post-card-header">
-							<span class="post-card-tags">
-								
-								| 
-								
-								<time datetime="2019-03-06T08:58:37.000Z">
-									2019-03-06
-								</time>
-							</span>
-							<h2 class="post-card-title">在ubuntu上將nginx升級至http/2</h2>
-						</header>
-						<div class="post-card-excerpt">
-							<p>
-								
-								
-								
-								
-								
-								
-								
-								前言架設 web server 時，把基本設定(virtual host)設定完之外，最麻煩的一件事情就是設定憑證。因為憑證有期限，除了申請憑證外還要排程去定期更新，否則自己忘記憑證到期的話，某一天網站就無法被正常存取了
-現在 cloudflare 有提供免費 SSL 服務，只需要按幾個按鍵就搞定了。但 SSL 畢竟是 server side 的事情，給 cloudflare 幫你做，還要開啟 CDN ，如果只是靜態網頁的話沒問題。需要用 reverse proxy 的話，C
-								...
-							</p>
-						</div>
-					</a>
-					<footer class="post-card-meta">
-						<div class="author-list">
-							<div class="author-list-item">
-								<div class="author-name-tooltip">yiyu0x</div>
-								
-								<a href="/about" class="static-avatar">
-									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
-								</a>
-								
-							</div>
-						</div>
-						<span class="reading-time">
-							2
-							min read
-						</span>
-					</footer>
-				</div>
-			</article>
-			
 		</div>
 	</div>
 </div>
@@ -742,6 +749,12 @@ JDK 11+ could not be found and must be manually chosen!
       
       
       <li>
+        <a href="/2021/04/17/">不停機替換 Kubernetes CRI</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2021/03/26/">一次 Traefik 與 TLS 的踩雷經驗</a>
       </li>
       
@@ -752,10 +765,6 @@ JDK 11+ could not be found and must be manually chosen!
       </li>
       
       
-      
-      <li>
-        <a href="/2020/08/31/">與 minikube 共享 local docker image</a>
-      </li>
       
       
       
@@ -839,7 +848,7 @@ JDK 11+ could not be found and must be manually chosen!
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 19px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 21.5px;">kuberentes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
+		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 19px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 21.5px;">kuberentes</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
 	</div>
 </article>
 
