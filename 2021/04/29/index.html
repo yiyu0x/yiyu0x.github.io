@@ -208,8 +208,8 @@
 <p>並且可以直接 ping 到另外一個 Container</p>
 <figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/ # ping 10.113.1.2</span><br><span class="line">PING 10.113.1.2 (10.113.1.2): 56 data bytes</span><br><span class="line">64 bytes from 10.113.1.2: seq=0 ttl=64 time=0.062 ms</span><br><span class="line">64 bytes from 10.113.1.2: seq=1 ttl=64 time=0.155 ms</span><br></pre></td></tr></tbody></table></figure>
 
-<p>如此一來可以用此概念（搭配 Bridge）完成一些複雜的網路情境，像是</p>
-<p>Container A 不具有對外上網能力，但是與 B 在同一個子網，Container B 上面除了與 A 在同一個網路下，還有 Brigde 介面到 host 上具有對外連線能力。</p>
+<p>如此一來可以用此概念（搭配 Bridge）完成一些複雜的網路情境</p>
+<h2 id="題外"><a href="#題外" class="headerlink" title="題外"></a>題外</h2><p>Docker 提供的網路選項不多，畢竟他主要是用來做資源隔離。除了以上問題沒辦法用內建的網路選項外，一個 Container 假設有多個網路環境，也沒辦法在 Container 啟動時指定預設路由，只能用比較拐彎抹角的方式在 entrypoint 或是 commands 做。</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
@@ -251,7 +251,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#解決"><span class="toc-text">解決</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#解決"><span class="toc-text">解決</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#題外"><span class="toc-text">題外</span></a></li></ol>
     </div>
 </div>
 
