@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>不停機替換 Kubernetes CRI | yiyu0x's blog</title>
+	<title>使用 iproute2 客製化你的 Container 網路 | yiyu0x's blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -52,14 +52,14 @@
 
 	<meta property="og:site_name" content="yiyu0x's blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="不停機替換 Kubernetes CRI | yiyu0x's blog">
+	<meta property="og:title" content="使用 iproute2 客製化你的 Container 網路 | yiyu0x's blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.org/2021/04/17/">
+	<meta property="og:url" content="https://blog.yiyu0x.org/2021/04/29/">
 
 	
-	<meta property="article:published_time" content="2021-04-17T14:04:00+08:00"> 
+	<meta property="article:published_time" content="2021-04-29T20:04:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="yiyu0x's blog, /2021/04/17/">
+	<meta property="article:published_first" content="yiyu0x's blog, /2021/04/29/">
 	
 
 	
@@ -164,71 +164,58 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2021-04-17T06:34:42.000Z">
-                    2021-04-17
+                <time class="post-full-meta-date" datetime="2021-04-29T12:40:21.000Z">
+                    2021-04-29
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">不停機替換 Kubernetes CRI</h1>
+            <h1 class="post-full-title">使用 iproute2 客製化你的 Container 網路</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>今天嘗試將 CRI 從預設的 dockershim 替換至 CRI-O，網路上的教學都是教你更換完畢之後使用 kubeadm 重新起一個 Cluster。但我的情境需要對現有的 Cluster 做替換，於是自己研究了一下如何不停機替換 CRI。</p>
-<h2 id="替換-CRI"><a href="#替換-CRI" class="headerlink" title="替換 CRI"></a>替換 CRI</h2><p>首先將你需要替換的節點先設 drain</p>
-<p><code>kubectl drain worker-node-1 --ignore-daemonsets</code></p>
-<p>之後進入節點，將原本的 CRI dockershim 關閉</p>
-<p><code>systemctl stop docker</code></p>
-<p>我打算替換成 CRI-O，所以請先確定你想要替換的 CRI 已經安裝完畢，並且已經啟動：</p>
-<p><code>systemctl status crio</code></p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">● crio.service - Container Runtime Interface for OCI (CRI-O)</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/crio.service; enabled; vendor preset: disabled)</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 15min ago</span><br><span class="line">     Docs: https://github.com/cri-o/cri-o</span><br><span class="line"> Main PID: 22001 (crio)</span><br><span class="line">    Tasks: 21</span><br><span class="line">   Memory: 1.1G</span><br><span class="line">   CGroup: /system.slice/crio.service</span><br><span class="line">           └─22001 /usr/bin/crio</span><br></pre></td></tr></tbody></table></figure>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我們都知道 Docker 有提供不同的網路模式供我們使用，從預設的 Bridge 到共用本機 Network Namespace 的 Host。我們甚至可以自訂自己的 Bridge 來切割不同網段，如此一來一些網路拓墣都架設都可以用 Docker 來完成。</p>
+<p>區別不同網段我們通常會使用不同的 Bridge 來分隔，通常會先建立自訂的 Bridge</p>
+<p><code>docker network create --driver bridge testing-bridge</code></p>
+<p>之後建立 container 時可以指定該 bridge 來使用該網路空間</p>
+<p><code>docker run -it --net=testing-bridge alpine</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/ # ip a</span><br><span class="line">1: lo: <loopback,up,lower_up> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000</loopback,up,lower_up></span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">35: eth0@if36: <broadcast,multicast,up,lower_up,m-down> mtu 1500 qdisc noqueue state UP</broadcast,multicast,up,lower_up,m-down></span><br><span class="line">    link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.18.0.2/16 brd 172.18.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></tbody></table></figure>
 
-<p>接著照著網路上的教學，修改 <code>/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf</code></p>
-<p>並且增加</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Environment="KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m"</span><br></pre></td></tr></tbody></table></figure>
+<p>這時候可以發現 Docker 幫我建立好了 <code>172.18.0.2/16</code> 網段的介面可以使用，這時候你會發現該介面可以直接出得去外網，因為 Docker 建立好 Bridge，所以封包會從該 Bridge 到本機端出去。</p>
+<p>那我們可不可以不要讓 Container 有機會從本機讓封包流出去呢？</p>
+<p>（有時候要建立網路拓墣，不希望封包走本機的路由出去，希望封包從該網路路由到其他網路，也就是其他 Container）</p>
+<h2 id="解決"><a href="#解決" class="headerlink" title="解決"></a>解決</h2><p>要達成這件事，最快的做法就是自己建立 veth 並且將 peer 兩端直接綁在兩個 Container 上</p>
+<p>我們打算用 iproute2 直接管理網路，所以建立 containers 時使用 <code>--net=none</code></p>
+<p><code>docker run -itd --name=left --net=none alpine</code><br><code>docker run -itd --name=right --net=none alpine</code></p>
+<p>接著需要自行建立 Containers 們的 Network Namespace</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">left_pid=$(docker inspect -f '{{.State.Pid}}' left)`</span><br><span class="line">right_pid=$(docker inspect -f '{{.State.Pid}}' right)`</span><br><span class="line">sudo mkdir -p /var/run/netns</span><br><span class="line">sudo ln -s /proc/$left_pid/ns/net /var/run/netns/$left_pid</span><br><span class="line">sudo ln -s /proc/$right_pid/ns/net /var/run/netns/$right_pid</span><br></pre></td></tr></tbody></table></figure>
 
-<p>但是重啟 kubelet 之後會發現毫無作用（用 <code>systemctl status kubelet</code> 可以檢查啟動參數）</p>
-<p>為何會毫無作用，是因為該檔案是 kubeadm 啟動時讀取的，但是我打算不停機所以不考慮使用 kubeadm 重啟，我打算在每一個節點上重啟 kubelet 來替換，所以需要針對 kubelet 來設定啟動參數。</p>
-<p>於是我在該檔案找到了 EnvironmentFile 參數，並且值為 <code>/etc/sysconfig/kubelet</code></p>
-<p>於是我在 <code>/etc/sysconfig/kubelet</code> 加入了</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KUBELET_EXTRA_ARGS=--feature-gates='AllAlpha=false,RunAsGroup=true' --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure>
+<p>接著建立 veth peer 並且命名為 <code>A</code> 以及 <code>B</code></p>
+<p><code>ip link add A type veth peer name B</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip link set A netns $left_pid # 設定 peer 端 A 到 left container</span><br><span class="line">ip netns exec $left_pid ip link set dev A name eth0 # 設定 namespace 中的介面名稱</span><br><span class="line">ip netns exec $left_pid ip link set eth0 up # 啟動介面</span><br><span class="line">ip netns exec $left_pid ip addr add 10.113.1.1/24 dev eth0 # 設定 IP</span><br><span class="line">#ip netns exec $left_pid ip route add default via 10.113.1.254</span><br></pre></td></tr></tbody></table></figure>
 
-<p>之後重啟 kubelet</p>
-<p><code>systemctl daemon-reload</code><br><code>systemctl restart kubelet</code></p>
-<p>可以看到啟動參數已經吃進去了</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">● kubelet.service - kubelet: The Kubernetes Node Agent</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/kubelet.service; enabled; vendor preset: disabled)</span><br><span class="line">  Drop-In: /usr/lib/systemd/system/kubelet.service.d</span><br><span class="line">           └─10-kubeadm.conf</span><br><span class="line">   Active: active (running) since 六 2021-04-17 02:25:09 EDT; 22min ago</span><br><span class="line">     Docs: https://kubernetes.io/docs/</span><br><span class="line"> Main PID: 22114 (kubelet)</span><br><span class="line">    Tasks: 16</span><br><span class="line">   Memory: 51.2M</span><br><span class="line">   CGroup: /system.slice/kubelet.service</span><br><span class="line">           └─22114 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --network-plugin=cni --pod-infra-container-image=k8s.gcr.io/pause:3.2 --feature-gates=AllAlpha=false,RunAsGroup=true --container-runtime=remote --cgroup-driver=systemd --container-runtime-endpoint=unix:///var/run/crio/crio.sock --runtime-request-timeout=5m</span><br></pre></td></tr></tbody></table></figure>
+<p>新增預設路由的部分註解掉是因為我們將 Containers 用 veth peer 接起來，本來就是通的，所以不需要有預設路由也可以到達另外一個 Container。可以依照情況去設定你的預設路由</p>
+<p>接著設定 Container right</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip link set B netns $right_pid</span><br><span class="line">ip netns exec $right_pid ip link set dev B name eth0</span><br><span class="line">ip netns exec $right_pid ip link set eth0 up</span><br><span class="line">ip netns exec $right_pid ip addr add 10.113.1.2/24 dev eth0</span><br><span class="line">#ip netns exec $right_pid ip route add default via 10.113.1.254</span><br></pre></td></tr></tbody></table></figure>
 
-<p>使用</p>
-<p><code>kubectl get node -o wide</code></p>
-<p>也可以發現 CRI 已經更換</p>
-<p>重新讓該節點可以被使用</p>
-<p><code>kubectl uncordon worker-node-1</code></p>
-<h2 id="注意事項"><a href="#注意事項" class="headerlink" title="注意事項"></a>注意事項</h2><ol>
-<li><p>替換 Control Plane 節點時請一定要把原本的 CRI 關閉，否則系統元件會佔用你節點上的 Port，導致使用新的 CRI 無法順利將系統元件跑起來！</p>
-</li>
-<li><p>部署完畢後 coredns 報錯</p>
-</li>
-</ol>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">container_linux.go:349: starting container process caused "error adding seccomp rule for syscall socket: requested action matches default action of filter"               │   Warning  FailedCreatePodSandBox  36m  kubelet, worker-node-2  Failed to create pod sandbox: rpc error: code = Unknown desc = container create failed: time="2021-04-17</span><br><span class="line">│ T02:23:10-04:00" level=error msg="container_linux.go:349: starting container process caused \"error adding seccomp rule for syscall socket: requested action matches def  │ ault action of filter\""</span><br></pre></td></tr></tbody></table></figure>
+<p>設定完之後進去 Containers 你會發現他的網路介面為</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@docker-env:~$ docker exec -it left sh</span><br><span class="line">/ # ip a</span><br><span class="line">1: lo: <loopback,up,lower_up> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000</loopback,up,lower_up></span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">33: eth0@if32: <broadcast,multicast,up,lower_up,m-down> mtu 1500 qdisc noqueue state UP qlen 1000</broadcast,multicast,up,lower_up,m-down></span><br><span class="line">    link/ether 4e:1b:e1:22:8c:05 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 10.113.1.1/24 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></tbody></table></figure>
 
-<p>看到這篇：<a href="https://github.com/cri-o/cri-o/issues/4491" target="_blank" rel="noopener">https://github.com/cri-o/cri-o/issues/4491</a></p>
-<p>將 runc 升級為 1.0.0-rc93 後解決</p>
-<p><code>yum update runc -y</code></p>
-<ol start="3">
-<li>部署完畢後發現 busybox 不能使用 ping（權限不足），增加 CRI-O 的 capabilities，預設只有</li>
-</ol>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">default_capabilities = [</span><br><span class="line">  "CHOWN",</span><br><span class="line">  "DAC_OVERRIDE",</span><br><span class="line">  "FSETID",</span><br><span class="line">  "FOWNER",</span><br><span class="line">  "SETGID",</span><br><span class="line">  "SETUID",</span><br><span class="line">  "SETPCAP",</span><br><span class="line">  "NET_BIND_SERVICE",</span><br><span class="line">  "KILL",</span><br><span class="line">]</span><br></pre></td></tr></tbody></table></figure>
+<p>並且可以直接 ping 到另外一個 Container</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/ # ping 10.113.1.2</span><br><span class="line">PING 10.113.1.2 (10.113.1.2): 56 data bytes</span><br><span class="line">64 bytes from 10.113.1.2: seq=0 ttl=64 time=0.062 ms</span><br><span class="line">64 bytes from 10.113.1.2: seq=1 ttl=64 time=0.155 ms</span><br></pre></td></tr></tbody></table></figure>
 
+<p>如此一來可以用此概念（搭配 Bridge）完成一些複雜的網路情境，像是</p>
+<p>Container A 不具有對外上網能力，但是與 B 在同一個子網，Container B 上面除了與 A 在同一個網路下，還有 Brigde 介面到 host 上具有對外連線能力。</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/kubernetes/" rel="tag"># kubernetes</a>
+                        <a href="/tags/docker/" rel="tag"># docker</a>
                     </li>
                     
                 </ul>
@@ -239,14 +226,10 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="使用 iproute2 客製化你的 Container 網路" href="/2021/04/29/">
-            ← 使用 iproute2 客製化你的 Container 網路
-        </a>
-        
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="一次 Traefik 與 TLS 的踩雷經驗" href="/2021/03/26/">
-            一次 Traefik 與 TLS 的踩雷經驗 →
+        <a class="next-post" title="不停機替換 Kubernetes CRI" href="/2021/04/17/">
+            不停機替換 Kubernetes CRI →
         </a>
         
     </nav>
@@ -268,7 +251,7 @@
         </a>
     </div>
     <div class="toc-main">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#問題"><span class="toc-text">問題</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#替換-CRI"><span class="toc-text">替換 CRI</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#注意事項"><span class="toc-text">注意事項</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#解決"><span class="toc-text">解決</span></a></li></ol>
     </div>
 </div>
 
