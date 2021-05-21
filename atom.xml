@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.org/"/>
-  <updated>2021-04-30T01:54:15.841Z</updated>
+  <updated>2021-05-21T13:19:37.648Z</updated>
   <id>https://blog.yiyu0x.org/</id>
   
   <author>
@@ -15,6 +15,26 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>如何備份 Kubernetes 中的 etcd</title>
+    <link href="https://blog.yiyu0x.org/2021/05/21/"/>
+    <id>https://blog.yiyu0x.org/2021/05/21/</id>
+    <published>2021-05-21T12:29:50.000Z</published>
+    <updated>2021-05-21T13:19:37.648Z</updated>
+    
+    <content type="html"><![CDATA[<html><head></head><body><h2 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h2><p>Kubernetes 中的狀態都是用 etcd 這套 key-value 儲存工具來維持，也就是說我們只要備份好 etcd 後，就可以很輕易的重建一個一模一樣的 Cluster 起來。</p><p>要備份 etcd 可以使用 etcdctl 這套 cli 工具來簡單完成</p><p>因為 etcd 分了 v2, v3 兩種版本，彼此不相容，所以在使用 cli 工具時需要指定版本</p><p>在操作時，我們會需要 cert 位置與 key 的位置，如果你的 Cluster 是透過 kubeadm 安裝，那麼位置都會在 <code>/etc/kubernetes/pki/etcd</code> 中</p><p>我們可以先透過 <code>etcdctl member list</code> 來確認是否可以正確連線到我們的 etcd</p><p>以下都假設我的 etcd 位置在 <code>10.10.10.10</code></p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl member list \</span><br><span class="line">--endpoints https://10.10.10.10:2379 \</span><br><span class="line">--cert=/etc/kubernetes/pki/etcd/server.crt \</span><br><span class="line">--key=/etc/kubernetes/pki/etcd/server.key \</span><br><span class="line">--insecure-skip-tls-verify</span><br></pre></td></tr></tbody></table></figure><p>如果覺得指令太長的話，etcdctl 預設會去吃環境變數，也可以在環境變數中設定</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export ETCDCTL_CERT_FILE='/etc/kubernetes/pki/etcd/server.crt'</span><br><span class="line">export ETCDCTL_KEY_FILE='/etc/kubernetes/pki/etcd/server.key'</span><br><span class="line">export ETCDCTL_ENDPOINTS='https://10.10.10.10:2379'</span><br></pre></td></tr></tbody></table></figure><p>不確定這些資訊在哪裡的話，可以直接去看你 etcd 的 yaml 就可以看到了，這些資訊會在 etcd 的啟動參數中</p><h2 id="匯出"><a href="#匯出" class="headerlink" title="匯出"></a>匯出</h2><p>確認可以連線之後，我們將 etcd 的內容完整的匯出，命名為 <code>etcd-snapshot-$(date +%Y%m%d).db</code></p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl snapshot save /root/etcd-snapshot-$(date +%Y%m%d).db \</span><br><span class="line">--endpoints https://10.10.10.10:2379 \</span><br><span class="line">--cert=/etc/kubernetes/pki/etcd/server.crt \</span><br><span class="line">--key=/etc/kubernetes/pki/etcd/server.key \</span><br><span class="line">--insecure-skip-tls-verify</span><br></pre></td></tr></tbody></table></figure><p>output:</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Snapshot saved at /root/etcd-snapshot-20210521.db</span><br></pre></td></tr></tbody></table></figure><h2 id="匯入"><a href="#匯入" class="headerlink" title="匯入"></a>匯入</h2><p>匯出相較匯出麻煩一些，我們需要先讓 api-server 與 etcd 都終止，重新將 etcd 的資料匯入之後再重新打開它們。</p><p>我的 api-server 與 etcd 都是以 static pod 的方式存在，所以只要將對應的 yaml 檔案暫時移除 static pod 目錄即可</p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mv /etc/kubernetes/manifests/etcd.yaml /root/etcd.yaml</span><br><span class="line">mv /etc/kubernetes/manifests/kube-apiserver.yaml /root/kube-apiserver.yaml</span><br></pre></td></tr></tbody></table></figure><p>接著我們將舊的 etcd 資料暫時移開（同時進行備份）</p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mv /var/lib/etcd/default.etcd /var/lib/etcd/default.etcd.bak</span><br></pre></td></tr></tbody></table></figure><p>將新的剛才匯出的 etcd 資料重新匯入</p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl snapshot restore /root/etcd-snapshot-20210521.db \</span><br><span class="line">--name etcd-0 \</span><br><span class="line">--initial-cluster "etcd-0=https://10.10.10.10:2380" \</span><br><span class="line">--initial-cluster-token etcd-cluster \</span><br><span class="line">--initial-advertise-peer-urls https://10.10.10.10:2380 \</span><br><span class="line">--data-dir=/var/lib/etcd/default.etcd</span><br></pre></td></tr></tbody></table></figure><p>output:</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2021-05-21 07:42:36.826573 I | mvcc: restore compact to 3969180</span><br><span class="line">2021-05-21 07:42:36.840090 I | etcdserver/membership: added member 9ce23f330769428b [https://10.10.10.10:2380] to cluster 457ee8b0c2eda630</span><br></pre></td></tr></tbody></table></figure><p>匯出之後再把 api-server 與 etcd 重啟就可以了</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mv /root/etcd.yaml /etc/kubernetes/manifests/etcd.yaml</span><br><span class="line">mv /root/kube-apiserver.yaml /etc/kubernetes/manifests/kube-apiserver.yaml</span><br></pre></td></tr></tbody></table></figure></body></html>]]></content>
+    
+    <summary type="html">
+    
+      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
+    
+    </summary>
+    
+    
+      <category term="kubernetes" scheme="https://blog.yiyu0x.org/tags/kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>使用 iproute2 客製化你的 Container 網路</title>
@@ -407,30 +427,6 @@
       <category term="javascript" scheme="https://blog.yiyu0x.org/tags/javascript/"/>
     
       <category term="fp" scheme="https://blog.yiyu0x.org/tags/fp/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>[nodejs] module.exports 與 exports 的差異</title>
-    <link href="https://blog.yiyu0x.org/2019/07/01/"/>
-    <id>https://blog.yiyu0x.org/2019/07/01/</id>
-    <published>2019-07-01T13:40:04.000Z</published>
-    <updated>2020-02-15T12:29:49.223Z</updated>
-    
-    <content type="html"><![CDATA[<html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>nodejs 中有許多的特性或是方便的功能我們會使用，但實際上不知道內部處理的機制。本篇要探討的是匯出模組的兩種方式 <code>modules.exports</code> 以及 <code>exports</code></p><h2 id="結論-TL-DR"><a href="#結論-TL-DR" class="headerlink" title="結論(TL;DR)"></a>結論(TL;DR)</h2><blockquote><p>The exports variable is available within a module’s file-level scope, and is assigned the value of module.exports before the module is evaluated.</p></blockquote><p>在不更改 <code>modules.exports</code> 與 <code>exports</code> 的前提下，兩者是一樣的。<br>使用 <code>require()</code> 引入模組，實際上是去 <code>modules.exports</code> 找模組，所以 <code>exports</code> 只是用來輔助 <code>modules.exports</code>。</p><p>用程式碼角度來看就是:</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = exports = <span class="function"><span class="keyword">function</span> <span class="title">Constructor</span>(<span class="params"></span>) </span>{</span><br><span class="line">    <span class="comment">// ... etc.</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure><ul><li>兩者初始指向同一個物件</li><li>兩者有一指向新物件，則斷開兩者關係</li><li>require 是去 module.exports 找模組</li></ul><p><a href="https://nodejs.org/dist/latest-v10.x/docs/api/modules.html#modules_exports" target="_blank" rel="noopener">Nodejs Doc - modules exports</a></p><h2 id="實驗時間"><a href="#實驗時間" class="headerlink" title="實驗時間"></a>實驗時間</h2><h3 id="實驗一-兩者初始指向同一個物件"><a href="#實驗一-兩者初始指向同一個物件" class="headerlink" title="實驗一 (兩者初始指向同一個物件)"></a>實驗一 (兩者初始指向同一個物件)</h3><p>m.js:</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports === exports); <span class="comment">//true</span></span><br></pre></td></tr></tbody></table></figure><p>我們由以上實驗可以得知 <code>exports</code> 與 <code>module.exports</code> 是指向同一個物件</p><h3 id="實驗二-module-exports-指向新物件，斷開關係"><a href="#實驗二-module-exports-指向新物件，斷開關係" class="headerlink" title="實驗二 (module.exports 指向新物件，斷開關係)"></a>實驗二 (module.exports 指向新物件，斷開關係)</h3><p>m.js:</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">exports.a = <span class="string">"str_a"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">module</span>.exports = { <span class="attr">b</span>: <span class="string">"str_b"</span> }; <span class="comment">// 此時將 module.exports 重新給定一物件，斷開與 exports 之關係</span></span><br><span class="line"><span class="built_in">console</span>.log(exports); <span class="comment">//{ a: 'str_a' }</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">module</span>.exports); <span class="comment">//{ b: 'str_b' }</span></span><br></pre></td></tr></tbody></table></figure><h3 id="實驗三-require-是去-module-exports-找模組"><a href="#實驗三-require-是去-module-exports-找模組" class="headerlink" title="實驗三 (require 是去 module.exports 找模組)"></a>實驗三 (require 是去 module.exports 找模組)</h3><p>m.js:</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = { <span class="attr">a</span>: <span class="number">123</span> };</span><br><span class="line">exports.b = <span class="string">"456"</span>;</span><br></pre></td></tr></tbody></table></figure><p>main.js:</p><figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> x = <span class="built_in">require</span>(<span class="string">"./m.js"</span>);</span><br><span class="line"><span class="built_in">console</span>.log(x); <span class="comment">//{ a: 123 }</span></span><br></pre></td></tr></tbody></table></figure></body></html>]]></content>
-    
-    <summary type="html">
-    
-      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
-    
-    </summary>
-    
-    
-      <category term="javascript" scheme="https://blog.yiyu0x.org/tags/javascript/"/>
-    
-      <category term="es6" scheme="https://blog.yiyu0x.org/tags/es6/"/>
-    
-      <category term="nodejs" scheme="https://blog.yiyu0x.org/tags/nodejs/"/>
     
   </entry>
   

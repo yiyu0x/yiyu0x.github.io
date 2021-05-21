@@ -175,6 +175,56 @@
 			<article class="post-card post  no-image ">
 				
 				<div class="post-card-content">
+					<a class="post-card-content-link" title="[nodejs] module.exports 與 exports 的差異" href="/2019/07/01/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2019-07-01T13:40:04.000Z">
+									2019-07-01
+								</time>
+							</span>
+							<h2 class="post-card-title">[nodejs] module.exports 與 exports 的差異</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								前言nodejs 中有許多的特性或是方便的功能我們會使用，但實際上不知道內部處理的機制。本篇要探討的是匯出模組的兩種方式 modules.exports 以及 
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							2
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
+			<article class="post-card post  no-image ">
+				
+				<div class="post-card-content">
 					<a class="post-card-content-link" title="JavaScript 中物件比大小的依據到底是什麼？" href="/2019/06/13/">
 						<header class="post-card-header">
 							<span class="post-card-tags">
@@ -196,9 +246,8 @@
 								
 								
 								
-								
-								
-								前言在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下
+								前言在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下 JavaScript 在比較物件時到底是依據什麼規則。
+先看幾種常見的情況12345678910> 100 > 10true> 100 > "10" //(字串與數字比較，會將字串自動轉為數字來比較)true> "100" > "10" //(兩者都是字串，實際上是按照字母順序來比較，下面的例子較明顯。並不是將兩個字
 								...
 							</p>
 						</div>
@@ -648,59 +697,6 @@ ls /dev/sd*
 				</div>
 			</article>
 			
-			<article class="post-card post  no-image ">
-				
-				<div class="post-card-content">
-					<a class="post-card-content-link" title="如何在 macOS 上自行安裝 openJDK" href="/2019/03/10/">
-						<header class="post-card-header">
-							<span class="post-card-tags">
-								
-								| 
-								
-								<time datetime="2019-03-10T08:40:10.000Z">
-									2019-03-10
-								</time>
-							</span>
-							<h2 class="post-card-title">如何在 macOS 上自行安裝 openJDK</h2>
-						</header>
-						<div class="post-card-excerpt">
-							<p>
-								
-								
-								
-								
-								
-								
-								
-								在執行 ghidra 的時候，跳出一條錯誤訊息
-JDK 11+ could not be found and must be manually chosen!
-但是去 oracle java 的網站上只有看到第八版的 JDK
-於是找到了 openJDK，以下紀錄如何使用 openJDK 替換目前的 jave 環境
-請至 jdk.java.net 下載 JDK11
-下載完檔案名稱為 openjdk-11.0.2_osx-x64_bin.tar.gz (可以替換成自己下載的版本)
-								...
-							</p>
-						</div>
-					</a>
-					<footer class="post-card-meta">
-						<div class="author-list">
-							<div class="author-list-item">
-								<div class="author-name-tooltip">yiyu0x</div>
-								
-								<a href="/about" class="static-avatar">
-									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
-								</a>
-								
-							</div>
-						</div>
-						<span class="reading-time">
-							1
-							min read
-						</span>
-					</footer>
-				</div>
-			</article>
-			
 		</div>
 	</div>
 </div>
@@ -745,6 +741,12 @@ JDK 11+ could not be found and must be manually chosen!
       
       
       <li>
+        <a href="/2021/05/21/">如何備份 Kubernetes 中的 etcd</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2021/04/29/">使用 iproute2 客製化你的 Container 網路</a>
       </li>
       
@@ -755,10 +757,6 @@ JDK 11+ could not be found and must be manually chosen!
       </li>
       
       
-      
-      <li>
-        <a href="/2021/03/26/">一次 Traefik 與 TLS 的踩雷經驗</a>
-      </li>
       
       
       
@@ -846,7 +844,7 @@ JDK 11+ could not be found and must be manually chosen!
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 21.5px;">kuberentes</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
+		<a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kuberentes/" style="font-size: 21.5px;">kuberentes</a> <a href="/tags/kubernetes/" style="font-size: 16.5px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
 	</div>
 </article>
 
