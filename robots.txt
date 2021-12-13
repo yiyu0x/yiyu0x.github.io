@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /archives/
-Allow: /about/
-Disallow: /js/
-Disallow: /css/
-Disallow: /fonts/
-Disallow: /images/
-Sitemap: http://yiyu0x.github.io/sitemap.xml
