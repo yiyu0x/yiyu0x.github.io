@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+
+
+
+
+
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="preconnect" href="//www.googletagmanager.com">
+	<link rel="preconnect" href="//zz.bdstatic.com">
+	<link rel="preconnect" href="//sp0.baidu.com">
+	<link rel="preconnect" href="//www.google-analytics.com">
+	<link rel="preconnect" href="//cdn1.lncld.net">
+	<link rel="preconnect" href="//unpkg.com">
+	<link rel="preconnect" href="//app-router.leancloud.cn">
+	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
+	<link rel="preconnect" href="//gravatar.loli.net">
+
+	<title>快速體驗 kubernetes 的強大之處 | yiyu0x's blog</title>
+
+	<meta name="HandheldFriendly" content="True">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+	<meta name="generator" content="hexo">
+	<meta name="author" content="yiyu0x">
+	<meta name="description" content>
+
+	
+	<meta name="keywords" content>
+	
+
+	
+	<link rel="shortcut icon" href="https://img.icons8.com/color/64/000000/sashimi.png">
+	<link rel="apple-touch-icon" href="https://img.icons8.com/color/64/000000/sashimi.png">
+	
+
+	
+	<meta name="theme-color" content="#3c484e">
+	<meta name="msapplication-TileColor" content="#3c484e">
+	
+
+	
+	<link rel="manifest" href="/manifest.json">
+	
+
+	
+	<link rel="alternate" href="https://blog.yiyu0x.site/atom.xml" title="yiyu0x's blog">
+	
+
+	<meta property="og:site_name" content="yiyu0x's blog">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="快速體驗 kubernetes 的強大之處 | yiyu0x's blog">
+	<meta property="og:description" content>
+	<meta property="og:url" content="https://blog.yiyu0x.org/2020/01/08/">
+
+	
+	<meta property="article:published_time" content="2020-01-08T13:01:00+08:00"> 
+	<meta property="article:author" content="yiyu0x">
+	<meta property="article:published_first" content="yiyu0x's blog, /2020/01/08/">
+	
+
+	
+	
+	<link rel="stylesheet" href="/css/allinonecss.min.css">
+
+	
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-145409243-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		gtag('config', 'UA-145409243-1');
+	</script>
+	
+	
+	
+</head>
+<body class="post-template">
+	<div class="site-wrapper">
+		
+
+
+
+
+<header class="site-header post-site-header outer">
+    <div class="inner">
+        
+<nav class="site-nav"> 
+    <div class="site-nav-left">
+        <ul class="nav">
+            <li>
+                
+                
+                <a class="site-nav-logo" href="/" title="yiyu0x's blog">
+                    <img src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x's blog">
+                </a>
+                
+                
+            </li>
+            
+            
+            <li>
+                <a href="/about" title="ABOUT">ABOUT</a>
+            </li>
+            
+            <li>
+                <a href="/archives" title="ARCHIVES">ARCHIVES</a>
+            </li>
+            
+            <li>
+                <a href="/atom.xml" title="RSS">RSS</a>
+            </li>
+            
+            
+        </ul> 
+    </div>
+    
+    <div class="search-button-area">
+        <a href="#search" class="search-button">Search ...</a>
+    </div>
+     
+    <div class="site-nav-right">
+        
+        <a href="#search" class="search-button">Search ...</a>
+         
+        
+<div class="social-links">
+    
+    
+    <a class="social-link" title="github" href="https://github.com/yiyu0x" target="_blank" rel="noopener">
+        <svg viewbox="0 0 1049 1024" xmlns="http://www.w3.org/2000/svg"><path d="M524.979332 0C234.676191 0 0 234.676191 0 524.979332c0 232.068678 150.366597 428.501342 358.967656 498.035028 26.075132 5.215026 35.636014-11.299224 35.636014-25.205961 0-12.168395-0.869171-53.888607-0.869171-97.347161-146.020741 31.290159-176.441729-62.580318-176.441729-62.580318-23.467619-60.841976-58.234462-76.487055-58.234463-76.487055-47.804409-32.15933 3.476684-32.15933 3.476685-32.15933 53.019436 3.476684 80.83291 53.888607 80.83291 53.888607 46.935238 79.963739 122.553122 57.365291 152.97411 43.458554 4.345855-33.897672 18.252593-57.365291 33.028501-70.402857-116.468925-12.168395-239.022047-57.365291-239.022047-259.012982 0-57.365291 20.860106-104.300529 53.888607-140.805715-5.215026-13.037566-23.467619-66.926173 5.215027-139.067372 0 0 44.327725-13.906737 144.282399 53.888607 41.720212-11.299224 86.917108-17.383422 131.244833-17.383422s89.524621 6.084198 131.244833 17.383422C756.178839 203.386032 800.506564 217.29277 800.506564 217.29277c28.682646 72.1412 10.430053 126.029806 5.215026 139.067372 33.897672 36.505185 53.888607 83.440424 53.888607 140.805715 0 201.64769-122.553122 245.975415-239.891218 259.012982 19.121764 16.514251 35.636014 47.804409 35.636015 97.347161 0 70.402857-0.869171 126.898978-0.869172 144.282399 0 13.906737 9.560882 30.420988 35.636015 25.205961 208.601059-69.533686 358.967656-265.96635 358.967655-498.035028C1049.958663 234.676191 814.413301 0 524.979332 0z"/></svg>
+    </a>
+    
+    
+    <a class="social-link" title="facebook" href="https://www.facebook.com/yiyu0x" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+    </a>
+    
+    
+    <a class="social-link" title="twitter" href="https://twitter.com/yiyu0x" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+    </a>
+    
+    
+    <a class="social-link" title="telegram" href="https://t.me/yiyu0x" target="_blank" rel="noopener">
+        <svg viewbox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M679.428571 746.857143l84-396q5.142857-25.142857-6-36t-29.428571-4L234.285714 501.142857q-16.571429 6.285714-22.571428 14.285714t-1.428572 15.142858 18.285715 11.142857l126.285714 39.428571 293.142857-184.571428q12-8 18.285714-3.428572 4 2.857143-2.285714 8.571429l-237.142857 214.285714-9.142857 130.285714q13.142857 0 25.714285-12.571428l61.714286-59.428572 128 94.285715q36.571429 20.571429 46.285714-21.714286z m344.571429-234.857143q0 104-40.571429 198.857143t-109.142857 163.428571-163.428571 109.142857-198.857143 40.571429-198.857143-40.571429-163.428571-109.142857-109.142857-163.428571T0 512t40.571429-198.857143 109.142857-163.428571T313.142857 40.571429 512 0t198.857143 40.571429 163.428571 109.142857 109.142857 163.428571 40.571429 198.857143z"/></svg>
+    </a>
+    
+    
+    
+</div>
+    </div>
+</nav>
+    </div>
+</header>
+
+
+<div id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+        <header class="post-full-header">
+            <div class="post-full-meta">
+                <time class="post-full-meta-date" datetime="2020-01-08T05:17:53.000Z">
+                    2020-01-8
+                </time>
+                
+                <span class="date-divider">/</span>
+                
+                
+            </div>
+            <h1 class="post-full-title">快速體驗 kubernetes 的強大之處</h1>
+        </header>
+        <div class="post-full no-image">
+            
+            <div class="post-full-content">
+                <article id="photoswipe" class="markdown-body">
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>容器技術近年來非常流行，相信各位在不同地方多少有聽過 <code>kubernetes</code>（或是它的簡稱 <code>k8s</code>）這項技術。但是很多人了解 <code>k8s</code> 之後會被這個技術嚇到，原因是因為有大量的名詞，像是 <code>Pod</code>, <code>Service</code> 等等（這些元件數量高達 60 多種），然後又有一大堆的架構圖，很多人可能還沒開始就先放棄了。</p>
+<p>這篇文章的目的沒有要教大家了解 <code>k8s</code> 背後的觀念，而是要透過簡單的小實驗來讓大家了解 <code>k8s</code> 的作用到底為何？讓大家有點感覺，後續如果各位要深入了解，可能也會有點幫助。</p>
+<p>簡單來說 <code>k8s</code> 是一項可以管理容器的技術，而且可以分散式的管理。意思就是容器掛掉之後 <code>k8s</code> 會自動偵測並且讓容器重新啟動。當然還有非常多的功能，但是主要的核心目的就是保持應用程式的 <code>高可用性（high availability）</code>（簡稱 HA）。</p>
+<p>本篇實驗會透過一個簡單例子來讓大家看到 <code>k8s</code> 達成高可用性的成效。</p>
+<h2 id="實驗必備"><a href="#實驗必備" class="headerlink" title="實驗必備"></a>實驗必備</h2><ul>
+<li>docker</li>
+<li>minikube</li>
+</ul>
+<h2 id="一般容器"><a href="#一般容器" class="headerlink" title="一般容器"></a>一般容器</h2><p>在開始之前，大家可以先跑這個容器（yiyu0x/current-time）起來玩玩看</p>
+<p><code>docker run -d -p 3000:3000 yiyu0x/current-time</code></p>
+<p>這個容器會在 localhost 3000 port 開一個顯示目前時間的 API：</p>
+<p>如果順利的話訪問 <code>localhost:3000</code> 會得到：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Current time is 4:2:48</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我們可以後過 <code>docker ps</code> 來確認這個 container 正確無誤的運作：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br><span class="line">CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">d5662a916aed        yiyu0x/current-time   "docker-entrypoint.s…"   10 seconds ago      Up 8 seconds        0.0.0.0:3000->3000/tcp   tender_hypatia</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但是我們如果去戳 <code>localhost:3000/bye</code> 這個位置的話，會發現容器掛掉了：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ docker ps</span><br></pre></td></tr></tbody></table></figure>
+
+<p>這個行為模擬出當應用程式意外結束的情況。</p>
+<h2 id="導入-k8s"><a href="#導入-k8s" class="headerlink" title="導入 k8s"></a>導入 k8s</h2><p>建立一個 <code>pod</code> 內容是剛才的 <code>current-time</code> 的 <code>container</code>：<br><code>kubectl run --image=yiyu0x/current-time curr-time --generator=run-pod/v1</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ kubectl get po</span><br><span class="line">NAME        READY   STATUS              RESTARTS   AGE</span><br><span class="line">curr-time   0/1     ContainerCreating   0          16s</span><br></pre></td></tr></tbody></table></figure>
+
+<p>將他 <code>expose</code> 出去：</p>
+<p><code>kubectl expose pod curr-time --port 3000 --type=NodePort</code></p>
+<p>取得位置並且訪問：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/dev/k8s-post/my-api ❯ minikube service curr-time --url</span><br><span class="line">http://192.168.64.6:30948</span><br></pre></td></tr></tbody></table></figure>
+
+<p>此時建議再開一個 terminal 的 tab 使用:<br><code>watch kubectl get po</code><br>（感謝學長 Jerry Wang 指正，可以用 <code>kubectl get po -w</code> 就不用額外安裝 watch 指令了！）</p>
+<p>監測該 <code>pod</code> 的狀態並且去戳 <code>http://192.168.64.6:30948/bye</code></p>
+<p>你會發現容器掛掉後幾秒鐘，又自己重新跑起來了，並且 RESTARTS 的數量變成 1 了（原本是 0）：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME        READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time   1/1     Running   1          8m56s</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="更強大的高可用性-replicas"><a href="#更強大的高可用性-replicas" class="headerlink" title="更強大的高可用性 - replicas"></a>更強大的高可用性 - replicas</h2><p>透過以上例子已經可以感覺到 <code>k8s</code> 的威力，但是其實 <code>docker</code> 本身就可以監測容器的狀態並且重新啟動了。<code>k8s</code> 更強大的地方在於它可以一次建立多個 <code>pod</code> 並且在一個 <code>pod</code> 掛掉時透過 <code>loadbalancer</code> 馬上把流量切換到其他 <code>pod</code> 中，這樣子使用者完全感覺不出來原來服務有掛掉過。</p>
+<p>建立 <code>replicas</code>：<br><code>kubectl run curr-time --image=yiyu0x/current-time --replicas=3 --port 3000</code></p>
+<p>對外打開：<br><code>kubectl expose deployment curr-time --port=3000 --type=NodePort</code></p>
+<p>一樣透過 <code>watch kubectl get po</code> 來監控 <code>pod</code>：</p>
+<p>（2019/1/17 更新：或是用 <code>kubectl get po -w</code>）</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po</span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS    RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   1/1     Running   3          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running   2          7m41s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running   2          7m41s</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然後戳一下 API 的 bye 位置，會發現：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Every 2.0s: kubectl get po</span><br><span class="line"></span><br><span class="line">NAME                         READY   STATUS      RESTARTS   AGE</span><br><span class="line">curr-time-6f9cb4fdf9-crc66   0/1     Completed   3          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-hbkx5   1/1     Running     2          8m40s</span><br><span class="line">curr-time-6f9cb4fdf9-s742x   1/1     Running     2          8m40s</span><br></pre></td></tr></tbody></table></figure>
+
+<p>三個服務中的容器一個掛掉其他兩個還是正常運作中，使用者根本感覺不出來（流量會被導入到正常運作的 pod 中）後面的容器原來掛掉了！</p>
+<h2 id="更更更強大的高可用性"><a href="#更更更強大的高可用性" class="headerlink" title="更更更強大的高可用性"></a>更更更強大的高可用性</h2><p>以上例子使用 <code>minikube</code> 來實驗，只有一個節點。真實情況甚至可以把好幾台機器全部給 <code>k8s</code> 進行管理。這樣子甚至連機器掛掉都可以保證服務不中斷，這才是真正的高可用性！</p>
+<p>文中透過一個例子讓讀者了解到 <code>k8s</code> 的用處，但是沒有解釋很多問題，像是：</p>
+<ul>
+<li>為什麼建立的是 <code>pod</code> 不是 <code>container</code>？</li>
+<li>為什麼需要 <code>expose</code>？</li>
+<li><code>minikube</code> 是什麼？</li>
+</ul>
+<p>原因在於我認為先體驗一次這個技術的效果再去學習這個技術細解，有時候可能會比起直接去記憶那些硬生生的名詞來得有效果，所以看完這篇文章之後，如果不太懂裡面的細解可以再去看官方文件或是查閱其他 <code>k8s</code> 的概念講解文章。</p>
+<p>看完之後再回來自己玩過一次，我相信會有不一樣的感覺的！</p>
+</body></html>
+                </article>
+                <ul class="tags-postTags">
+                    
+                    <li>
+                        <a href="/tags/kubernetes/" rel="tag"># kubernetes</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    
+    <nav id="gobottom" class="pagination">
+        
+        <a class="prev-post" title="優雅的在 macOS 上使用 Python" href="/2020/01/11/">
+            ← 優雅的在 macOS 上使用 Python
+        </a>
+        
+        <span class="prev-next-post">·</span>
+        
+        <a class="next-post" title="Raspberry Pi 開機時自動寄送 IP 設定" href="/2019/12/15/">
+            Raspberry Pi 開機時自動寄送 IP 設定 →
+        </a>
+        
+    </nav>
+
+    
+</div>
+
+<div class="toc-bar">
+    <div class="toc-btn-bar">
+        <a href="#site-main" class="toc-btn">
+            <svg viewbox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M793.024 710.272a32 32 0 1 0 45.952-44.544l-310.304-320a32 32 0 0 0-46.4 0.48l-297.696 320a32 32 0 0 0 46.848 43.584l274.752-295.328 286.848 295.808z"/></svg>
+        </a>
+        <div class="toc-btn toc-switch">
+            <svg class="toc-open" viewbox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M779.776 480h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M779.776 672h-387.2a32 32 0 0 0 0 64h387.2a32 32 0 0 0 0-64M256 288a32 32 0 1 0 0 64 32 32 0 0 0 0-64M392.576 352h387.2a32 32 0 0 0 0-64h-387.2a32 32 0 0 0 0 64M256 480a32 32 0 1 0 0 64 32 32 0 0 0 0-64M256 672a32 32 0 1 0 0 64 32 32 0 0 0 0-64"/></svg>
+            <svg class="toc-close hide" viewbox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M512 960c-247.039484 0-448-200.960516-448-448S264.960516 64 512 64 960 264.960516 960 512 759.039484 960 512 960zM512 128.287273c-211.584464 0-383.712727 172.128262-383.712727 383.712727 0 211.551781 172.128262 383.712727 383.712727 383.712727 211.551781 0 383.712727-172.159226 383.712727-383.712727C895.712727 300.415536 723.551781 128.287273 512 128.287273z"/><path d="M557.05545 513.376159l138.367639-136.864185c12.576374-12.416396 12.672705-32.671738 0.25631-45.248112s-32.704421-12.672705-45.248112-0.25631l-138.560301 137.024163-136.447897-136.864185c-12.512727-12.512727-32.735385-12.576374-45.248112-0.063647-12.512727 12.480043-12.54369 32.735385-0.063647 45.248112l136.255235 136.671523-137.376804 135.904314c-12.576374 12.447359-12.672705 32.671738-0.25631 45.248112 6.271845 6.335493 14.496116 9.504099 22.751351 9.504099 8.12794 0 16.25588-3.103239 22.496761-9.247789l137.567746-136.064292 138.687596 139.136568c6.240882 6.271845 14.432469 9.407768 22.65674 9.407768 8.191587 0 16.352211-3.135923 22.591372-9.34412 12.512727-12.480043 12.54369-32.704421 0.063647-45.248112L557.05545 513.376159z"/></svg>
+        </div>
+        <a href="#gobottom" class="toc-btn">
+            <svg viewbox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M231.424 346.208a32 32 0 0 0-46.848 43.584l297.696 320a32 32 0 0 0 46.4 0.48l310.304-320a32 32 0 1 0-45.952-44.544l-286.848 295.808-274.752-295.36z"/></svg>
+        </a>
+    </div>
+    <div class="toc-main">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#實驗必備"><span class="toc-text">實驗必備</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一般容器"><span class="toc-text">一般容器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#導入-k8s"><span class="toc-text">導入 k8s</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更強大的高可用性-replicas"><span class="toc-text">更強大的高可用性 - replicas</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更更更強大的高可用性"><span class="toc-text">更更更強大的高可用性</span></a></li></ol>
+    </div>
+</div>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+	</div>
+	
+
+
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://images.unsplash.com/photo-1505901422278-7ee0122f5014?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80)">
+  <header class="read-next-card-header">
+    <small class="read-next-card-header-sitetitle">&mdash; yiyu0x's blog &mdash;</small>
+    <h3 class="read-next-card-header-title">Recent Posts</h3>
+  </header>
+  <div class="read-next-divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24">
+      <path d="M13 14.5s2 3 5 3 5.5-2.463 5.5-5.5S21 6.5 18 6.5c-5 0-7 11-12 11C2.962 17.5.5 15.037.5 12S3 6.5 6 6.5s4.5 3.5 4.5 3.5"/>
+    </svg>
+  </div>
+  <div class="read-next-card-content">
+    <ul>
+      
+      
+      
+      <li>
+        <a href="/2021/12/13/">理解 Kubernetes 中的 CPU Limit</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/2021/11/07/">一次 CI/CD 調教經驗</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="/2021/05/21/">如何備份 Kubernetes 中的 etcd</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </div>
+  <footer class="read-next-card-footer">
+    <a href="/archives">  MORE  → </a>
+  </footer>
+</article>
+
+            
+            
+            
+
+
+            
+            
+            
+
+<article class="read-next-card" style="background-image: url(https://images.unsplash.com/photo-1505901422278-7ee0122f5014?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80)">
+	<header class="read-next-card-header tagcloud-card">
+		<h3 class="read-next-card-header-title">Tag Cloud</h3>
+	</header>
+	<div class="read-next-card-content-ext">
+		<a href="/tags/CI-CD/" style="font-size: 14px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Docker/" style="font-size: 14px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 14px;">DroneCI</a> <a href="/tags/Kubernetes/" style="font-size: 14px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 14px;">cgroup</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 24px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
+	</div>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+	
+
+
+
+
+<div id="search" class="search-overlay">
+    <div class="search-form">
+        
+        <div class="search-overlay-logo">
+        	<img src="https://img.icons8.com/color/64/000000/sashimi.png" alt="yiyu0x's blog">
+        </div>
+        
+        <input id="local-search-input" class="search-input" type="text" name="search" placeholder="Search ...">
+        <a class="search-overlay-close" href="#"></a>
+    </div>
+    <div id="local-search-result"></div>
+</div>
+
+<footer class="site-footer outer">
+	<div class="site-footer-content inner">
+		<div class="copyright">
+			<a href="/" title="yiyu0x's blog">yiyu0x's blog &copy; 2021</a>
+			
+				
+    		
+		</div>
+		<nav class="site-footer-nav">
+			
+			<a href="https://hexo.io" title="Hexo" target="_blank" rel="noopener">Hexo</a>
+			<a href="https://github.com/xzhih/hexo-theme-casper" title="Casper" target="_blank" rel="noopener">Casper</a>
+		</nav>
+	</div>
+</footer>
+	
+
+<script>
+    "serviceWorker"in navigator&&window.addEventListener("load",function(){
+        navigator.serviceWorker.register("/sw.js")
+            .then(function(e){
+                console.log("ServiceWorker registration successful with scope: ",e.scope)
+            })
+            .catch(function(e){
+                console.log("ServiceWorker registration failed: ",e)
+            })
+    });
+</script>
+
+
+<script id="scriptLoad" src="/js/allinone.min.js" async></script>
+
+
+<script>
+    document.getElementById('scriptLoad').addEventListener('load', function () {
+        
+        
+            var bLazy = new Blazy();
+        
+
+        
+        
+
+        
+        
+        
+            searchFuncSW("/");
+        
+        
+    })
+</script>
+
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
