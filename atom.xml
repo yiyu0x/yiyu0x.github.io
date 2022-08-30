@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.org/"/>
-  <updated>2022-07-07T02:27:04.103Z</updated>
+  <updated>2022-08-30T13:17:53.282Z</updated>
   <id>https://blog.yiyu0x.org/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>建立 Reliable EKS 記錄</title>
+    <link href="https://blog.yiyu0x.org/2022/08/30/"/>
+    <id>https://blog.yiyu0x.org/2022/08/30/</id>
+    <published>2022-08-30T12:04:21.000Z</published>
+    <updated>2022-08-30T13:17:53.282Z</updated>
+    
+    <content type="html"><![CDATA[<html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。</p><h2 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h2><ul><li>EKS 只有維護 Control Plane，Worker 有 EC2 與 Fargate 可以選擇。其中 EC2 必須由使用者自行管理。</li><li>EKS Control Plane 的 VPC 與 Cluster 的 VPC 為不同的 VPC</li><li>如果 EKS 有開啟 Private Access，會在 Cluster VPC 的 subnet 中安插 EKS-managed ENI 讓 Cluster VPC 流量穿透至 EKS 中</li><li>EKS 建立時選擇的 VPC 是為了部署 EKS-managed ENI（最少兩個）使用</li><li>EKS-managed ENI 直接存在於 subnet 之中，非 EC2 instance（or 其他 instance）之上</li></ul><h2 id="Nodegroup"><a href="#Nodegroup" class="headerlink" title="Nodegroup"></a>Nodegroup</h2><p>如果 Nodegroup 完全無法存取外網，同時也就無法拉取必要的 Container Image，導致節點無法建立成功</p><p>Nodegroup 如果落在 private subnet，可以多開一台有 public subnet 的 EC2 作為 bastion 使用（同一個 VPC 下）</p><h2 id="API-Endpoint"><a href="#API-Endpoint" class="headerlink" title="API Endpoint"></a>API Endpoint</h2><h3 id="public-access"><a href="#public-access" class="headerlink" title="public access"></a>public access</h3><p>API endpoint domain 會對應到一組 Public IP 做為 API Endpoint 入口</p><p>可以使用 <code>kubectl cluster-info</code> 查看</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ec2-user@eks-bastion]$ kubectl cluster-info</span><br><span class="line">Kubernetes control plane is running at https://<your api endpoint uuid>.gr7.<region>.eks.amazonaws.com</span><br></pre></td></tr></tbody></table></figure><h3 id="private-access"><a href="#private-access" class="headerlink" title="private access"></a>private access</h3><p>根據<a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html" target="_blank" rel="noopener">官方文件</a>描述，在 Cluster VPC 下會有 Route 53 private hosted zone 將 API endpoint 解析成該 VPC 下的 IP</p><blockquote><p>This private hosted zone is managed by Amazon EKS, and it doesn’t appear in your account’s Route 53 resources.</p></blockquote><p>經過實驗會發現解出兩組 VPC 中的 private IP，同時為 EKS-managed ENI 的 IP</p><p>這組介面可以透過將 Cluster VPC 的流量直接導向至 EKS VPC 之中</p><p>啟用條件為 Cluster VPC 必須將 <code>enableDnsHostnames</code>, <code>enableDnsSupport</code> 設定為 <code>true</code></p><p>並且 <code>AmazonProvidedDNS</code> 要在 VPC DHCP 的 domain name servers list</p><h3 id="public-and-private-access"><a href="#public-and-private-access" class="headerlink" title="public and private access"></a>public and private access</h3><p>外網因為沒有 Route 53 private hosted zone 所以會解析出外網 IP</p><p>Cluster VPC 下有 Route 53 private hosted zone 所以會解析出 EKS-managed ENI 的 IP</p><h2 id="Pod-Amount-Limit"><a href="#Pod-Amount-Limit" class="headerlink" title="Pod Amount Limit"></a>Pod Amount Limit</h2><p>Pod limit 的根本問題是因為不同的 EC2 instance type 有先天的 VPC IP 數量限制</p><p>ENI 的數量有限制，每一個 ENI instance 可以指定的 IP 數量也有限制</p><p>官方有給出一份計算後的限制列表可以進行查閱 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt" target="_blank" rel="noopener">eni-max-pods.txt</a></p><p>突破限制前先釐清自己的叢集為何被限制，以下為幾種可能</p><h3 id="limited-by-subnet-CIDR"><a href="#limited-by-subnet-CIDR" class="headerlink" title="limited by subnet CIDR"></a>limited by subnet CIDR</h3><p>subnet 的 CIDR 一開始切太小，導致 Pod 數量超過 CIDR 範圍時，參考 VPC CNI 的 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt" target="_blank" rel="noopener">AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG</a> 參數，來客製化 Pod 的 CIDR。</p><h3 id="limited-by-EC2-instance-type"><a href="#limited-by-EC2-instance-type" class="headerlink" title="limited by EC2 instance type"></a>limited by EC2 instance type</h3><p>最常見的情況，達到 EC2 上的 IP 數量限制，因此 VPC CNI 無法成功索取 IP。</p><p>方法一：</p><p>直接抽換 AWS VPC CNI，換掉之後 Node 就不會再持續索取 secondary private IPv4 addresses，不過抽換後，沒有辦法讓 Pod 的 IP 直接屬於 VPC 下的 IP（理論效能會差一些，流量可能須經過 NAT 轉換）。</p><p>方法二：</p><p>使用 2021 年 EC2 新推出的功能 <code>prefix assignment</code>。開啟 AWS VPC CNI 中的 <code>ENABLE_PREFIX_DELEGATION</code> 參數。將每一個 ENI 上原本可以附加的 secondary private IPv4 addresses 變成變為 /28 範圍（16 個 IPs）。</p><p>參考 <a href="https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html" target="_blank" rel="noopener">Increase the amount of available IP addresses for your Amazon EC2 nodes</a></p><h3 id="limited-by-insufficient-IP’s"><a href="#limited-by-insufficient-IP’s" class="headerlink" title="limited by insufficient IP’s"></a>limited by insufficient IP’s</h3><p>該 subnet 下的 IP 被其他節點或是其他應用索取完畢，導致某些節點的 <code>aws-node</code> (VPC CNI) 沒有辦法正常索取 IP。解決方法為設定 <code>WARM_ENI_TARGET</code> 與 <code>WARM_IP_TARGET</code> 參數，來讓剛節點一被部署時就預先保留好可用的 IP，即時當時 Pod 還沒有被建立。</p><h2 id="Customize-kubelet-Arguments"><a href="#Customize-kubelet-Arguments" class="headerlink" title="Customize kubelet Arguments"></a>Customize kubelet Arguments</h2><p>某些時候需要客製化我們的節點，例如修改 container runtime（EKS 1.23 已經將預設 container runtime 換成 containerd）</p><p>Amazon EKS optimized Amazon Linux AMI 在開機時會呼叫 <code>/etc/eks/bootstrap.sh</code> 在執行必要的初始化</p><p>然而該腳本就有提供參數可供調整，例如我想要替換 container runtime 可以在 launch template 中改寫 user-data 成</p><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line">/etc/eks/bootstrap.sh demo-k8s --container-runtime containerd</span><br></pre></td></tr></tbody></table></figure><p>想要修改 kubelet 的啟動參數可以用 <code>--kubelet-extra-args</code> 來修改</p><h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>以上為這幾週第一次使用 EKS 的紀錄以及個人認為比較容易混淆或是模糊的點，要建構一個可信賴的 EKS 要考量的內容五花八門。這還只是一些在架構上的概念釐清而已，如果要往叢集內部鑽研，有更多要注意與可以調教的地方。這篇文章同時也給以後的自己參考，未來有機會再寫其他文章探討不同層面需要考量的議題。</p></body></html>]]></content>
+    
+    <summary type="html">
+    
+      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
+    
+    </summary>
+    
+    
+      <category term="EKS" scheme="https://blog.yiyu0x.org/tags/EKS/"/>
+    
+      <category term="Kubernetes" scheme="https://blog.yiyu0x.org/tags/Kubernetes/"/>
+    
+      <category term="AWS" scheme="https://blog.yiyu0x.org/tags/AWS/"/>
+    
+  </entry>
   
   <entry>
     <title>在 macOS 上使用 Podman</title>
@@ -413,26 +437,6 @@
       <category term="socket" scheme="https://blog.yiyu0x.org/tags/socket/"/>
     
       <category term="python" scheme="https://blog.yiyu0x.org/tags/python/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>使用 docker 來輕鬆建構資料庫</title>
-    <link href="https://blog.yiyu0x.org/2019/10/21/"/>
-    <id>https://blog.yiyu0x.org/2019/10/21/</id>
-    <published>2019-10-21T13:13:35.000Z</published>
-    <updated>2020-02-15T12:29:49.224Z</updated>
-    
-    <content type="html"><![CDATA[<html><head></head><body><h2 id="緣起"><a href="#緣起" class="headerlink" title="緣起"></a>緣起</h2><p>自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。</p><p>然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。</p><p>在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不是天天寫，時常會忘記。</p><h2 id="目標"><a href="#目標" class="headerlink" title="目標"></a>目標</h2><p>希望將 container 跑起來時，裡面的 database 是已經定義好 Schema 的情況，讓後端服務可以直接進行互動。長期目標是連資料庫內容都要映射到 container 之外，方便日後移轉。不過這篇文章不會提到。</p><h2 id="Docker-那些容易混淆的事"><a href="#Docker-那些容易混淆的事" class="headerlink" title="Docker 那些容易混淆的事"></a>Docker 那些容易混淆的事</h2><p>最容易搞混的應該就是 <code>RUN</code>, <code>CMD</code>, <code>ENTRYPOINT</code> 這三個設定值</p><p><code>RUN</code> 通常用來安裝套件，像是用來執行 apt 相關指令</p><p><code>CMD</code> 用來執行啟動 container 之後的指令，但他可以被 <code>docker run</code> 之後的參數來取代，也就是 <code>docker run</code> 後面不加上使用者自訂的命令，就會執行 <code>CMD</code> 的內容</p><p><code>ENTRYPOINT</code> 跟 <code>CMD</code> 類似，但是內容不會被 <code>docker run</code> 後面給的指令覆蓋掉，那些指令會附加在 <code>ENTRYPOINT</code> 之後</p><p>除此之外將檔案複製進 container 要用 <code>COPY</code> 還是 <code>ADD</code> 也有一些不同看法。<code>ADD</code> 基本上就是 <code>COPY</code> 的增強版，除了可以將檔案複製進容器，也可以填入一串網址。如果填入的來源是壓縮檔，那麼會自動進行壓縮。</p><p>所以沒有特別需求的話，單純想複製檔案進容器，還是推薦用 <code>COPY</code> 比較簡單明瞭一點。</p><h2 id="撰寫-Docker-file"><a href="#撰寫-Docker-file" class="headerlink" title="撰寫 Docker file"></a>撰寫 Docker file</h2><figure class="highlight docker"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mariadb:<span class="number">10.4</span>.<span class="number">8</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> init.sql /docker-entrypoint-initdb.d/</span></span><br><span class="line"><span class="keyword">ENV</span> MYSQL_ROOT_PASSWORD root</span><br><span class="line"><span class="keyword">ENV</span> MYSQL_DATABASE token_db</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3306</span></span><br></pre></td></tr></tbody></table></figure><p>在撰寫 Docker file 時，記得 image 要附上版本，否則預設是 latest。往後部署到其他伺服器有可能最新版本已經不再是這一版了，此時就可能出現不同版本行為不一的情況。建議一定要指定版本號。</p><p>我想要在容器跑起來時自動將 database schema 也一併創建好，此時可以將你的 .sql 檔案放入 <code>/docker-entrypoint-initdb.d</code> 這個目錄，此目錄中的 .sql 檔案會在資料庫啟動時自動被執行(在 MySQL image 也是)，如此一來可以省下不少寫 script 去自動表格的時間。</p><p>接下來設定好環境變數讓你的 MariaDB  自動建立好資料庫以及設定 root 密碼，詳細有哪些環境變數可以設定，在 <a href="https://hub.docker.com/_/mariadb" target="_blank" rel="noopener">MariaDB 的 image 文件中</a>。</p><h2 id="備份與復原"><a href="#備份與復原" class="headerlink" title="備份與復原"></a>備份與復原</h2><p>使用容器部署服務時，可以很方便地將服務進行轉移。但今天的服務是資料庫，有時候我們希望將資料庫的內容從容器內備份出來，才不會因為容器意外停止了而遺失資料。</p><p>做到這件事情的方法有很多，可以掛載目錄位置進容器，透過這樣的方式將資料庫相關的檔案與容器外的主機共用。但今天使用的方式是使用 <code>MySQL</code> 提供的 <code>mysqldump</code> 指令來將資料庫內容備份。</p><h3 id="備份"><a href="#備份" class="headerlink" title="備份"></a>備份</h3><p><code>docker exec <cotainer-id> /usr/bin/mysqldump -u root --password=root <db-name> > backup.sql</code></p><p><code>backup.sql</code> 的名稱可以隨意命名，它是將資料庫內容匯出的 sql 檔案。</p><h3 id="復原"><a href="#復原" class="headerlink" title="復原"></a>復原</h3><p><code>cat backup.sql | docker exec -i <cotainer-id> /usr/bin/mysql -u root --password=root <db-name></code></p><p>備份與復原可以幫助你在轉移服務到其他主機時，先將原本服務的資料庫內容取出，並且在其他主機回復內容。</p><h2 id="持久化儲存"><a href="#持久化儲存" class="headerlink" title="持久化儲存"></a>持久化儲存</h2><p>以上方法很明顯有一個問題，那就是你無法得知 container 在哪一個時候遇到意外而終止，這樣子也無法在適當的時機備份，有可能造成資料遺失！</p><p>想要達成持久化儲存勢必要使用到 <code>VOLUME</code> 功能，除此之外還需要一個背景知識，mariaDB（MySQL）的資料儲存位置在 <code>/var/lib/mysql</code>。</p><p>要達成掛載的方式有很多種，在此使用個人覺得較為直覺的一種：</p><p>新增一個 volume 結構並命名為 <code>db-data</code></p><p><code>docker create volume db-data</code></p><p>之後將容器跑起來時，指定容器內部的哪一個位置需要往外掛載至 <code>db-data</code></p><p><code>docker run -it -d -v db-data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root db</code></p><p>如此一來，容器內的 <code>/var/lib/mysql</code> 映射至外部的 <code>db-data</code>，不管容器存在與否 <code>db-data</code> 都會存在！</p><p>我們也可以用 <code>docker volume inspect db-data</code> 來查看該 <code>VOLUME</code> 的資訊</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    {</span><br><span class="line">        "CreatedAt": "2019-11-14T02:17:21Z",</span><br><span class="line">        "Driver": "local",</span><br><span class="line">        "Labels": {},</span><br><span class="line">        "Mountpoint": "/var/lib/docker/volumes/db-data/_data",</span><br><span class="line">        "Name": "db-data",</span><br><span class="line">        "Options": {},</span><br><span class="line">        "Scope": "local"</span><br><span class="line">    }</span><br><span class="line">]</span><br></pre></td></tr></tbody></table></figure><p>可以發現它在本機位置的真實路徑為 <code>/var/lib/docker/volumes/db-data/_data</code>。</p><h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>有了 Docker 之後讓很多事情變得很方便，但是自己在學習撰寫 Dockerfile 的過程中以及部署 Docker 服務時，時常被一些類似的指令與行為搞混。希望藉由記錄建構環境流程，一方面加深自己印象，一方面讓更多有類似需求的夥伴可以參考 😊</p></body></html>]]></content>
-    
-    <summary type="html">
-    
-      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
-    
-    </summary>
-    
-    
-      <category term="docker" scheme="https://blog.yiyu0x.org/tags/docker/"/>
     
   </entry>
   

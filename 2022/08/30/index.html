@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>與 minikube 共享 local docker image | Yiyu's Dev Blog</title>
+	<title>建立 Reliable EKS 記錄 | Yiyu's Dev Blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -52,14 +52,14 @@
 
 	<meta property="og:site_name" content="Yiyu's Dev Blog">
 	<meta property="og:type" content="article">
-	<meta property="og:title" content="與 minikube 共享 local docker image | Yiyu's Dev Blog">
+	<meta property="og:title" content="建立 Reliable EKS 記錄 | Yiyu's Dev Blog">
 	<meta property="og:description" content>
-	<meta property="og:url" content="https://blog.yiyu0x.org/2020/08/31/">
+	<meta property="og:url" content="https://blog.yiyu0x.org/2022/08/30/">
 
 	
-	<meta property="article:published_time" content="2020-08-31T20:08:00+08:00"> 
+	<meta property="article:published_time" content="2022-08-30T20:08:00+08:00"> 
 	<meta property="article:author" content="yiyu0x">
-	<meta property="article:published_first" content="Yiyu's Dev Blog, /2020/08/31/">
+	<meta property="article:published_first" content="Yiyu's Dev Blog, /2022/08/30/">
 	
 
 	
@@ -159,52 +159,78 @@
     <div class="inner">
         <header class="post-full-header">
             <div class="post-full-meta">
-                <time class="post-full-meta-date" datetime="2020-08-31T12:27:41.000Z">
-                    2020-08-31
+                <time class="post-full-meta-date" datetime="2022-08-30T12:04:21.000Z">
+                    2022-08-30
                 </time>
                 
                 <span class="date-divider">/</span>
                 
                 
             </div>
-            <h1 class="post-full-title">與 minikube 共享 local docker image</h1>
+            <h1 class="post-full-title">建立 Reliable EKS 記錄</h1>
         </header>
         <div class="post-full no-image">
             
             <div class="post-full-content">
                 <article id="photoswipe" class="markdown-body">
-                    <html><head></head><body><p>為了將服務跑在 K8s 中，容器化是必須的。在程式即將部署之際，會需要測試一些 K8s 中的環境變數是否可以被程式正常讀取，或是為了符合 K8s 環境，將程式打包成容器映像試著部署上叢集試試看有沒有問題。這個過程的工作流大致上如下：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">打包 (docker build . -t my-app:0.1)</span><br><span class="line">部署 (kubectl apply -f deploy.yaml)</span><br><span class="line">確認是否有問題，有的話修改程式，然後繞回第一步</span><br></pre></td></tr></tbody></table></figure>
+                    <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。</p>
+<h2 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h2><ul>
+<li>EKS 只有維護 Control Plane，Worker 有 EC2 與 Fargate 可以選擇。其中 EC2 必須由使用者自行管理。</li>
+<li>EKS Control Plane 的 VPC 與 Cluster 的 VPC 為不同的 VPC</li>
+<li>如果 EKS 有開啟 Private Access，會在 Cluster VPC 的 subnet 中安插 EKS-managed ENI 讓 Cluster VPC 流量穿透至 EKS 中</li>
+<li>EKS 建立時選擇的 VPC 是為了部署 EKS-managed ENI（最少兩個）使用</li>
+<li>EKS-managed ENI 直接存在於 subnet 之中，非 EC2 instance（or 其他 instance）之上</li>
+</ul>
+<h2 id="Nodegroup"><a href="#Nodegroup" class="headerlink" title="Nodegroup"></a>Nodegroup</h2><p>如果 Nodegroup 完全無法存取外網，同時也就無法拉取必要的 Container Image，導致節點無法建立成功</p>
+<p>Nodegroup 如果落在 private subnet，可以多開一台有 public subnet 的 EC2 作為 bastion 使用（同一個 VPC 下）</p>
+<h2 id="API-Endpoint"><a href="#API-Endpoint" class="headerlink" title="API Endpoint"></a>API Endpoint</h2><h3 id="public-access"><a href="#public-access" class="headerlink" title="public access"></a>public access</h3><p>API endpoint domain 會對應到一組 Public IP 做為 API Endpoint 入口</p>
+<p>可以使用 <code>kubectl cluster-info</code> 查看</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ec2-user@eks-bastion]$ kubectl cluster-info</span><br><span class="line">Kubernetes control plane is running at https://<your api endpoint uuid>.gr7.<region>.eks.amazonaws.com</region></your></span><br></pre></td></tr></tbody></table></figure>
 
-<p>我們在 Local 開發時，可能會使用 minikube 來當作測試用的部署環境，但是 minikube 實際上是起一個新的 docker-daemon，他並不認識 macOS 或是 Linux 上的 docker-daemon。也就是說，你在 Local 將 image build 完畢，在 minikube 中並無法存取 Local 的 Docker Registry。這對於正在快速開發測試的人來說極為不便，我們很可能改一行 code 就需要馬上看是否在 K8s 環境能正常運作。</p>
-<p>要解決這個問題大致上有幾種方法：</p>
-<ol>
-<li>使用外部 Docker Hub 來當作 Docker Registry<br> 缺點：暴露在外網、外網流量慢</li>
-<li>在 Local 跑一個 Docker Registry，讓 Local 與 minikube 共用<br> 缺點：Local IP 如果換掉，yaml 設定檔的 image 位置又要重寫</li>
-<li>在 minikube 環境中跑一個 Docker Registry，port-forward 到 Local 上<br> 缺點：第一次設定較繁瑣，但大致上已經算好用</li>
-</ol>
-<p>這邊要提的方法個人覺得較方便，但同時也有一些不方便的地方</p>
-<p>該方法原理是直接在 build image 時直接存進 minikube 的 Registry 中</p>
-<p>方法如下：</p>
-<p><code>eval $(minikube docker-env)</code></p>
-<p><code>docker build -t my-app .</code></p>
-<p>此時可以用 <code>minikube ssh</code> 進去看 <code>docker images</code> 會發現 Image 已經進到 Registry 中</p>
-<p>最後在 yaml 檔有用到該 image 的地方加上</p>
-<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">imagePullPolicy:</span> <span class="string">Never</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="private-access"><a href="#private-access" class="headerlink" title="private access"></a>private access</h3><p>根據<a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html" target="_blank" rel="noopener">官方文件</a>描述，在 Cluster VPC 下會有 Route 53 private hosted zone 將 API endpoint 解析成該 VPC 下的 IP</p>
+<blockquote>
+<p>This private hosted zone is managed by Amazon EKS, and it doesn’t appear in your account’s Route 53 resources.</p>
+</blockquote>
+<p>經過實驗會發現解出兩組 VPC 中的 private IP，同時為 EKS-managed ENI 的 IP</p>
+<p>這組介面可以透過將 Cluster VPC 的流量直接導向至 EKS VPC 之中</p>
+<p>啟用條件為 Cluster VPC 必須將 <code>enableDnsHostnames</code>, <code>enableDnsSupport</code> 設定為 <code>true</code></p>
+<p>並且 <code>AmazonProvidedDNS</code> 要在 VPC DHCP 的 domain name servers list</p>
+<h3 id="public-and-private-access"><a href="#public-and-private-access" class="headerlink" title="public and private access"></a>public and private access</h3><p>外網因為沒有 Route 53 private hosted zone 所以會解析出外網 IP</p>
+<p>Cluster VPC 下有 Route 53 private hosted zone 所以會解析出 EKS-managed ENI 的 IP</p>
+<h2 id="Pod-Amount-Limit"><a href="#Pod-Amount-Limit" class="headerlink" title="Pod Amount Limit"></a>Pod Amount Limit</h2><p>Pod limit 的根本問題是因為不同的 EC2 instance type 有先天的 VPC IP 數量限制</p>
+<p>ENI 的數量有限制，每一個 ENI instance 可以指定的 IP 數量也有限制</p>
+<p>官方有給出一份計算後的限制列表可以進行查閱 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt" target="_blank" rel="noopener">eni-max-pods.txt</a></p>
+<p>突破限制前先釐清自己的叢集為何被限制，以下為幾種可能</p>
+<h3 id="limited-by-subnet-CIDR"><a href="#limited-by-subnet-CIDR" class="headerlink" title="limited by subnet CIDR"></a>limited by subnet CIDR</h3><p>subnet 的 CIDR 一開始切太小，導致 Pod 數量超過 CIDR 範圍時，參考 VPC CNI 的 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt" target="_blank" rel="noopener">AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG</a> 參數，來客製化 Pod 的 CIDR。</p>
+<h3 id="limited-by-EC2-instance-type"><a href="#limited-by-EC2-instance-type" class="headerlink" title="limited by EC2 instance type"></a>limited by EC2 instance type</h3><p>最常見的情況，達到 EC2 上的 IP 數量限制，因此 VPC CNI 無法成功索取 IP。</p>
+<p>方法一：</p>
+<p>直接抽換 AWS VPC CNI，換掉之後 Node 就不會再持續索取 secondary private IPv4 addresses，不過抽換後，沒有辦法讓 Pod 的 IP 直接屬於 VPC 下的 IP（理論效能會差一些，流量可能須經過 NAT 轉換）。</p>
+<p>方法二：</p>
+<p>使用 2021 年 EC2 新推出的功能 <code>prefix assignment</code>。開啟 AWS VPC CNI 中的 <code>ENABLE_PREFIX_DELEGATION</code> 參數。將每一個 ENI 上原本可以附加的 secondary private IPv4 addresses 變成變為 /28 範圍（16 個 IPs）。</p>
+<p>參考 <a href="https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html" target="_blank" rel="noopener">Increase the amount of available IP addresses for your Amazon EC2 nodes
+</a></p>
+<h3 id="limited-by-insufficient-IP’s"><a href="#limited-by-insufficient-IP’s" class="headerlink" title="limited by insufficient IP’s"></a>limited by insufficient IP’s</h3><p>該 subnet 下的 IP 被其他節點或是其他應用索取完畢，導致某些節點的 <code>aws-node</code> (VPC CNI) 沒有辦法正常索取 IP。解決方法為設定 <code>WARM_ENI_TARGET</code> 與 <code>WARM_IP_TARGET</code> 參數，來讓剛節點一被部署時就預先保留好可用的 IP，即時當時 Pod 還沒有被建立。</p>
+<h2 id="Customize-kubelet-Arguments"><a href="#Customize-kubelet-Arguments" class="headerlink" title="Customize kubelet Arguments"></a>Customize kubelet Arguments</h2><p>某些時候需要客製化我們的節點，例如修改 container runtime（EKS 1.23 已經將預設 container runtime 換成 containerd）</p>
+<p>Amazon EKS optimized Amazon Linux AMI 在開機時會呼叫 <code>/etc/eks/bootstrap.sh</code> 在執行必要的初始化</p>
+<p>然而該腳本就有提供參數可供調整，例如我想要替換 container runtime 可以在 launch template 中改寫 user-data 成</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line">/etc/eks/bootstrap.sh demo-k8s --container-runtime containerd</span><br></pre></td></tr></tbody></table></figure>
 
-<p>確保在 pull image 時只會拉 Local 的 Image</p>
-<p>該方法是透過重新指定環境變數來改變 docker 指令操作 docker-deamon 的位置</p>
-<p>所以開一個新的 session 就要重新設定一次，算是一個小缺點</p>
+<p>想要修改 kubelet 的啟動參數可以用 <code>--kubelet-extra-args</code> 來修改</p>
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>以上為這幾週第一次使用 EKS 的紀錄以及個人認為比較容易混淆或是模糊的點，要建構一個可信賴的 EKS 要考量的內容五花八門。這還只是一些在架構上的概念釐清而已，如果要往叢集內部鑽研，有更多要注意與可以調教的地方。這篇文章同時也給以後的自己參考，未來有機會再寫其他文章探討不同層面需要考量的議題。</p>
 </body></html>
                 </article>
                 <ul class="tags-postTags">
                     
                     <li>
-                        <a href="/tags/kubernetes/" rel="tag"># kubernetes</a>
+                        <a href="/tags/EKS/" rel="tag"># EKS</a>
                     </li>
                     
                     <li>
-                        <a href="/tags/docker/" rel="tag"># docker</a>
+                        <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/AWS/" rel="tag"># AWS</a>
                     </li>
                     
                 </ul>
@@ -215,14 +241,10 @@
     
     <nav id="gobottom" class="pagination">
         
-        <a class="prev-post" title="macOS-中-VPN-解析域名錯誤" href="/2021/01/06/">
-            ← macOS-中-VPN-解析域名錯誤
-        </a>
-        
         <span class="prev-next-post">·</span>
         
-        <a class="next-post" title="在 K8S 中使用 Traefik 作為 Ingress Controllers" href="/2020/07/11/">
-            在 K8S 中使用 Traefik 作為 Ingress Controllers →
+        <a class="next-post" title="在 macOS 上使用 Podman" href="/2022/07/07/">
+            在 macOS 上使用 Podman →
         </a>
         
     </nav>
@@ -244,7 +266,7 @@
         </a>
     </div>
     <div class="toc-main">
-        
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Architecture"><span class="toc-text">Architecture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nodegroup"><span class="toc-text">Nodegroup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#API-Endpoint"><span class="toc-text">API Endpoint</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#public-access"><span class="toc-text">public access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#private-access"><span class="toc-text">private access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#public-and-private-access"><span class="toc-text">public and private access</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Pod-Amount-Limit"><span class="toc-text">Pod Amount Limit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-subnet-CIDR"><span class="toc-text">limited by subnet CIDR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-EC2-instance-type"><span class="toc-text">limited by EC2 instance type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-insufficient-IP’s"><span class="toc-text">limited by insufficient IP’s</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Customize-kubelet-Arguments"><span class="toc-text">Customize kubelet Arguments</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#後記"><span class="toc-text">後記</span></a></li></ol>
     </div>
 </div>
 
