@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://blog.yiyu0x.org/"/>
-  <updated>2022-08-30T13:17:53.282Z</updated>
+  <updated>2022-09-05T06:20:26.433Z</updated>
   <id>https://blog.yiyu0x.org/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>EKS ELB 獲取 Client IP 方法紀錄</title>
+    <link href="https://blog.yiyu0x.org/2022/09/05/"/>
+    <id>https://blog.yiyu0x.org/2022/09/05/</id>
+    <published>2022-09-05T06:13:08.000Z</published>
+    <updated>2022-09-05T06:20:26.433Z</updated>
+    
+    <content type="html"><![CDATA[<html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 EKS 上要建立 ELB 會採用 service type 指定 LoadBalancer。此時 AWS 的 In-Tree LoadBalacner Controller 或是 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller" target="_blank" rel="noopener">AWS Load Balancer Controller</a> 其中之一會協助我們建立對應的 ELB 出來。本文紀錄這兩種 LB Controller 的差異以及不同類型 ELB 使用時機（以獲取 Client IP 為例）。</p><h2 id="In-Tree-LoadBalacner-Controller-CLB"><a href="#In-Tree-LoadBalacner-Controller-CLB" class="headerlink" title="In-Tree LoadBalacner Controller - CLB"></a>In-Tree LoadBalacner Controller - CLB</h2><p>將 server type 指定成 <code>LoadBalancer</code> 此時 In-Tree LoadBalacner Controller 會 privosion 一個 CLB 出來</p><p>流量從外部要進入叢集的路徑為</p><p>CLB -> Node:NodePort -> Pod maybe in different node</p><p>因為透過節點上的 NodePort 進行跳轉，所以 Pod 如果要獲得 Clinet IP 會拿到 Node 中的 IP。而獲取不到真正的 Client IP</p><p>接著可以根據官方建議設定 <code>.spec.externalTrafficPolicy</code> 為 <code>Local</code>（預設為 <code>Cluster</code>）</p><p>這樣的設定可以避免流量進入到沒有含 Destination Pod 的 Node 上，多做一個 hop 的跳轉，也避免 IP 被洗成該 Node 的 IP</p><p>結果發現 Client IP 還是獲取不到，因為 CLB 在與後方的 instance 溝通時，是用該 subnet 介面的 IP 溝通，所以 Client IP 變成是 ELB 的 private IP（該 IP 可以從 ec2 的 network interfacae 找出來）</p><p>現在的路徑變成</p><p>CLB -> Node:NodePort （Pod also in the node）</p><p>開啟了 <code>externalTrafficPolicy</code> 需不需要擔心如果該節點上沒有 Pod，進而請求沒有辦法路由到正確的位置上</p><p>答案是不需要，因為 CLB 會對後方的 instance 做健康檢查，若後方 instance 沒有 Pod，那某該 instance 不健康，流量自然不會導入過去</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：完全不需修改參數、不需安裝其他 controller</span><br><span class="line">缺點：無法保留 Client IP、不保留 Client IP 流量會多一跳、流量不平均（後面會提到）</span><br></pre></td></tr></tbody></table></figure><h2 id="In-Tree-LoadBalacner-Controller-NLB"><a href="#In-Tree-LoadBalacner-Controller-NLB" class="headerlink" title="In-Tree LoadBalacner Controller - NLB"></a>In-Tree LoadBalacner Controller - NLB</h2><p>需要在 annotations 加上</p><figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">    <span class="string">service.beta.kubernetes.io/aws-load-balancer-type:</span> <span class="string">"nlb"</span></span><br></pre></td></tr></tbody></table></figure><p>並且我們將 <code>externalTrafficPolicy</code> 同樣設定成 <code>Local</code></p><p>發現就可以正常獲取 Client IP 了，代表 NLB 在轉發時，不會將 Source IP 介面切換成內網介面，同時後端也不是 instance 是另外一層抽象（target group）</p><p>但試想一個一個情況，若我有 3 個 Pod (x, y, z)，2 個 (x, y) 落在節點 A，1 個 (z) 落在節點 B</p><p>那麼流量進入 NLB 時會先進行 1/2 的機率選擇節點 (A, B)，假設進入節點 A 又會有 1/2 的機率選擇 x, y 這兩個 Pod</p><p>那麼 Pod 被選中的機率變成</p><p>x: 1/2 * 1/2 = 1/4<br>y: 1/2 * 1/2 = 1/4<br>z: 1/2</p><p>可以發現流量並沒有真的平均轉發都後端的 Pod 上</p><p>但 In-Tree Controller 只能建立出這兩種 ELB（並且能修改的參數有限），剩下一種 ALB 必須安裝 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller" target="_blank" rel="noopener">AWS Load Balancer Controller</a></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：不需安裝其他 controller、可以保留 Client IP</span><br><span class="line">缺點：不保留 Client IP 流量會多一跳、流量不平均</span><br></pre></td></tr></tbody></table></figure><h2 id="AWS-Load-Balancer-Controller-NLB"><a href="#AWS-Load-Balancer-Controller-NLB" class="headerlink" title="AWS Load Balancer Controller - NLB"></a>AWS Load Balancer Controller - NLB</h2><p>安裝 AWS Load Balancer Controller 後，在使用上必須指定 <code>loadBalancerClass: service.k8s.aws/nlb</code></p><p>並且 AWS Load Balancer Controller 有提供 <code>ip</code> 與 <code>instance</code> mode（使用 in-tree controller 建立出來的 mode 就是 instance mode）</p><p><em>該功能需要配合 AWS VPC CNI 使用</em></p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip</span><br><span class="line">spec:</span><br><span class="line">    loadBalancerClass: service.k8s.aws/nlb</span><br></pre></td></tr></tbody></table></figure><p>此時會發現 NLB 後方的 target group 直接對應到 Pod IP，可以省去多一次跳轉，並且解決流量不平均的問題</p><p>但 Client IP 還是沒有保留，我們可以調整 NLB 參數</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true</span><br></pre></td></tr></tbody></table></figure><p>將 NLB 提供的功能 preserve_client_ip 打開，即可完成配置，也不需要透過設定 <code>externalTrafficPolicy</code> 參數即可獲取 Client IP</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></tbody></table></figure><h2 id="AWS-Load-Balancer-Controller-ALB"><a href="#AWS-Load-Balancer-Controller-ALB" class="headerlink" title="AWS Load Balancer Controller - ALB"></a>AWS Load Balancer Controller - ALB</h2><p>使用 Ingress 資源建立出 ALB，但是無法設定 <code>preserve_client_ip</code></p><p>如果去 management console 檢查對應 target group，會發現找不到 Preserve client IP addresses 但是多了 Load balancing algorithm 可以選擇</p><p>因為是 L7 支援，所以將 Client IP 放入 HTTP header 的 XFF 欄位即可</p><p>一樣有 <code>instance</code> 與 <code>ip</code> mode 可以選擇</p><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP（放在 L7 的 HTTP header 中）、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></tbody></table></figure></body></html>]]></content>
+    
+    <summary type="html">
+    
+      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
+    
+    </summary>
+    
+    
+      <category term="AWS" scheme="https://blog.yiyu0x.org/tags/AWS/"/>
+    
+      <category term="EKS" scheme="https://blog.yiyu0x.org/tags/EKS/"/>
+    
+      <category term="ELB" scheme="https://blog.yiyu0x.org/tags/ELB/"/>
+    
+      <category term="Kubernetes" scheme="https://blog.yiyu0x.org/tags/Kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>建立 Reliable EKS 記錄</title>
@@ -32,11 +58,11 @@
     </summary>
     
     
+      <category term="AWS" scheme="https://blog.yiyu0x.org/tags/AWS/"/>
+    
       <category term="EKS" scheme="https://blog.yiyu0x.org/tags/EKS/"/>
     
       <category term="Kubernetes" scheme="https://blog.yiyu0x.org/tags/Kubernetes/"/>
-    
-      <category term="AWS" scheme="https://blog.yiyu0x.org/tags/AWS/"/>
     
   </entry>
   
@@ -415,28 +441,6 @@
     
     
       <category term="個人" scheme="https://blog.yiyu0x.org/tags/%E5%80%8B%E4%BA%BA/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Python struct 模組的踩雷記錄</title>
-    <link href="https://blog.yiyu0x.org/2019/11/05/"/>
-    <id>https://blog.yiyu0x.org/2019/11/05/</id>
-    <published>2019-11-05T01:18:55.000Z</published>
-    <updated>2020-02-15T12:29:49.219Z</updated>
-    
-    <content type="html"><![CDATA[<html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。</p><h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>情境是這樣的，我想要將一個正整數以及一個長度 3 的字串跟一個正整數結構化成 byte 的形式</p><p>很直覺的使用了</p><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> struct</span><br><span class="line">struct.pack(<span class="string">"I3sI"</span>, <span class="number">1</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># \x01\x00\x00\x00abc\x00\x01\x00\x00\x00</span></span><br></pre></td></tr></tbody></table></figure><p>但這個輸出並不符合我的預期，<code>正整數 4 bytes</code> + <code>長度三的字串 3 bytes</code> + <code>正整數 4 bytes</code>，結果應該要是 <code>11 bytes</code>。但是輸出卻是 <code>\x01\x00\x00\x00abc\x00\x01\x00\x00\x00</code> -> <code>12 bytes</code></p><p>於是使用 calcsize 確認一下</p><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"I3sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></tbody></table></figure><p>的確也是 <code>12 bytes</code>，而且可以發現的是，是中間的字串變成了 <code>4 bytes</code></p><p>於是實驗了一下：</p><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">"3s"</span>)</span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line">struct.calcsize(<span class="string">"3sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"4sI"</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">"5sI"</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></tbody></table></figure><p>可以發現 <code>3s</code> 的確是 <code>3 bytes</code>，但是當後面還有有其他 bytes 的話，則會補齊 <code>4 bytes</code>，然而我用 <code>4sI</code> 可以發現還是 <code>8 bytes</code> 無誤。</p><p>第一個直覺就是猜想，是不是 struct 自動做了 word 大小為 4 的對齊。</p><p>查了一下文件</p><blockquote><p>By default, C types are represented in the machine’s native format and byte order, and properly aligned by skipping pad bytes if necessary (according to the rules used by the C compiler).</p></blockquote><p>到這邊真相已經大白，但是還是沒解決問題</p><p>這個問題的解法就是在 fmt 前面補上一些符號來告訴 struct 模組需不需要自動做對齊</p><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line">struct.pack(<span class="string">"@3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 以上兩週是一樣的，預設就是用 @，代表自動對齊</span></span><br><span class="line"></span><br><span class="line">struct.pack(<span class="string">"=3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br><span class="line"><span class="comment"># 使用 =，代表不啟動對齊</span></span><br></pre></td></tr></tbody></table></figure><p>文件還有貼心的寫下</p><blockquote><p>The form ‘!’ is available for those poor souls who claim they can’t remember whether network byte order is big-endian or little-endian.</p></blockquote><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">"!3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line">struct.pack(<span class="string">">3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x00\x00\x00\x01'</span></span><br><span class="line"><span class="comment"># 使用網路相關傳輸可以直接用 !，省去記下網路傳輸是 big-endian</span></span><br><span class="line">struct.pack(<span class="string">"<3sI"</span>, <span class="string">b'abc'</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b'abc\x01\x00\x00\x00'</span></span><br></pre></td></tr></tbody></table></figure><p>這些符號總共有 <code>@</code>, <code>=</code>, <code><</code>, <code>></code>, <code>!</code>，有興趣可以到<a href="https://docs.python.org/3.8/library/struct.html#struct-alignment" target="_blank" rel="noopener">官方文件</a>了解。有趣的是只有第一個(<code>@</code>)，也就是預設的模式會採用自動對齊！</p></body></html>]]></content>
-    
-    <summary type="html">
-    
-      &lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;
-    
-    </summary>
-    
-    
-      <category term="socket" scheme="https://blog.yiyu0x.org/tags/socket/"/>
-    
-      <category term="python" scheme="https://blog.yiyu0x.org/tags/python/"/>
     
   </entry>
   

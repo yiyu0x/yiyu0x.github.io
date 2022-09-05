@@ -20,7 +20,7 @@
 	<link rel="preconnect" href="//9qpuwspm.api.lncld.net">
 	<link rel="preconnect" href="//gravatar.loli.net">
 
-	<title>Tag: Kubernetes | Yiyu's Dev Blog</title>
+	<title>Tag: kubernetes | Yiyu's Dev Blog</title>
 
 	<meta name="HandheldFriendly" content="True">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -52,9 +52,9 @@
 
 	<meta property="og:site_name" content="Yiyu's Dev Blog">
 	<meta property="og:type" content="blog">
-	<meta property="og:title" content="Tag: Kubernetes | Yiyu's Dev Blog">
+	<meta property="og:title" content="Tag: kubernetes | Yiyu's Dev Blog">
 	<meta property="og:description" content="yiyu0x's blog">
-	<meta property="og:url" content="https://blog.yiyu0x.org/tags/Kubernetes/index.html">
+	<meta property="og:url" content="https://blog.yiyu0x.org/tags/kubernetes/index.html">
 
 	
 
@@ -153,7 +153,7 @@
         <div class="site-header-content">
             
             <h1 class="site-title">
-                Tag: Kubernetes
+                Tag: kubernetes
             </h1>
             <h2 class="site-description">Tags</h2>
         </div>
@@ -169,22 +169,22 @@
 			
 			<article class="post-card post ">
 				
-				<a class="post-card-image-link" title="建立 Reliable EKS 記錄" href="/2022/08/30/">
-					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1599114129119-b897b0e7c230?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=3067&q=80"></div>
+				<a class="post-card-image-link" title="如何備份 Kubernetes 中的 etcd" href="/2021/05/21/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1551313158-73d016a829ae?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1022&q=80"></div>
 				</a>
 				
 				<div class="post-card-content">
-					<a class="post-card-content-link" title="建立 Reliable EKS 記錄" href="/2022/08/30/">
+					<a class="post-card-content-link" title="如何備份 Kubernetes 中的 etcd" href="/2021/05/21/">
 						<header class="post-card-header">
 							<span class="post-card-tags">
 								
 								| 
 								
-								<time datetime="2022-08-30T12:04:21.000Z">
-									2022-08-30
+								<time datetime="2021-05-21T12:29:50.000Z">
+									2021-05-21
 								</time>
 							</span>
-							<h2 class="post-card-title">建立 Reliable EKS 記錄</h2>
+							<h2 class="post-card-title">如何備份 Kubernetes 中的 etcd</h2>
 						</header>
 						<div class="post-card-excerpt">
 							<p>
@@ -195,58 +195,7 @@
 								
 								
 								
-								前言EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。
-Architectu
-								...
-							</p>
-						</div>
-					</a>
-					<footer class="post-card-meta">
-						<div class="author-list">
-							<div class="author-list-item">
-								<div class="author-name-tooltip">yiyu0x</div>
-								
-								<a href="/about" class="static-avatar">
-									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
-								</a>
-								
-							</div>
-						</div>
-						<span class="reading-time">
-							6
-							min read
-						</span>
-					</footer>
-				</div>
-			</article>
-			
-			<article class="post-card post ">
-				
-				<a class="post-card-image-link" title="理解 Kubernetes 中的 CPU Limit" href="/2021/12/13/">
-					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1579447167432-ba8b796e5de1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1471&q=80"></div>
-				</a>
-				
-				<div class="post-card-content">
-					<a class="post-card-content-link" title="理解 Kubernetes 中的 CPU Limit" href="/2021/12/13/">
-						<header class="post-card-header">
-							<span class="post-card-tags">
-								
-								| 
-								
-								<time datetime="2021-12-13T00:50:50.000Z">
-									2021-12-13
-								</time>
-							</span>
-							<h2 class="post-card-title">理解 Kubernetes 中的 CPU Limit</h2>
-						</header>
-						<div class="post-card-excerpt">
-							<p>
-								
-								
-								
-								
-								
-								TL;DRKubernetes 中的資源限制目前可以對兩種資源做限制，分別為 cpu（可壓縮資源）, memory（不可壓縮資源）。針對這兩種資源的限制可以對應到兩種限制，分別為 Soft Limit
+								序言Kubernetes 中的狀態都是用 etcd 這套 key-value 儲存工具來維持，也就是說我們只要備份好 etcd 後，就可以很輕易的重建一個一模一
 								...
 							</p>
 						</div>
@@ -270,246 +219,238 @@ Architectu
 				</div>
 			</article>
 			
-		</div>
-	</div>
-</div>
-
-
-
-<div class="outer">
-	<nav class="pagination">
-		
-	</nav>
-</div>
-
-
-
-	</div>
-	
-
-
-<aside class="read-next outer">
-    <div class="inner">
-        <div class="read-next-feed">
-            
-            
-
-<article class="read-next-card" style="background-image: url(https://images.unsplash.com/photo-1505901422278-7ee0122f5014?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80)">
-  <header class="read-next-card-header">
-    <small class="read-next-card-header-sitetitle">&mdash; Yiyu's Dev Blog &mdash;</small>
-    <h3 class="read-next-card-header-title">Recent Posts</h3>
-  </header>
-  <div class="read-next-divider">
-    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24">
-      <path d="M13 14.5s2 3 5 3 5.5-2.463 5.5-5.5S21 6.5 18 6.5c-5 0-7 11-12 11C2.962 17.5.5 15.037.5 12S3 6.5 6 6.5s4.5 3.5 4.5 3.5"/>
-    </svg>
-  </div>
-  <div class="read-next-card-content">
-    <ul>
-      
-      
-      
-      <li>
-        <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="/2021/12/13/">理解 Kubernetes 中的 CPU Limit</a>
-      </li>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-    </ul>
-  </div>
-  <footer class="read-next-card-footer">
-    <a href="/archives">  MORE  → </a>
-  </footer>
-</article>
-
-            
-            
-            
-
-
-            
-            
-            
-
-<article class="read-next-card" style="background-image: url(https://images.unsplash.com/photo-1505901422278-7ee0122f5014?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80)">
-	<header class="read-next-card-header tagcloud-card">
-		<h3 class="read-next-card-header-title">Tag Cloud</h3>
-	</header>
-	<div class="read-next-card-content-ext">
-		<a href="/tags/AWS/" style="font-size: 14px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 14px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Docker/" style="font-size: 14px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 14px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 14px;">EKS</a> <a href="/tags/Kubernetes/" style="font-size: 16.5px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 14px;">cgroup</a> <a href="/tags/container/" style="font-size: 14px;">container</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 24px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/podman/" style="font-size: 14px;">podman</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
-	</div>
-</article>
-
-            
-        </div>
-    </div>
-</aside>
-
-	
-
-
-
-
-<div id="search" class="search-overlay">
-    <div class="search-form">
-        
-        <div class="search-overlay-logo">
-        	<img src="https://img.icons8.com/color/64/000000/sashimi.png" alt="Yiyu's Dev Blog">
-        </div>
-        
-        <input id="local-search-input" class="search-input" type="text" name="search" placeholder="Search ...">
-        <a class="search-overlay-close" href="#"></a>
-    </div>
-    <div id="local-search-result"></div>
-</div>
-
-<footer class="site-footer outer">
-	<div class="site-footer-content inner">
-		<div class="copyright">
-			<a href="/" title="Yiyu's Dev Blog">Yiyu's Dev Blog &copy; 2022</a>
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="不停機替換 Kubernetes CRI" href="/2021/04/17/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1571786256017-aee7a0c009b6?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="不停機替換 Kubernetes CRI" href="/2021/04/17/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2021-04-17T06:34:42.000Z">
+									2021-04-17
+								</time>
+							</span>
+							<h2 class="post-card-title">不停機替換 Kubernetes CRI</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								問題今天嘗試將 CRI 從預設的 dockershim 替換至 CRI-O，網路上的教學都是教你更換完畢之後使用 kubeadm 重新起一個 Cluster。但我的情境需要對現有的 Cluster 做
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							7
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
 			
-		</div>
-		<nav class="site-footer-nav">
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="一次 Traefik 與 TLS 的踩雷經驗" href="/2021/03/26/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1530685932526-48ec92998eaa?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="一次 Traefik 與 TLS 的踩雷經驗" href="/2021/03/26/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2021-03-26T10:07:37.000Z">
+									2021-03-26
+								</time>
+							</span>
+							<h2 class="post-card-title">一次 Traefik 與 TLS 的踩雷經驗</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								問題點部署 ArgoCD 進 Kubernetes 完畢時，發現 ArgoCD 開了 80, 443 兩個 Service Port，對應到的 Container Port 都同樣是 8080。如果你
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							8
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
 			
-			<a href="https://hexo.io" title="Hexo" target="_blank" rel="noopener">Hexo</a>
-			<a href="https://github.com/xzhih/hexo-theme-casper" title="Casper" target="_blank" rel="noopener">Casper</a>
-		</nav>
-	</div>
-</footer>
-	
-
-<script>
-    "serviceWorker"in navigator&&window.addEventListener("load",function(){
-        navigator.serviceWorker.register("/sw.js")
-            .then(function(e){
-                console.log("ServiceWorker registration successful with scope: ",e.scope)
-            })
-            .catch(function(e){
-                console.log("ServiceWorker registration failed: ",e)
-            })
-    });
-</script>
-
-
-<script id="scriptLoad" src="/js/allinone.min.js" async></script>
-
-
-<script>
-    document.getElementById('scriptLoad').addEventListener('load', function () {
-        
-        
-            var bLazy = new Blazy();
-        
-
-        
-        
-
-        
-        
-        
-            searchFuncSW("/");
-        
-        
-    })
-</script>
-
-
-
-
-
-
-
-
-
-
-</body>
-</html>
-meta">
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="與 minikube 共享 local docker image" href="/2020/08/31/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1579447167432-ba8b796e5de1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1471&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="與 minikube 共享 local docker image" href="/2020/08/31/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2020-08-31T12:27:41.000Z">
+									2020-08-31
+								</time>
+							</span>
+							<h2 class="post-card-title">與 minikube 共享 local docker image</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								為了將服務跑在 K8s 中，容器化是必須的。在程式即將部署之際，會需要測試一些 K8s 中的環境變數是否可以被程式正常讀取，或是為了符合 K8s 環境，將程式打包成容器映像試著部署上叢集試試看有沒有問
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							2
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="在 K8S 中使用 Traefik 作為 Ingress Controllers" href="/2020/07/11/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1496535731694-9673400f50c9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="在 K8S 中使用 Traefik 作為 Ingress Controllers" href="/2020/07/11/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2020-07-11T07:53:37.000Z">
+									2020-07-11
+								</time>
+							</span>
+							<h2 class="post-card-title">在 K8S 中使用 Traefik 作為 Ingress Controllers</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								前言K8S 中的 Ingress Controllers 並沒有實作，可以自己使用各種版本。在 Minikube 中的 Ingress Controllers 預設是用 NGINX Ingress C
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
+						<div class="author-list">
+							<div class="author-list-item">
+								<div class="author-name-tooltip">yiyu0x</div>
+								
+								<a href="/about" class="static-avatar">
+									<img class="author-profile-image" src="https://avatars2.githubusercontent.com/u/29070279?s=460&v=4" alt="yiyu0x">
+								</a>
+								
+							</div>
+						</div>
+						<span class="reading-time">
+							10
+							min read
+						</span>
+					</footer>
+				</div>
+			</article>
+			
+			<article class="post-card post ">
+				
+				<a class="post-card-image-link" title="快速體驗 kubernetes 的強大之處" href="/2020/01/08/">
+					<div class="post-card-image b-lazy" data-src="https://images.unsplash.com/photo-1470255121310-d2b5ed9b7d01?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80"></div>
+				</a>
+				
+				<div class="post-card-content">
+					<a class="post-card-content-link" title="快速體驗 kubernetes 的強大之處" href="/2020/01/08/">
+						<header class="post-card-header">
+							<span class="post-card-tags">
+								
+								| 
+								
+								<time datetime="2020-01-08T05:17:53.000Z">
+									2020-01-08
+								</time>
+							</span>
+							<h2 class="post-card-title">快速體驗 kubernetes 的強大之處</h2>
+						</header>
+						<div class="post-card-excerpt">
+							<p>
+								
+								
+								
+								
+								
+								前言容器技術近年來非常流行，相信各位在不同地方多少有聽過 kubernetes（或是它的簡稱 k8s）這項技術。但是很多人了解 k8s 之後會被這個技術嚇到，原因是因為有大量的名詞，像是 Pod, S
+								...
+							</p>
+						</div>
+					</a>
+					<footer class="post-card-meta">
 						<div class="author-list">
 							<div class="author-list-item">
 								<div class="author-name-tooltip">yiyu0x</div>
@@ -568,6 +509,12 @@ meta">
       
       
       <li>
+        <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
       </li>
       
@@ -578,10 +525,6 @@ meta">
       </li>
       
       
-      
-      <li>
-        <a href="/2021/12/13/">理解 Kubernetes 中的 CPU Limit</a>
-      </li>
       
       
       
@@ -679,7 +622,7 @@ meta">
 		<h3 class="read-next-card-header-title">Tag Cloud</h3>
 	</header>
 	<div class="read-next-card-content-ext">
-		<a href="/tags/AWS/" style="font-size: 14px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 14px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Docker/" style="font-size: 14px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 14px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 14px;">EKS</a> <a href="/tags/Kubernetes/" style="font-size: 16.5px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 14px;">cgroup</a> <a href="/tags/container/" style="font-size: 14px;">container</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 24px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/podman/" style="font-size: 14px;">podman</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
+		<a href="/tags/AWS/" style="font-size: 16.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 14px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 14px;">DNS</a> <a href="/tags/Docker/" style="font-size: 14px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 14px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 16.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 14px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 19px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 14px;">Linux</a> <a href="/tags/c/" style="font-size: 16.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 14px;">cgroup</a> <a href="/tags/container/" style="font-size: 14px;">container</a> <a href="/tags/ctf/" style="font-size: 14px;">ctf</a> <a href="/tags/docker/" style="font-size: 21.5px;">docker</a> <a href="/tags/es6/" style="font-size: 19px;">es6</a> <a href="/tags/fp/" style="font-size: 14px;">fp</a> <a href="/tags/http2/" style="font-size: 14px;">http2</a> <a href="/tags/javascript/" style="font-size: 24px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 24px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 16.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 14px;">macOS</a> <a href="/tags/macos/" style="font-size: 19px;">macos</a> <a href="/tags/mysql/" style="font-size: 14px;">mysql</a> <a href="/tags/nginx/" style="font-size: 16.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 16.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 14px;">oauth2</a> <a href="/tags/podman/" style="font-size: 14px;">podman</a> <a href="/tags/python/" style="font-size: 16.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 14px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 14px;">shell</a> <a href="/tags/socket/" style="font-size: 14px;">socket</a> <a href="/tags/telegram/" style="font-size: 14px;">telegram</a> <a href="/tags/tools/" style="font-size: 16.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 14px;">traefik</a> <a href="/tags/個人/" style="font-size: 19px;">個人</a> <a href="/tags/資訊安全/" style="font-size: 19px;">資訊安全</a>
 	</div>
 </article>
 
