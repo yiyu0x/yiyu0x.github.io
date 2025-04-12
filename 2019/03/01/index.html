@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>如何看待C語言的argv與指標關係 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="如何看待C語言的argv與指標關係">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/03/01/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/01/argv_in_mem.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/01/argv_in_mem.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/01/proof.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/01/proof.png">
+<meta property="article:published_time" content="2019-03-01T10:56:44.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.592Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="c">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.yiyu0x.org/2019/03/01/argv_in_mem.png">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-如何看待C語言的argv與指標關係" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/03/01/" class="article-date">
+  <time class="dt-published" datetime="2019-03-01T10:56:44.000Z" itemprop="datePublished">2019-03-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      如何看待C語言的argv與指標關係
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在一次作業下碰到了 argv 與的操作，看到課本</p>
+<blockquote>
+<p>UNIX Systems Programming: Communication, Concurrency and Threads: Communication, Concurrency and Threads (2nd Edition) 2nd Edition</p>
+</blockquote>
+<p>對於 argv 的操作為下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span> </span>{ }</span><br></pre></td></tr></tbody></table></figure>
+
+<p>回想起以前常常都是使用以下這種用法</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>{ }</span><br></pre></td></tr></tbody></table></figure>
+
+<p>於是開始研究了 C 語言的 argv 到底傳了什麼東西給 main function</p>
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>在記憶體中 argv 是一個指標，指向 char 陣列，每一陣列的內容就是不同的 argv 字串，如下圖所示。</p>
+<!-- <img src="/2019/03/01/argv_in_mem.png" class=""> -->
+<p><img src="/2019/03/01/argv_in_mem.png" alt="1"></p>
+<blockquote>
+<p>圖片來源 (<a href="https://softwareengineering.stackexchange.com/questions/385819/why-is-c-c-main-argv-declared-as-char-argv-rather-than-just-char-argv" target="_blank" rel="noopener">https://softwareengineering.stackexchange.com/questions/385819/why-is-c-c-main-argv-declared-as-char-argv-rather-than-just-char-argv</a>)</p>
+</blockquote>
+<p>所以當 main 在接收 argv 這個指標時，它只是一個指向字元陣列的指標，需要對它進一步操作，例如：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string"><stdio.h></span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span> </span>{</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, argv[<span class="number">0</span>]);  <span class="comment">// argv指向陣列中的第0格的值</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv[<span class="number">0</span>]); <span class="comment">// argv指向陣列中的第0格的位置</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv[<span class="number">1</span>]); <span class="comment">// argv指向陣列中的第1格的位置</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, argv);     <span class="comment">// argv指標本身存的值</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv);    <span class="comment">// argv指標本身的位置</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>編譯:<br><code>gcc app.c</code></p>
+<p>output:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">./a.out</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe5c0</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe4c0</span><br></pre></td></tr></tbody></table></figure>
+
+<p>把結果對印至上圖，如同以下：</p>
+<!-- <img src="/2019/03/01/proof.png" class=""> -->
+<p><img src="/2019/03/01/./proof.png" alt="2"></p>
+<p>如果將陣列的第二格位置與第一格相減，可以發現長度為 8</p>
+<p><code>0x7fffffffe5c0 - 0x7fffffffe5b8 = 8</code></p>
+<p>而這個 8 就是 <code>./a.out</code> 這個字串的長度 (<code>.</code>, <code>/</code>, <code>a</code>, <code>.</code>, <code>o</code>, <code>u</code>, <code>t</code>, <code>\0</code>)</p>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>如此一來，兩種寫法的關係就清晰多了。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>{ }</span><br></pre></td></tr></tbody></table></figure>
+
+<p>這個寫法只不過是 pointer to pointer 的概念，與另外一種可以說是沒有分別。</p>
+<p>不相信的話可以做個小實驗：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string"><stdio.h></span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>{</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv[<span class="number">0</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, argv);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%p\n"</span>, &argv);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>編譯:<br><code>gcc app2.c</code></p>
+<p>output:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">./a.out</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe5c0</span><br><span class="line">0x7fffffffe5b8</span><br><span class="line">0x7fffffffe4c0</span><br></pre></td></tr></tbody></table></figure>
+
+<p>與上述第一種寫法完全相同！</p>
+<p>(實際上 OS 有一種 <a href="https://zh.wikipedia.org/wiki/%E4%BD%8D%E5%9D%80%E7%A9%BA%E9%96%93%E9%85%8D%E7%BD%AE%E9%9A%A8%E6%A9%9F%E8%BC%89%E5%85%A5" target="_blank" rel="noopener">ASLR</a> 的機制讓每一次執行程式的 virtual memory 都不同，所以做這個實驗時，記得先暫時關閉 ASLR。)</p>
+<p>所以依照個人習慣，想要用哪一種寫法都可以 👏</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2019/03/01/" data-id="cm9es89cm001qshrp839z7aop" data-title="如何看待C語言的argv與指標關係" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/02/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          buffer overflow搭配ret2libc之攻擊手法介紹
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/02/26/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">為何我選擇hexo當作個人blog?</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

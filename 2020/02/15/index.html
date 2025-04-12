@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>重新看懂指標與陣列之間的交互關係 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="重新看懂指標與陣列之間的交互關係">
+<meta property="og:url" content="https://blog.yiyu0x.org/2020/02/15/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2020-02-15T12:39:00.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.596Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="c">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-重新看懂指標與陣列之間的交互關係" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/02/15/" class="article-date">
+  <time class="dt-published" datetime="2020-02-15T12:39:00.000Z" itemprop="datePublished">2020-02-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      重新看懂指標與陣列之間的交互關係
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><p>C 語言中，指標與陣列之間的關係一直是一個初學者很難理解的坑。又或是很多人只知道寫法，但卻從來沒有理解過背後的原因。相信各位理解了原因之後，在撰寫 C 語言時會對自己操作這個語言更加有自信。這篇文章重新試著釐清這指標與陣列之間的關係，希望對大家能有幫助。</p>
+<h2 id="陣列宣告與指標宣告"><a href="#陣列宣告與指標宣告" class="headerlink" title="陣列宣告與指標宣告"></a>陣列宣告與指標宣告</h2><p>陣列可以用以下的方式宣告：</p>
+<ol>
+<li>宣告但是尚未初始化<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr_init0[<span class="number">3</span>]; <span class="comment">// 宣告但是尚未初始化，此時陣列中的值是沒有意義的。</span></span><br></pre></td></tr></tbody></table></figure></li>
+<li>宣告並且初始化<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr_init1[<span class="number">3</span>] = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>};</span><br></pre></td></tr></tbody></table></figure></li>
+<li>不指定大小，大小會依照後面元素個數來決定<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr_init2[] = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>};</span><br></pre></td></tr></tbody></table></figure></li>
+<li>C99 新增。指定特定元素，其他未被指定元素會被設定為 0<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr_init3[] = {[<span class="number">2</span>] = <span class="number">2</span>};</span><br></pre></td></tr></tbody></table></figure>
+</li>
+</ol>
+<hr>
+<p>指標的宣告，需要關鍵字 <code>*</code>，該關鍵字可以緊鄰變數或是型態，本質上沒有差別：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>* ptr1;</span><br><span class="line"><span class="keyword">int</span> *ptr2;</span><br></pre></td></tr></tbody></table></figure>
+<p>但若是我們宣告指標卻不指定初始值，這件事是非常危險的！</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *ptr1;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%p\n"</span>, ptr1); <span class="comment">// 0x1125ce025</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>該指標在未宣告的情況下，編譯器會直接指定該位置上本來就存有的值（這個值沒有意義，是作業系統殘留的值），如果沒有特別注意，操作這個位置會發生錯誤，甚至覆寫到需要的資料。</p>
+<p>我們會建議指標在宣告時還沒有特定的空間或位置可以指定時，先使用 <code>NULL</code> 來指定。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *ptr = <span class="literal">NULL</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%p\n"</span>, ptr); <span class="comment">//0x0</span></span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="陣列索引與指標"><a href="#陣列索引與指標" class="headerlink" title="陣列索引與指標"></a>陣列索引與指標</h2><p>陣列的變數名稱其實就是一個指標，指向陣列開頭元素的記憶體位置。這也就是為什麼陣列索引會從 0 開始計算，因為索引的意義其實是與起始位置的位移量。我們可以用以下範例看到起始位置的值就是直接對陣列名稱取值（dereference）。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr[<span class="number">3</span>] = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>};</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"Address: %p, Value: %d\n"</span>, arr, *arr);</span><br><span class="line"><span class="comment">// Address: 0x7ffee98be05c, Value: 1</span></span><br></pre></td></tr></tbody></table></figure>
+<p>如果對該變數遞增，會發現記憶體位置相差了 4 格，原因是因為我們在宣告陣列時，指定了陣列的型態是 <code>int</code>，如此以來我們在進行取值的動作時，CPU 才知道下一個位置在哪邊。有趣的是，一般我們所使用的取值動作 <code>arr[1]</code> 其實就等於 <code>*(arr + 1)</code>。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">"Address: %p, Value: %d\n"</span>, arr + <span class="number">1</span>, *(arr + <span class="number">1</span>));</span><br><span class="line"><span class="comment">// Address: 0x7ffee1dca060, Value: 2</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>有了以上的概念之後，不難理解為何我們在設定函數的參數引述時，可以將陣列設定為：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> *arr)</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>或是這樣設定：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> arr[])</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>這兩種指定方式是一模一樣的（對於編譯器來說）。在函式原型中，參數的名稱是沒有意義的，只有型態有意義，所以也可以指定為：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> *)</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但是陣列名稱與指標也不能說是完全一模一樣的東西。</p>
+<h2 id="陣列傳遞與指標"><a href="#陣列傳遞與指標" class="headerlink" title="陣列傳遞與指標"></a>陣列傳遞與指標</h2><p>在 C 語言中，傳遞陣列就是傳遞陣列的起始記憶體位置，所以我們可以用指標來接收陣列：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string"><stdio.h></span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> *)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="keyword">int</span> arr[<span class="number">3</span>] = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>};</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span> arr); <span class="comment">// 12</span></span><br><span class="line">    foo(arr);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> *ar)</span> </span>{</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span> ar); <span class="comment">// 8</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>以上程式會印出：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12</span><br><span class="line">8</span><br></pre></td></tr></tbody></table></figure>
+<p>先印出 12 的原因是，陣列在宣告時就已經知道了陣列長度，int 型態在我的作業系統中佔用了 4 bytes，所以 4x3=12。</p>
+<p>8 的話則是代表指標變數本身佔據了 8 bytes 的空間。非常合理，因為我的電腦是 64-bit 的作業系統，要可以完整定址全部空間需要 8 bytes（64 / 8 = 8）。</p>
+<p>所以為什麼剛才提到：「陣列名稱與指標也不能說是完全一模一樣的東西」。用 <code>sizeof</code> 進行操作時，會發現兩者還是有一點差別！（不過在沒有進行參數傳遞前，幾乎是沒有差別的。）</p>
+<p>由以上的例子可以發現，陣列的變數名稱可以進一步得知陣列長度的，只要使用 <code>sizeof</code> 運算子即可：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr[<span class="number">3</span>] = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>};</span><br><span class="line"><span class="keyword">int</span> len = <span class="keyword">sizeof</span> arr / <span class="keyword">sizeof</span> arr[<span class="number">0</span>];</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, len); <span class="comment">//3</span></span><br></pre></td></tr></tbody></table></figure>
+<p><code>sizeof</code> 後面如果不是接基本型態，是不需要括號的。如果接上基本型態才需要括號，像是：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">char</span>));   <span class="comment">//1</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">short</span>));  <span class="comment">//2</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));    <span class="comment">//4</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%lu\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">long</span>));   <span class="comment">//8</span></span><br><span class="line"><span class="comment">//請注意！不同型態的空間大小是由編譯器依照作業系統去分配以及實作，所以有可能不同電腦上面的結果不一致。</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>對於函式來說，它只有辦法得知陣列起始記憶體位置，無法得知總長度。或是可以直接說，對於函數來說，他並不知道傳進來的東西是一個陣列，只知道是一個記憶體位置，指向的型態也知道，其他事情對於這個函數來說都無法得知。</p>
+<p>這也是為何我們時常在接收陣列時，會額外接收一個參數，用來表示陣列的總長度。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> *arr, <span class="keyword">int</span> n)</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="二維陣列"><a href="#二維陣列" class="headerlink" title="二維陣列"></a>二維陣列</h2><p>在宣告一維陣列時，可以直接填上元素，不指定陣列大小，可是在二維陣列這樣操作的話，會發生錯誤：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> td_arr[][] = {{<span class="number">1</span>, <span class="number">2</span>}, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>, <span class="number">6</span>}};</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">app.c:7:12: error: array has incomplete element type 'int []'</span></span><br><span class="line"><span class="comment">        int td_arr[][] = {{1, 2}, {3, 4}, {5, 6}};</span></span><br><span class="line"><span class="comment">                  ^</span></span><br><span class="line"><span class="comment">1 error generated.</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></tbody></table></figure>
+<p>我們要先重新理解二維陣列，二維陣列不過是一個陣列，該陣列的值也是一個陣列（<code>{1, 2}</code>, <code>{3, 4}</code>, <code>{5, 6}</code>），沒有多特別，僅此而已。</p>
+<p>陣列只接受第一層不指定大小而已，用後面的元素個數自己推算（一維陣列只有一層，所以你可能會認為一維陣列比較聰明）。</p>
+<p>所以我們應該要告訴編譯器，內層陣列的大小，這樣他才有辦法幫我們將所需要的空間準備好，我們應該這樣子撰寫程式：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> td_arr[][<span class="number">2</span>] = {{<span class="number">1</span>, <span class="number">2</span>}, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>, <span class="number">6</span>}};</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第一層有幾個元素可以不用指定（就像一維陣列），但是我們需要告訴編譯器，內容陣列的寬度有多大。我們總共花了 24 bytes 的空間，4 bytes(int size) x 6(elements) = 24。</p>
+<p>接下來，我們嘗試將二維陣列中我們需要的值取出：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, *td_arr[<span class="number">1</span>]);  <span class="comment">//3</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, (*td_arr)[<span class="number">1</span>]);<span class="comment">//2</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>[]</code> 的優先權比 <code>*</code> 還要高，所以在第一個範例中我們會先找到 <code>td_arr</code> 中的第二個元素（第 1 個是索引 0）然後取值。第二個元素就是 <code>{3, 4}</code>，在文章前段的一維陣列有講過直接取值就是對第一個元素（索引 0）取值。所以 <code>{3, 4}</code> 的第一個元素就是 <code>3</code>。</p>
+<p>第二個範例則是先取值，我們會拿到 <code>td_arr</code> 的第 1 個元素（索引 0），也就是 <code>{1, 2}</code> 接下來取出第二個元素（索引 1），得到 <code>2</code>。</p>
+<p>也可以將上述寫成是不含有 <code>[]</code> 的表示法，如下：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, **(td_arr + <span class="number">1</span>));<span class="comment">//3</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, *(*td_arr + <span class="number">1</span>));<span class="comment">//2</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>前面段落也有提到 <code>[]</code> 與 <code>*(arr + offset)</code> 的寫法可以互相替換，就不再贅述。</p>
+<h2 id="指標與二維陣列"><a href="#指標與二維陣列" class="headerlink" title="指標與二維陣列"></a>指標與二維陣列</h2><p>接下來我們要理解如何用指標去操作二維陣列，首先我們需要先宣告一個指向二維陣列的指標：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> (*td_ptr)[<span class="number">2</span>];</span><br></pre></td></tr></tbody></table></figure>
+
+<p>該宣告的意思是宣告一個指標，指向大小為 2 的陣列，該陣列內容為 <code>int</code> 型態。</p>
+<p>為何不直接寫：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *td_ptr[<span class="number">2</span>]; <span class="comment">// 可以看成 int *(td_ptr[2]);</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>原因是因為優先權帶來的影響並不同（<code>[]</code> 的優先權較大），以上宣告的意思是產生一個大小為 2 的陣列，陣列內容是兩個指向 <code>int</code> 的指標。如下：</p>
+<p><code>{ptr1, ptr2}</code></p>
+<p>宣告完指標之後，我們可以將該指標，指向我們的二維陣列：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> td_arr[][<span class="number">2</span>] = {{<span class="number">1</span>, <span class="number">2</span>}, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>, <span class="number">6</span>}};</span><br><span class="line"><span class="keyword">int</span> (*td_ptr)[<span class="number">2</span>];</span><br><span class="line">td_ptr = td_arr;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接著一樣可以用指標來操作該陣列：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, td_ptr[<span class="number">2</span>][<span class="number">0</span>]); <span class="comment">//5</span></span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, td_ptr[<span class="number">2</span>][<span class="number">1</span>]); <span class="comment">//6</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果需要設定函數原型的話：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> (*ar)[<span class="number">2</span>])</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>或是：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> arr[][<span class="number">2</span>])</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>皆可以用來接收。</p>
+<p>我想看到這邊，如果你沒有其他疑問的話。應該可以稍微理解為何我們在傳遞二維陣列時，會使用這樣子的寫法了！這樣子理解的話也可以推廣到多維陣列中，像是：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> arr[][<span class="number">2</span>][<span class="number">3</span>][<span class="number">4</span>][<span class="number">5</span>][<span class="number">6</span>])</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> (*arr)[<span class="number">2</span>][<span class="number">3</span>][<span class="number">4</span>][<span class="number">5</span>][<span class="number">6</span>])</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>希望這篇文章可以讓大家更加理解 C 語言陣列與指標撰寫過程中的背景原因，在網路上看到太多文章只有提到宣告或是使用的方式，但是卻沒有加以描述任何原因，導致很多人只知道寫法但不清楚為何應該這樣子撰寫。</p>
+<p>希望大家看完文章有所收穫 😄！</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2020/02/15/" data-id="cm9es89cp002bshrp55k86spl" data-title="重新看懂指標與陣列之間的交互關係" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/" rel="tag">c</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/03/16/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          從駭客角度告訴你為何不要隨意複製指令
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/01/11/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">優雅的在 macOS 上使用 Python</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

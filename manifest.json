@@ -1,0 +1,21 @@
+{
+  "name": "yiyu0x's blog",
+  "short_name": "yiyu0x",
+  "theme_color": "#313131",
+  "background_color": "#444547",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/images/icons/sashimi_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/icons/sashimi_512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

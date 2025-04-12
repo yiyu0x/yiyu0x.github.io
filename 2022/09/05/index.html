@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>EKS ELB 獲取 Client IP 方法紀錄 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="EKS ELB 獲取 Client IP 方法紀錄">
+<meta property="og:url" content="https://blog.yiyu0x.org/2022/09/05/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2022-09-05T06:13:08.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.585Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="AWS">
+<meta property="article:tag" content="EKS">
+<meta property="article:tag" content="ELB">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-EKS-與-ELB-獲取-Client-IP-方法記錄" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/09/05/" class="article-date">
+  <time class="dt-published" datetime="2022-09-05T06:13:08.000Z" itemprop="datePublished">2022-09-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      EKS ELB 獲取 Client IP 方法紀錄
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 EKS 上要建立 ELB 會採用 service type 指定 LoadBalancer。此時 AWS 的 In-Tree LoadBalacner Controller 或是 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller" target="_blank" rel="noopener">AWS Load Balancer Controller</a> 其中之一會協助我們建立對應的 ELB 出來。本文紀錄這兩種 LB Controller 的差異以及不同類型 ELB 使用時機（以獲取 Client IP 為例）。</p>
+<h2 id="In-Tree-LoadBalacner-Controller-CLB"><a href="#In-Tree-LoadBalacner-Controller-CLB" class="headerlink" title="In-Tree LoadBalacner Controller - CLB"></a>In-Tree LoadBalacner Controller - CLB</h2><p>將 server type 指定成 <code>LoadBalancer</code> 此時 In-Tree LoadBalacner Controller 會 privosion 一個 CLB 出來</p>
+<p>流量從外部要進入叢集的路徑為</p>
+<p>CLB -> Node:NodePort -> Pod maybe in different node</p>
+<p>因為透過節點上的 NodePort 進行跳轉，所以 Pod 如果要獲得 Clinet IP 會拿到 Node 中的 IP。而獲取不到真正的 Client IP</p>
+<p>接著可以根據官方建議設定 <code>.spec.externalTrafficPolicy</code> 為 <code>Local</code>（預設為 <code>Cluster</code>）</p>
+<p>這樣的設定可以避免流量進入到沒有含 Destination Pod 的 Node 上，多做一個 hop 的跳轉，也避免 IP 被洗成該 Node 的 IP</p>
+<p>結果發現 Client IP 還是獲取不到，因為 CLB 在與後方的 instance 溝通時，是用該 subnet 介面的 IP 溝通，所以 Client IP 變成是 ELB 的 private IP（該 IP 可以從 ec2 的 network interfacae 找出來）</p>
+<p>現在的路徑變成</p>
+<p>CLB -> Node:NodePort （Pod also in the node）</p>
+<p>開啟了 <code>externalTrafficPolicy</code> 需不需要擔心如果該節點上沒有 Pod，進而請求沒有辦法路由到正確的位置上</p>
+<p>答案是不需要，因為 CLB 會對後方的 instance 做健康檢查，若後方 instance 沒有 Pod，那某該 instance 不健康，流量自然不會導入過去</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：完全不需修改參數、不需安裝其他 controller</span><br><span class="line">缺點：無法保留 Client IP、不保留 Client IP 流量會多一跳、流量不平均（後面會提到）</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="In-Tree-LoadBalacner-Controller-NLB"><a href="#In-Tree-LoadBalacner-Controller-NLB" class="headerlink" title="In-Tree LoadBalacner Controller - NLB"></a>In-Tree LoadBalacner Controller - NLB</h2><p>需要在 annotations 加上</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">    <span class="string">service.beta.kubernetes.io/aws-load-balancer-type:</span> <span class="string">"nlb"</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>並且我們將 <code>externalTrafficPolicy</code> 同樣設定成 <code>Local</code></p>
+<p>發現就可以正常獲取 Client IP 了，代表 NLB 在轉發時，不會將 Source IP 介面切換成內網介面，同時後端也不是 instance 是另外一層抽象（target group）</p>
+<p>但試想一個一個情況，若我有 3 個 Pod (x, y, z)，2 個 (x, y) 落在節點 A，1 個 (z) 落在節點 B</p>
+<p>那麼流量進入 NLB 時會先進行 1/2 的機率選擇節點 (A, B)，假設進入節點 A 又會有 1/2 的機率選擇 x, y 這兩個 Pod</p>
+<p>那麼 Pod 被選中的機率變成</p>
+<p>x: 1/2 * 1/2 = 1/4<br>y: 1/2 * 1/2 = 1/4<br>z: 1/2</p>
+<p>可以發現流量並沒有真的平均轉發都後端的 Pod 上</p>
+<p>但 In-Tree Controller 只能建立出這兩種 ELB（並且能修改的參數有限），剩下一種 ALB 必須安裝 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller" target="_blank" rel="noopener">AWS Load Balancer Controller</a></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：不需安裝其他 controller、可以保留 Client IP</span><br><span class="line">缺點：不保留 Client IP 流量會多一跳、流量不平均</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="AWS-Load-Balancer-Controller-NLB"><a href="#AWS-Load-Balancer-Controller-NLB" class="headerlink" title="AWS Load Balancer Controller - NLB"></a>AWS Load Balancer Controller - NLB</h2><p>安裝 AWS Load Balancer Controller 後，在使用上必須指定 <code>loadBalancerClass: service.k8s.aws/nlb</code></p>
+<p>並且 AWS Load Balancer Controller 有提供 <code>ip</code> 與 <code>instance</code> mode（使用 in-tree controller 建立出來的 mode 就是 instance mode）</p>
+<p><em>該功能需要配合 AWS VPC CNI 使用</em></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip</span><br><span class="line">spec:</span><br><span class="line">    loadBalancerClass: service.k8s.aws/nlb</span><br></pre></td></tr></tbody></table></figure>
+
+<p>此時會發現 NLB 後方的 target group 直接對應到 Pod IP，可以省去多一次跳轉，並且解決流量不平均的問題</p>
+<p>但 Client IP 還是沒有保留，我們可以調整 NLB 參數</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true</span><br></pre></td></tr></tbody></table></figure>
+
+<p>將 NLB 提供的功能 preserve_client_ip 打開，即可完成配置，也不需要透過設定 <code>externalTrafficPolicy</code> 參數即可獲取 Client IP</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="AWS-Load-Balancer-Controller-ALB"><a href="#AWS-Load-Balancer-Controller-ALB" class="headerlink" title="AWS Load Balancer Controller - ALB"></a>AWS Load Balancer Controller - ALB</h2><p>使用 Ingress 資源建立出 ALB，但是無法設定 <code>preserve_client_ip</code></p>
+<p>如果去 management console 檢查對應 target group，會發現找不到 Preserve client IP addresses 但是多了 Load balancing algorithm 可以選擇</p>
+<p>因為是 L7 支援，所以將 Client IP 放入 HTTP header 的 XFF 欄位即可</p>
+<p>一樣有 <code>instance</code> 與 <code>ip</code> mode 可以選擇</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP（放在 L7 的 HTTP header 中）、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></tbody></table></figure></body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2022/09/05/" data-id="cm9es89c80008shrp4iui5xzk" data-title="EKS ELB 獲取 Client IP 方法紀錄" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/04/12/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2025 Life Update
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/08/30/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">建立 Reliable EKS 記錄</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

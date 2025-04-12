@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用 docker 來輕鬆建構資料庫 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="使用 docker 來輕鬆建構資料庫">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/10/21/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-10-21T13:13:35.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.591Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-使用-docker-來輕鬆建構資料庫" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/10/21/" class="article-date">
+  <time class="dt-published" datetime="2019-10-21T13:13:35.000Z" itemprop="datePublished">2019-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用 docker 來輕鬆建構資料庫
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="緣起"><a href="#緣起" class="headerlink" title="緣起"></a>緣起</h2><p>自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。</p>
+<p>然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。</p>
+<p>在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不是天天寫，時常會忘記。</p>
+<h2 id="目標"><a href="#目標" class="headerlink" title="目標"></a>目標</h2><p>希望將 container 跑起來時，裡面的 database 是已經定義好 Schema 的情況，讓後端服務可以直接進行互動。長期目標是連資料庫內容都要映射到 container 之外，方便日後移轉。不過這篇文章不會提到。</p>
+<h2 id="Docker-那些容易混淆的事"><a href="#Docker-那些容易混淆的事" class="headerlink" title="Docker 那些容易混淆的事"></a>Docker 那些容易混淆的事</h2><p>最容易搞混的應該就是 <code>RUN</code>, <code>CMD</code>, <code>ENTRYPOINT</code> 這三個設定值</p>
+<p><code>RUN</code> 通常用來安裝套件，像是用來執行 apt 相關指令</p>
+<p><code>CMD</code> 用來執行啟動 container 之後的指令，但他可以被 <code>docker run</code> 之後的參數來取代，也就是 <code>docker run</code> 後面不加上使用者自訂的命令，就會執行 <code>CMD</code> 的內容</p>
+<p><code>ENTRYPOINT</code> 跟 <code>CMD</code> 類似，但是內容不會被 <code>docker run</code> 後面給的指令覆蓋掉，那些指令會附加在 <code>ENTRYPOINT</code> 之後</p>
+<p>除此之外將檔案複製進 container 要用 <code>COPY</code> 還是 <code>ADD</code> 也有一些不同看法。<code>ADD</code> 基本上就是 <code>COPY</code> 的增強版，除了可以將檔案複製進容器，也可以填入一串網址。如果填入的來源是壓縮檔，那麼會自動進行壓縮。</p>
+<p>所以沒有特別需求的話，單純想複製檔案進容器，還是推薦用 <code>COPY</code> 比較簡單明瞭一點。</p>
+<h2 id="撰寫-Docker-file"><a href="#撰寫-Docker-file" class="headerlink" title="撰寫 Docker file"></a>撰寫 Docker file</h2><figure class="highlight docker"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mariadb:<span class="number">10.4</span>.<span class="number">8</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> init.sql /docker-entrypoint-initdb.d/</span></span><br><span class="line"><span class="keyword">ENV</span> MYSQL_ROOT_PASSWORD root</span><br><span class="line"><span class="keyword">ENV</span> MYSQL_DATABASE token_db</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3306</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>在撰寫 Docker file 時，記得 image 要附上版本，否則預設是 latest。往後部署到其他伺服器有可能最新版本已經不再是這一版了，此時就可能出現不同版本行為不一的情況。建議一定要指定版本號。</p>
+<p>我想要在容器跑起來時自動將 database schema 也一併創建好，此時可以將你的 .sql 檔案放入 <code>/docker-entrypoint-initdb.d</code> 這個目錄，此目錄中的 .sql 檔案會在資料庫啟動時自動被執行(在 MySQL image 也是)，如此一來可以省下不少寫 script 去自動表格的時間。</p>
+<p>接下來設定好環境變數讓你的 MariaDB  自動建立好資料庫以及設定 root 密碼，詳細有哪些環境變數可以設定，在 <a href="https://hub.docker.com/_/mariadb" target="_blank" rel="noopener">MariaDB 的 image 文件中</a>。</p>
+<h2 id="備份與復原"><a href="#備份與復原" class="headerlink" title="備份與復原"></a>備份與復原</h2><p>使用容器部署服務時，可以很方便地將服務進行轉移。但今天的服務是資料庫，有時候我們希望將資料庫的內容從容器內備份出來，才不會因為容器意外停止了而遺失資料。</p>
+<p>做到這件事情的方法有很多，可以掛載目錄位置進容器，透過這樣的方式將資料庫相關的檔案與容器外的主機共用。但今天使用的方式是使用 <code>MySQL</code> 提供的 <code>mysqldump</code> 指令來將資料庫內容備份。</p>
+<h3 id="備份"><a href="#備份" class="headerlink" title="備份"></a>備份</h3><p><code>docker exec <cotainer-id> /usr/bin/mysqldump -u root --password=root <db-name> > backup.sql</code></p>
+<p><code>backup.sql</code> 的名稱可以隨意命名，它是將資料庫內容匯出的 sql 檔案。</p>
+<h3 id="復原"><a href="#復原" class="headerlink" title="復原"></a>復原</h3><p><code>cat backup.sql | docker exec -i <cotainer-id> /usr/bin/mysql -u root --password=root <db-name></code></p>
+<p>備份與復原可以幫助你在轉移服務到其他主機時，先將原本服務的資料庫內容取出，並且在其他主機回復內容。</p>
+<h2 id="持久化儲存"><a href="#持久化儲存" class="headerlink" title="持久化儲存"></a>持久化儲存</h2><p>以上方法很明顯有一個問題，那就是你無法得知 container 在哪一個時候遇到意外而終止，這樣子也無法在適當的時機備份，有可能造成資料遺失！</p>
+<p>想要達成持久化儲存勢必要使用到 <code>VOLUME</code> 功能，除此之外還需要一個背景知識，mariaDB（MySQL）的資料儲存位置在 <code>/var/lib/mysql</code>。</p>
+<p>要達成掛載的方式有很多種，在此使用個人覺得較為直覺的一種：</p>
+<p>新增一個 volume 結構並命名為 <code>db-data</code></p>
+<p><code>docker create volume db-data</code></p>
+<p>之後將容器跑起來時，指定容器內部的哪一個位置需要往外掛載至 <code>db-data</code></p>
+<p><code>docker run -it -d -v db-data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root db</code></p>
+<p>如此一來，容器內的 <code>/var/lib/mysql</code> 映射至外部的 <code>db-data</code>，不管容器存在與否 <code>db-data</code> 都會存在！</p>
+<p>我們也可以用 <code>docker volume inspect db-data</code> 來查看該 <code>VOLUME</code> 的資訊</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    {</span><br><span class="line">        "CreatedAt": "2019-11-14T02:17:21Z",</span><br><span class="line">        "Driver": "local",</span><br><span class="line">        "Labels": {},</span><br><span class="line">        "Mountpoint": "/var/lib/docker/volumes/db-data/_data",</span><br><span class="line">        "Name": "db-data",</span><br><span class="line">        "Options": {},</span><br><span class="line">        "Scope": "local"</span><br><span class="line">    }</span><br><span class="line">]</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以發現它在本機位置的真實路徑為 <code>/var/lib/docker/volumes/db-data/_data</code>。</p>
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>有了 Docker 之後讓很多事情變得很方便，但是自己在學習撰寫 Dockerfile 的過程中以及部署 Docker 服務時，時常被一些類似的指令與行為搞混。希望藉由記錄建構環境流程，一方面加深自己印象，一方面讓更多有類似需求的夥伴可以參考 😊</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2019/10/21/" data-id="cm9es89ch0012shrpepbh9sd6" data-title="使用 docker 來輕鬆建構資料庫" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/11/05/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Python struct 模組的踩雷記錄
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/09/08/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">不用任何工具！內網穿透至自己的域名下</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

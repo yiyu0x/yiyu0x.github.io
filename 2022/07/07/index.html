@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>在 macOS 上使用 Podman | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="在 macOS 上使用 Podman">
+<meta property="og:url" content="https://blog.yiyu0x.org/2022/07/07/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2022-07-07T01:34:03.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.592Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="podman">
+<meta property="article:tag" content="container">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-在-macOS-上使用-Podman" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/07/07/" class="article-date">
+  <time class="dt-published" datetime="2022-07-07T01:34:03.000Z" itemprop="datePublished">2022-07-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      在 macOS 上使用 Podman
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Podman 相較於 Docker 有許多優勢，本文為在 macOS 上初次使用 Podman 之簡短紀錄。過程中不探究太深入的 Podman  運作原理，單純依照一般運行 container 的思想來使用 Podman，看看會遇到什麼問題</p>
+<h2 id="安裝"><a href="#安裝" class="headerlink" title="安裝"></a>安裝</h2><p>Podman 與 Docker 一樣有桌面版本與非桌面版本，桌面版本多了 UI 可供查看，挑選一種喜歡的安裝即可</p>
+<p>桌面版：</p>
+<p><code>brew install podman-desktop</code></p>
+<p>非桌面版：</p>
+<p><code>brew install podman</code></p>
+<p>檢查安裝版本：</p>
+<p><code>podman version</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Cannot connect to Podman. Please verify your connection to the Linux system using `podman system connection list`, or try `podman machine init` and `podman machine start` to manage a new Linux VM</span><br><span class="line">Error: unable to connect to Podman. failed to create sshClient: Connection to bastion host (ssh://core@localhost:52568/run/user/1000/podman/podman.sock) failed.: dial tcp [::1]:52568: connect: connection refused</span><br></pre></td></tr></tbody></table></figure>
+
+<p>馬上遇到第一個問題，按照提示使用 <code>podman machine init</code> 來建立 Linux VM，運作原理猜測與 Docker on macOS  類似，不過 Docker Desktop 不用手動建立 VM</p>
+<p>檢查是否有啟動 podman 需要的 VM：</p>
+<p><code>podman machine list</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                     VM TYPE     CREATED         LAST UP        CPUS        MEMORY      DISK SIZE</span><br><span class="line">podman-machine-default*  qemu        37 minutes ago  3 minutes ago  1           2.147GB     10.74GB</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到 VM 已經被正確啟動（而且是使用 qemu 來啟動的），但依照報一樣的錯誤。後來查了 <a href="https://github.com/containers/podman/issues/12728" target="_blank" rel="noopener">issue#12728</a> 發現 Podman 嘗試使用 $SSH_AUTH_SOCK 變數設定的 address 來連線，可以取消設置該變數來解決該問題</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unset SSH_AUTH_SOCK</span><br></pre></td></tr></tbody></table></figure>
+
+<p>（請依照你的 shell 放置到對應的檔案中）</p>
+<p>接下來就可以看到 Podman 的版本資訊：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Client:</span><br><span class="line">Version:      3.4.1</span><br><span class="line">API Version:  3.4.1</span><br><span class="line">Go Version:   go1.17.2</span><br><span class="line">Built:        Wed Oct 20 05:14:42 2021</span><br><span class="line">OS/Arch:      darwin/amd64</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line">Version:      4.1.1</span><br><span class="line">API Version:  4.1.1</span><br><span class="line">Go Version:   go1.18.3</span><br><span class="line">Built:        Wed Jun 15 22:31:58 2022</span><br><span class="line">OS/Arch:      linux/amd64</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>搜尋 Image：</p>
+<p><code>podman search busybox</code></p>
+<p>依照 output 可以發現預設是去搜尋 docker hub (hub.docker.com)</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">INDEX       NAME                                         DESCRIPTION                                                                                STARS       OFFICIAL    AUTOMATED</span><br><span class="line">docker.io   docker.io/library/busybox                    Busybox base image.                                                                        2660        [OK]</span><br><span class="line">docker.io   docker.io/rancher/busybox                                                                                                               0</span><br><span class="line">docker.io   docker.io/ibmcom/busybox                                                                                                                0</span><br><span class="line">......</span><br></pre></td></tr></tbody></table></figure>
+
+<p>下載 Image 到本地：</p>
+<p><code>podman pull busybox</code></p>
+<p>執行 busybox image：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">podman run -it --rm busybox</span><br><span class="line">/ #</span><br><span class="line">/ #</span><br><span class="line">/ #</span><br><span class="line">/ # exit</span><br></pre></td></tr></tbody></table></figure>
+
+<p>使用起來與 Docker 並無二異</p>
+<h2 id="發現"><a href="#發現" class="headerlink" title="發現"></a>發現</h2><h3 id="registries-設定檔案"><a href="#registries-設定檔案" class="headerlink" title="registries 設定檔案"></a>registries 設定檔案</h3><p>故意拉一個不存在的 image</p>
+<p><code>podman pull this-is-error</code></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Resolving "this-is-error" using unqualified-search registries (/etc/containers/registries.conf.d/999-podman-machine.conf)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>會發現 podman 透過 <code>/etc/containers/registries.conf.d/999-podman-machine.conf</code> 設定來決定完整的 Image 名稱（因為沒有指定 registry 理論上無法定位該 Image 位置）</p>
+<p>到 VM 中檢查一下該檔案，就可以發現原來是預設找不到 image 就去 <code>docker.io</code> 找</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">❯ podman machine ssh</span><br><span class="line">Connecting to vm podman-machine-default. To close connection, use `~.` or `exit`</span><br><span class="line">Warning: Permanently added '[localhost.nctu.edu.tw]:52568' (ED25519) to the list of known hosts.</span><br><span class="line">Fedora CoreOS 36.20220703.2.1</span><br><span class="line">Tracker: https://github.com/coreos/fedora-coreos-tracker</span><br><span class="line">Discuss: https://discussion.fedoraproject.org/tag/coreos</span><br><span class="line"></span><br><span class="line">Last login: Thu Jul  7 01:50:15 2022 from 192.168.127.1</span><br><span class="line">[core@localhost ~]$ cat /etc/containers/registries.conf.d/999-podman-machine.conf</span><br><span class="line">unqualified-search-registries=["docker.io"]</span><br><span class="line">[core@localhost ~]$</span><br></pre></td></tr></tbody></table></figure>
+
+<p>另外也發現其他 registries 的設定檔</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[core@localhost containers]$ cd /etc/containers/registries.conf.d</span><br><span class="line">[core@localhost registries.conf.d]$ ls</span><br><span class="line">000-shortnames.conf  999-podman-machine.conf</span><br><span class="line">[core@localhost registries.conf.d]$ cat 000-shortnames.conf</span><br><span class="line">[aliases]</span><br><span class="line">  # almalinux</span><br><span class="line">  "almalinux" = "docker.io/library/almalinux"</span><br><span class="line">  "almalinux-minimal" = "docker.io/library/almalinux-minimal"</span><br><span class="line">  # Arch Linux</span><br><span class="line">  "archlinux" = "docker.io/archlinux/archlinux"</span><br><span class="line">  # centos</span><br><span class="line">  "centos" = "quay.io/centos/centos"</span><br><span class="line">  # containers</span><br><span class="line">  "skopeo" = "quay.io/skopeo/stable"</span><br><span class="line">  "buildah" = "quay.io/buildah/stable"</span><br><span class="line">  "podman" = "quay.io/podman/stable"</span><br><span class="line">  "hello" = "quay.io/podman/hello"</span><br><span class="line">  "hello-world" = "quay.io/podman/hello"</span><br><span class="line">  # docker</span><br><span class="line">  "alpine" = "docker.io/library/alpine"</span><br><span class="line">  "docker" = "docker.io/library/docker"</span><br><span class="line">  "registry" = "docker.io/library/registry"</span><br><span class="line">  "swarm" = "docker.io/library/swarm"</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以發現原來有些 image 是透過 alias 的方式來決定位置的</p>
+<h3 id="Port-Forward-顯示不正常"><a href="#Port-Forward-顯示不正常" class="headerlink" title="Port Forward 顯示不正常"></a>Port Forward 顯示不正常</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">❯ podman run -itd -p 8888:80 nginx</span><br><span class="line">be5cb3e60f7b714e3b9c3462610675dd8cc7eaf0c048cdef7c3c8ea011979096</span><br><span class="line"></span><br><span class="line">❯ podman run -itd -P nginx</span><br><span class="line">9a2adbd0e86c0083ad0af5bccedc7f5dbaa3b64599c982368f8e64b301eac25d</span><br><span class="line"></span><br><span class="line">❯ podman ps</span><br><span class="line">CONTAINER ID  IMAGE                           COMMAND               CREATED         STATUS             PORTS             NAMES</span><br><span class="line">be5cb3e60f7b  docker.io/library/nginx:latest  nginx -g daemon o...  17 seconds ago  Up 18 seconds ago  0.0.0.0:0->0/tcp  unruffled_bouman</span><br><span class="line">9a2adbd0e86c  docker.io/library/nginx:latest  nginx -g daemon o...  3 seconds ago   Up 4 seconds ago   0.0.0.0:0->0/tcp  laughing_wiles</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在 <code>podman ps</code> 中看不到被 binding 出來的 Ports 有些不方便</p>
+<p>不過透過 <code>podman inspect</code> 還是找得出來</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">❯ podman inspect be5cb3e60f7b | grep -A5 "PortBindings"</span><br><span class="line">            "PortBindings": {</span><br><span class="line">                "80/tcp": [</span><br><span class="line">                    {</span><br><span class="line">                        "HostIp": "",</span><br><span class="line">                        "HostPort": "8888"</span><br><span class="line">                    }</span><br><span class="line"></span><br><span class="line">❯ podman inspect 9a2adbd0e86c | grep -A5 "PortBindings"</span><br><span class="line">            "PortBindings": {</span><br><span class="line">                "80/tcp": [</span><br><span class="line">                    {</span><br><span class="line">                        "HostIp": "",</span><br><span class="line">                        "HostPort": "45521"</span><br><span class="line">                    }</span><br></pre></td></tr></tbody></table></figure>
+
+<p>至於一些複雜的用法暫時還沒有測試過，也不確定差異是否很大</p>
+<p>我想最大的差異可能還是會在 networking 的部分，Podman 官方也有給出<a href="https://github.com/containers/podman/blob/main/docs/tutorials/basic_networking.md" target="_blank" rel="noopener">一頁介紹</a>來說明 Podman 的網路架構</p>
+<p>這部分就等到有時間研究完之後再來補上使用心得了 😅</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2022/07/07/" data-id="cm9es89ck001ishrp3jn1a87r" data-title="在 macOS 上使用 Podman" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/podman/" rel="tag">podman</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/08/30/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          建立 Reliable EKS 記錄
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/12/13/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">理解 Kubernetes 中的 CPU Limit</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

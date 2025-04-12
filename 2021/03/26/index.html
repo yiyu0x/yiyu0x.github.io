@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一次 Traefik 與 TLS 的踩雷經驗 | Yiyu&#39;s Dev Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="article">
+<meta property="og:title" content="一次 Traefik 與 TLS 的踩雷經驗">
+<meta property="og:url" content="https://blog.yiyu0x.org/2021/03/26/index.html">
+<meta property="og:site_name" content="Yiyu&#39;s Dev Blog">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2021-03-26T10:07:37.000Z">
+<meta property="article:modified_time" content="2025-04-12T20:59:43.591Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="traefik">
+<meta property="article:tag" content="nginx">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/" title="Yiyu's Dev Blog">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Yiyu&#39;s Dev Blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">🏖️</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://blog.yiyu0x.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-一次-Traefik-與-TLS-的踩雷經驗" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/03/26/" class="article-date">
+  <time class="dt-published" datetime="2021-03-26T10:07:37.000Z" itemprop="datePublished">2021-03-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一次 Traefik 與 TLS 的踩雷經驗
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <html><head></head><body><h2 id="問題點"><a href="#問題點" class="headerlink" title="問題點"></a>問題點</h2><p>部署 ArgoCD 進 Kubernetes 完畢時，發現 ArgoCD 開了 80, 443 兩個 Service Port，對應到的 Container Port 都同樣是 8080。如果你用 http 請求 ArgoCD 的 Web 時，他會請你跳轉到 https。</p>
+<p>為了讓外部的 User 可以使用 ArgoCD，我設定了 Traefik 的 IngressRoute 來存取該資源，但是卻一直沒有成功。</p>
+<p>我的架構環境為</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">                    |</span><br><span class="line">Nginx-proxy（外部）  | -> K8s-worker(Traefik/Ingress) -> ArgoCD-server(service)</span><br><span class="line">                    |</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="Debug"><a href="#Debug" class="headerlink" title="Debug"></a>Debug</h2><h3 id="IngressRoute"><a href="#IngressRoute" class="headerlink" title="IngressRoute"></a>IngressRoute</h3><p>為了簡化環境（debug），於是我從 Cluster 內部去打 Ingress，發現回應一直都是 404，但是我把 Service 做 port forward 到 local 端，卻可以正常運作，所以推測是 ArgoCD 的 IngressRoute 規則有誤，而我使用的規則是ArgoCD 官方文件提到的：</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">traefik.containo.us/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">IngressRoute</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">  namespace:</span> <span class="string">argocd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  entryPoints:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">websecure</span></span><br><span class="line"><span class="attr">  routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">      match:</span> <span class="string">Host(`argocd.example.com`)</span></span><br><span class="line"><span class="attr">      priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">      services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">          port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">      match:</span> <span class="string">Host(`argocd.example.com`)</span> <span class="string">&&</span> <span class="string">Headers(`Content-Type`,</span> <span class="string">`application/grpc`)</span></span><br><span class="line"><span class="attr">      priority:</span> <span class="number">11</span></span><br><span class="line"><span class="attr">      services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">          port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">          scheme:</span> <span class="string">h2c</span></span><br><span class="line"><span class="attr">  tls:</span></span><br><span class="line"><span class="attr">    certResolver:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">    options:</span> <span class="string">{}</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>於是我使用（從 Cluster 節點上直接打 Ingress）</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl https://argocd.example.com -k</span><br><span class="line">> href="https://argocd.example.com/">Temporary Redirect</a>.</span><br><span class="line"></span><br><span class="line">curl https://argocd.example.com -k -L</span><br><span class="line">> curl: (47) Maximum (50) redirects followed</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我查了 Traefik 的官方文件發現</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">There are 3 ways to configure the backend protocol for communication between Traefik and your pods:</span><br><span class="line"></span><br><span class="line">    Setting the scheme explicitly (http/https/h2c)</span><br><span class="line">    Configuring the name of the kubernetes service port to start with https (https)</span><br><span class="line">    Setting the kubernetes service port to use port 443 (https)</span><br><span class="line"></span><br><span class="line">If you do not configure the above, Traefik will assume an http connection.</span><br></pre></td></tr></tbody></table></figure>
+
+<p>簡單來說，Treafik 並不會因為你使用 https 去打 Ingress，就使用該協定幫你打後端的 Pod (or Service)，如果你指定 Service 為 443 Port 那麼他就幫你用 https 去跟後端的 Pod 建立連線，而預設都是走 http 連線。</p>
+<p>所以應該將 yaml 檔案改為</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">    match:</span> <span class="string">Host(`argocd.example.com`)</span></span><br><span class="line"><span class="attr">    priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">    services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">        port:</span> <span class="number">443</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>或是指定 protocol</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">routes:</span></span><br><span class="line"><span class="attr">    - kind:</span> <span class="string">Rule</span></span><br><span class="line"><span class="attr">    match:</span> <span class="string">Host(`argocd.tcs-proxy.cscc`)</span></span><br><span class="line"><span class="attr">    priority:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">    services:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">argocd-server</span></span><br><span class="line"><span class="attr">        port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">        scheme:</span> <span class="string">https</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>來強制 IngressRoute 與 ArgoCD 使用 https 建立連線。</p>
+<p>另外，因為 ArgoCD 的憑證是自行簽發的，Traefik 並認不得該單位，所以 Traefik 必須設定 <code>--serversTransport.insecureSkipVerify=true</code> 來忽略憑證的驗證</p>
+<h3 id="Reverse-Proxy-to-Cluster"><a href="#Reverse-Proxy-to-Cluster" class="headerlink" title="Reverse Proxy to Cluster"></a>Reverse Proxy to Cluster</h3><figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">                    |</span><br><span class="line">Nginx-proxy（外部）  |  -> K8s-worker(Traefik/Ingress) -> ArgoCD-server(service)</span><br><span class="line">                    |</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我的情境中，Cluster 外部還有一台 Load Balancer 會將流量導致 Cluster 的 Worker Nodes，但是 Traefik 已經有憑證了，後端的 ArgoCD 也有，我並不想要有這麼多的憑證會造成連線的效能耗損，於是查到可以使用 tls passthrough 的方式來讓 Nginx 不處理封包的加密解密，直接將該封包 reverse proxy 到後端。</p>
+<p>但是該方式會產生一個問題，Nginx 如果不做解密，那麼也看不到封包 L7 的 Host 欄位，於是原本的 virtual host 方式就無法正常路由，解決方式為使用 TLS 的 SNI 來判斷路由。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">stream {</span><br><span class="line">    map $ssl_preread_server_name $name {</span><br><span class="line">        # 在此設定不同 SNI 對應到不同後端;</span><br><span class="line">        argocd.tcs-proxy.cscc K8S_WORKER_443;</span><br><span class="line">        default https_default_backend;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    upstream K8S_WORKER_443 {</span><br><span class="line">        server worker-node-1:443;</span><br><span class="line">        server worker-node-2:443;</span><br><span class="line">        server worker-node-3:443;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    server {</span><br><span class="line">        listen 443;</span><br><span class="line">        proxy_pass $name; # 如果沒有路由需求，也可以直接設定 proxy_pass K8S_WORKER_443;</span><br><span class="line">        ssl_preread on; # 該選項需要打開，才有辦法讀取 SNI</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>要注意的是，通常 Nginx 的設定都會在 http directive，但是 tls passthrough 必須要設定在 stream directive 下，意味著原本的 log formatter 也無法使用了（可以去 nginx.conf 看一下）。</p>
+<p>所以我們必須增加新的 log formatter 在 steam directive 下方</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">stream {</span><br><span class="line">    log_format proxy '$remote_addr - [$time_local] '</span><br><span class="line">                    '$protocol $status $bytes_sent $bytes_received '</span><br><span class="line">                    '$session_time "$upstream_addr" '</span><br><span class="line">                    '"$upstream_bytes_sent" "$upstream_bytes_received" "$upstream_connect_time" '</span><br><span class="line">                    '$remote_addr $remote_port $server_addr $server_port';</span><br><span class="line">    server {</span><br><span class="line">        access_log      /var/log/tcp-stream-access.log proxy;</span><br><span class="line">        #...</span><br><span class="line">        #...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如此一來會發現外層的 Nginx 沒有上憑證也可以正常使用叢集內部憑證來對連線進行加密！</p>
+</body></html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://blog.yiyu0x.org/2021/03/26/" data-id="cm9es89ch0016shrph2bgfl3v" data-title="一次 Traefik 與 TLS 的踩雷經驗" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/04/17/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          不停機替換 Kubernetes CRI
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/01/06/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">macOS-中-VPN-解析域名錯誤</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AWS/" rel="tag">AWS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CI-CD/" rel="tag">CI/CD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DNS/" rel="tag">DNS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DroneCI/" rel="tag">DroneCI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EKS/" rel="tag">EKS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELB/" rel="tag">ELB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/" rel="tag">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/cgroup/" rel="tag">cgroup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/container/" rel="tag">container</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/es6/" rel="tag">es6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fp/" rel="tag">fp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http2/" rel="tag">http2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/life/" rel="tag">life</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macOS/" rel="tag">macOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nodejs/" rel="tag">nodejs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oauth2/" rel="tag">oauth2</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podman/" rel="tag">podman</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raspberry-pi/" rel="tag">raspberry_pi</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/" rel="tag">shell</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/socket/" rel="tag">socket</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/telegram/" rel="tag">telegram</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tools/" rel="tag">tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%80%8B%E4%BA%BA/" rel="tag">個人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AWS/" style="font-size: 12.5px;">AWS</a> <a href="/tags/CI-CD/" style="font-size: 10px;">CI/CD</a> <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/DroneCI/" style="font-size: 10px;">DroneCI</a> <a href="/tags/EKS/" style="font-size: 12.5px;">EKS</a> <a href="/tags/ELB/" style="font-size: 10px;">ELB</a> <a href="/tags/Kubernetes/" style="font-size: 15px;">Kubernetes</a> <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/c/" style="font-size: 12.5px;">c</a> <a href="/tags/cgroup/" style="font-size: 10px;">cgroup</a> <a href="/tags/container/" style="font-size: 10px;">container</a> <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/docker/" style="font-size: 17.5px;">docker</a> <a href="/tags/es6/" style="font-size: 15px;">es6</a> <a href="/tags/fp/" style="font-size: 10px;">fp</a> <a href="/tags/http2/" style="font-size: 10px;">http2</a> <a href="/tags/javascript/" style="font-size: 20px;">javascript</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/life/" style="font-size: 10px;">life</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/macOS/" style="font-size: 10px;">macOS</a> <a href="/tags/macos/" style="font-size: 15px;">macos</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/nginx/" style="font-size: 12.5px;">nginx</a> <a href="/tags/nodejs/" style="font-size: 12.5px;">nodejs</a> <a href="/tags/oauth2/" style="font-size: 10px;">oauth2</a> <a href="/tags/podman/" style="font-size: 10px;">podman</a> <a href="/tags/python/" style="font-size: 12.5px;">python</a> <a href="/tags/raspberry-pi/" style="font-size: 10px;">raspberry_pi</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a> <a href="/tags/socket/" style="font-size: 10px;">socket</a> <a href="/tags/telegram/" style="font-size: 10px;">telegram</a> <a href="/tags/tools/" style="font-size: 12.5px;">tools</a> <a href="/tags/traefik/" style="font-size: 10px;">traefik</a> <a href="/tags/%E5%80%8B%E4%BA%BA/" style="font-size: 15px;">個人</a> <a href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" style="font-size: 15px;">資訊安全</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">七月 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">九月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">六月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/04/12/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2025/04/12/">2025 Life Update</a>
+          </li>
+        
+          <li>
+            <a href="/2022/09/05/">EKS ELB 獲取 Client IP 方法紀錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/08/30/">建立 Reliable EKS 記錄</a>
+          </li>
+        
+          <li>
+            <a href="/2022/07/07/">在 macOS 上使用 Podman</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 yiyu0x<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
