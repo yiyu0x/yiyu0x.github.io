@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言程式設計的方法論大體來說可以分為兩種， functional programming (FP) 以及 object oriented programming (OOP)。然而不同的程式語言可能也會提倡不同的設計方法，舉一個明確的例子，在 Java 的 Hello, world 程式： 12345public class HelloWorld &#123;    public static vo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="每天都在 Arr.map() 你知道什麼是 functor 嗎?">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/07/18/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言程式設計的方法論大體來說可以分為兩種， functional programming (FP) 以及 object oriented programming (OOP)。然而不同的程式語言可能也會提倡不同的設計方法，舉一個明確的例子，在 Java 的 Hello, world 程式： 12345public class HelloWorld &#123;    public static vo">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://cdn-images-1.medium.com/max/1600/1*GbH6_EAvPrtQGc9fiVZpMA.gif">
+<meta property="article:published_time" content="2019-07-19T00:58:34.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.671Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="fp">
+<meta property="article:tag" content="javascript">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn-images-1.medium.com/max/1600/1*GbH6_EAvPrtQGc9fiVZpMA.gif">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>每天都在 Arr.map() 你知道什麼是 functor 嗎?</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/08/13/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/07/01/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/07/18/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/07/18/&text=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/07/18/&is_video=false&description=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=每天都在 Arr.map() 你知道什麼是 functor 嗎?&body=Check out this article: https://blog.yiyu0x.org/2019/07/18/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/07/18/&name=每天都在 Arr.map() 你知道什麼是 functor 嗎?&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/07/18/&t=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Functional-programming"><span class="toc-number">2.</span> <span class="toc-text">Functional programming</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Immutable-object"><span class="toc-number">2.1.</span> <span class="toc-text">Immutable object</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#First-class"><span class="toc-number">2.2.</span> <span class="toc-text">First class</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E6%8F%90%E9%80%99%E4%BA%9B%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">為什麼要提這些？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E9%BA%BC%E6%98%AF-functor-%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">什麼是 functor ？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">5.</span> <span class="toc-text">結論</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        每天都在 Arr.map() 你知道什麼是 functor 嗎?
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-07-19T00:58:34.000Z" class="dt-published" itemprop="datePublished">2019-07-18</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/fp/" rel="tag">fp</a>, <a class="p-category" href="/tags/javascript/" rel="tag">javascript</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>程式設計的方法論大體來說可以分為兩種， <code>functional programming (FP)</code> 以及 <code>object oriented programming (OOP)</code>。<br>然而不同的程式語言可能也會提倡不同的設計方法，舉一個明確的例子，在 Java 的 Hello, world 程式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloWorld</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello! World!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整個程式必須包覆在一個與檔案名稱同名的物件中。</p>
+<p>Java 這個語言可以說先天就是一門物件導向式的語言(這個說法可能有些爭議)。但這兩種設計方式都只是方法，並沒有說哪一種語言就只能歸類於哪一種設計方式中。</p>
+<p>所以，C 語言當然也可以實現物件導向 (<a href="https://hackmd.io/@sysprog/HJLyQaQMl?type=view">你所不知道的 C 語言：物件導向程式設計篇</a>)。</p>
+<p>然而看過不少人有一種迷思，認為<strong>物件導向才是比較進步的設計方式</strong>，無論是維護性，或是整個程式之間的架構都優於 <code>FP</code>。</p>
+<p>不可否認的是物件導向的確有許多概念將抽象化發揮的更加完全，提升軟體工程的效率。但今天我想談的是，那些 <code>functional programming</code> 我們忽略掉的特性，這些特性也能幫助我們將程式碼進一步抽象化。</p>
+<h2 id="Functional-programming"><a href="#Functional-programming" class="headerlink" title="Functional programming"></a>Functional programming</h2><p>在物件導向設計中我們知道有 <code>Class</code>, <code>Object</code>, <code>Inheritance</code> 等等概念。</p>
+<p>而在 <code>FP</code> 的概念則是有 <code>Immutable object</code>, <code>Lambda calculus</code>, <code>First class</code> 等等。</p>
+<h3 id="Immutable-object"><a href="#Immutable-object" class="headerlink" title="Immutable object"></a>Immutable object</h3><p>代表創造了該物件之後，內容就無法再被修改。這樣的特性先天就具備了在多個執行緒下的安全性。想想看，某個物件如果被多個 threads 共用，不會因為 thread A 改了某物件的內容，進而影響了 thread B。這也代表不用使用像 Lock 之類的機制來保證安全性。</p>
+<p>舉例來說：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.<span class="title function_">map</span>(<span class="title class_">Math</span>.<span class="property">sqrt</span>); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">// numbers 還是 [1, 4, 9]</span></span><br></pre></td></tr></table></figure>
+
+<p>我們可以說 map() 這個函式確保了 Immutable，甚至還有套件庫可以讓全部資料型態都保持 Immutable (<a href="https://github.com/immutable-js/immutable-js">immutable-js</a>)。</p>
+<h3 id="First-class"><a href="#First-class" class="headerlink" title="First class"></a>First class</h3><p>在 JavaScript 中，我們知道 function :</p>
+<ol>
+<li>可以像其他 <code>primitive data type</code> 般，可以任意傳遞(pass)，指派(assign)</li>
+<li>function 的回傳值也可以是一個 function</li>
+</ol>
+<p>以上第一種特性可以細稱為 <code>first-class citizen</code>，第二種稱為 <code>higher-order function</code>。</p>
+<p>而這個特性又衍伸出像 <code>閉包(Closure)</code>, <code>柯里化(Currying)</code> 等等更多的特性。</p>
+<h2 id="為什麼要提這些？"><a href="#為什麼要提這些？" class="headerlink" title="為什麼要提這些？"></a>為什麼要提這些？</h2><p>在講解 <code>functor</code> 之前，適度的理解 <code>functional programming</code> 是必要的。</p>
+<p><code>functional programming</code> 說穿了就是以數學的角度思考，使用 <code>範疇論 (Category Theory)</code> 的思想來解決問題。</p>
+<p><code>functor</code> 常與 <code>Applicative</code>, <code>Monad</code> 這三共同被提及，這三者都是 <code>FP</code> 重要的概念。</p>
+<h2 id="什麼是-functor-？"><a href="#什麼是-functor-？" class="headerlink" title="什麼是 functor ？"></a>什麼是 functor ？</h2><p>講了這麼多，那什麼是 functor ？</p>
+<blockquote>
+<p>So, What are Functors? Functors are the containers that can be used with ‘map’ function. —引述自 <a href="https://hackernoon.com/functors-in-javascript-20a647b8f39f">functors-in-javascript</a></p>
+</blockquote>
+<p>簡單來說，一個容器裡面，含有 <code>map()</code> 這個屬性，就可以稱為 functor。最簡單的例子就是 JavaScript 中的 Array。</p>
+<p><code>map()</code> 屬性又是什麼？根據 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">MDN</a> 的解釋</p>
+<blockquote>
+<p>The map() method creates a new array with the results of calling a provided function on every element in the calling array.</p>
+</blockquote>
+<p>相信大家都用過 <code>map()</code>。以 Array.prototype.map() 為例，在 <code>map()</code> 的處理過程中，會先把 Array 中的每一個 element 單獨丟進 function 處理，並且將各別結果放至新的 Array 後回傳。</p>
+<p>引用 MDN 的範例:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> numbers = [<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>];</span><br><span class="line"><span class="keyword">var</span> roots = numbers.<span class="title function_">map</span>(<span class="title class_">Math</span>.<span class="property">sqrt</span>); <span class="comment">//map會return一個新的array</span></span><br><span class="line"><span class="comment">// roots 現在是 [1, 2, 3]</span></span><br><span class="line"><span class="comment">/* numbers 還是 [1, 4, 9]，這證明了 map() 不會去變動到 numbers 的值，</span></span><br><span class="line"><span class="comment">   map 內部是做了 immutable 的機制，Array.prototype 底下的這些高階函式</span></span><br><span class="line"><span class="comment">   大多都具有這樣函數式編程裡非常注重的特性 - immutable，不會去改變資料</span></span><br><span class="line"><span class="comment">   來源本身原有的值 </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <a href="https://hackernoon.com/functors-in-javascript-20a647b8f39f">functors-in-javascript</a> 中有一張非常可愛且簡單明瞭的圖片說明了這件事</p>
+<p><img src="https://cdn-images-1.medium.com/max/1600/1*GbH6_EAvPrtQGc9fiVZpMA.gif" alt="example_img"></p>
+<p>圖中的序列，分別取出每一個元素(小雞)，並且加以操作，最後將結果放置新的序列後回傳(注意！圖片中並沒有將小雞放回原本的盒子中)。</p>
+<p>說到這裡，應該有人發現它的行為與 <code>Array.prototype.forEach()</code> 非常類似。沒錯！他們兩個差異就只是<em>是否修改原本的值</em>。(就是前面提過的 Immutable 特性)</p>
+<p>functor 有一個重要的特性就是確保 Immutable，然而 forEach 則會直接修改原本的值。</p>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>講了這麼多，<code>functor</code> 對我的生活有什麼影響嗎？</p>
+<p><code>functor</code> 不但可以增加程式碼的可讀性，更是 <code>FP</code> 的設計思想其中的一環。</p>
+<p>FP 的表達能力其實不遜色於 OOP。大部分時候，只是我們對 FP 的了解不夠深入而已。</p>
+<p>像是此篇未提及的 <code>applicative</code> 就是 <code>functor</code> 的進化版，如果說 <code>functor</code> 是把箱子(容器)中的每一個元素各別丟進 function 處理，那麼 <code>applicative</code> 可以想像為連 function 都在箱子(容器)中。我們必須從兩的不同的箱子拿出我們要的內容來做運算。</p>
+<p>希望這篇文章不但能讓你了解何謂 <code>functor</code>，還可以進而知道 <code>FP</code> 還有其他你平常沒有發現的特性。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Functional-programming"><span class="toc-number">2.</span> <span class="toc-text">Functional programming</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Immutable-object"><span class="toc-number">2.1.</span> <span class="toc-text">Immutable object</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#First-class"><span class="toc-number">2.2.</span> <span class="toc-text">First class</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E6%8F%90%E9%80%99%E4%BA%9B%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">為什麼要提這些？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E9%BA%BC%E6%98%AF-functor-%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">什麼是 functor ？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">5.</span> <span class="toc-text">結論</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/07/18/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/07/18/&text=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/07/18/&is_video=false&description=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=每天都在 Arr.map() 你知道什麼是 functor 嗎?&body=Check out this article: https://blog.yiyu0x.org/2019/07/18/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/07/18/&title=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/07/18/&name=每天都在 Arr.map() 你知道什麼是 functor 嗎?&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/07/18/&t=每天都在 Arr.map() 你知道什麼是 functor 嗎?"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

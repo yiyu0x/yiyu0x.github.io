@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Human steers, Agent executes.  三天前，Claude Code 的原始碼因為意外不小心流出。而沒有什麼方式比閱讀原始碼更來得直接地去理解一款一個軟體產品。而正當我開始咀嚼原始碼的過程，意外發現了每一處 harness Engineering 的影子。 過去幾年，AI 的發展從 prompt engineering 發展至 context engineering，而 c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="從 Claude Code 原始碼嘗試理解 Harness Engineering">
+<meta property="og:url" content="https://blog.yiyu0x.org/2026/04/02/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="Human steers, Agent executes.  三天前，Claude Code 的原始碼因為意外不小心流出。而沒有什麼方式比閱讀原始碼更來得直接地去理解一款一個軟體產品。而正當我開始咀嚼原始碼的過程，意外發現了每一處 harness Engineering 的影子。 過去幾年，AI 的發展從 prompt engineering 發展至 context engineering，而 c">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://media.licdn.com/dms/image/v2/D5622AQEGBqNcQkTuHw/feedshare-shrink_800/B56ZyXsOhvKoAs-/0/1772071479926?e=1776902400&v=beta&t=4B4-fC81C3eN0lQjNizsq9PKfYjtJgZP5UuAC82y8AA">
+<meta property="article:published_time" content="2026-04-03T02:01:40.000Z">
+<meta property="article:modified_time" content="2026-04-03T03:42:12.222Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://media.licdn.com/dms/image/v2/D5622AQEGBqNcQkTuHw/feedshare-shrink_800/B56ZyXsOhvKoAs-/0/1772071479926?e=1776902400&v=beta&t=4B4-fC81C3eN0lQjNizsq9PKfYjtJgZP5UuAC82y8AA">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>從 Claude Code 原始碼嘗試理解 Harness Engineering</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2026/03/15/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2026/04/02/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2026/04/02/&text=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2026/04/02/&is_video=false&description=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=從 Claude Code 原始碼嘗試理解 Harness Engineering&body=Check out this article: https://blog.yiyu0x.org/2026/04/02/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2026/04/02/&name=從 Claude Code 原始碼嘗試理解 Harness Engineering&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2026/04/02/&t=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        從 Claude Code 原始碼嘗試理解 Harness Engineering
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2026-04-03T02:01:40.000Z" class="dt-published" itemprop="datePublished">2026-04-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/AI/" rel="tag">AI</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>Human steers, Agent executes. </p>
+<p>三天前，Claude Code 的原始碼因為意外不小心流出。而沒有什麼方式比閱讀原始碼更來得直接地去理解一款一個軟體產品。而正當我開始咀嚼原始碼的過程，意外發現了每一處 harness Engineering 的影子。</p>
+<p>過去幾年，AI 的發展從 prompt engineering 發展至 context engineering，而 context engineering 又發展成 harness engineering。</p>
+<p>Harness engineering 一開始由 Mitchell Hashimoto 在 <a href="https://mitchellh.com/writing/my-ai-adoption-journey">My AI Adoption Journey</a> 中提出，他在當時（兩個月之前）提到使用隱式提示（AGENTS.md）以及特定腳本來讓 AI 整合進工作流中減少人為介入。而不久之後 OpenAI 也發了新的文章 - <a href="https://openai.com/index/harness-engineering/">Harness engineering: leveraging Codex in an agent-first world</a>，其中提到更多有關 AGENTS.md 的使用細節，以及 Harness engineering 如何協助打造一個軟體產品完全 0 人工撰寫的程式碼。當說實在，整篇文章還是更像一套方法論，同時也在推銷自家產品 Codex。</p>
+<p>而這次的 Claude Code 原始碼外流事件可以更好地給我們參考 harness engineering 的實踐細節。首先 <a href="https://www.linkedin.com/in/bcherny/">Boris Cherny</a> 多次強調過 Claude Code 的 harness 非常薄，基本上沒有什麼神秘的部分。但這與 harness engineering 的重要性並無衝突（否則 Claude Code 使用體驗上不會有壓倒性的勝利）。</p>
+<p>目前主流的 Agents 產品（包含 Claude Code）基本上都可以收斂到一個標準循環，包含：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">工具呼叫 -&gt; 萃取結果 -&gt; 填回 context -&gt;  呼叫模型 -&gt; 帶著結果重複</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://media.licdn.com/dms/image/v2/D5622AQEGBqNcQkTuHw/feedshare-shrink_800/B56ZyXsOhvKoAs-/0/1772071479926?e=1776902400&v=beta&t=4B4-fC81C3eN0lQjNizsq9PKfYjtJgZP5UuAC82y8AA"><br>by <a href="https://www.linkedin.com/posts/jerry-liu-64390071_the-model-harness-is-everything-we-are-already-activity-7432606501787312128-i6U3/">Jerry Liu’s Post</a></p>
+<p>雖然模型派的人可能不會認同這個理論。但不可否認的是，從短期角度來看，好的收斂以及回饋的確可以讓 LLM 的回答更接近需要的答案。而且這個閉環就如同 Kubernetes 設計中的 <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/operator/">Operator Pattern</a>。差異在於要如何定義每一個任務的 desired state 短期內來看還是無法很好地被解決。</p>
+<p>回到 Claude Code 原始碼外流有幾個有趣的實踐（這邊不貼原始碼，有興趣可以自己去找）：</p>
+<ol>
+<li><p>不存在與存在一樣重要</p>
+<p> 透過 grep 篩選出需要的程式碼片段，餵給模型。比起整包原始碼丟給模型讓他篩選出需要的部分效果還來得好。</p>
+</li>
+<li><p>Claude Code 的記憶不記程式碼</p>
+<p> 重構的過程中，由於程式碼會一直變動，沒有必要讓模型去記特些部分在哪幾行，避免上下文污染。同時，可以扣回到第一點「不存在（錯誤的資訊或是不重要的資訊）與存在一樣重要」。</p>
+</li>
+<li><p>上下文壓縮</p>
+<p> （這段還沒有完全讀懂，暫時不解釋。但從分層架構可以發現 Claude Code 對於保持 context 的精準下了非常大的工夫，未來有機會再補充這一段）</p>
+</li>
+</ol>
+<p>而這些只是一小部分 Harness Engineering 實踐。如同 Boris Cherny 所說，這一層很薄很單純。但是 harness engineering 最大可能性的補足了模型的不足。整體回饋的機精妙到像是本身就是一個軟體產品的軟體工程實踐（廣義上來說確實也是一個軟體產品），就如同當時 Kubernetes 橫空出世時讓基礎設施管理有了全新的篇章。</p>
+<p>想當然 harness engineering 不會是終點，甚至 Agent 也不一定是終點，只是這一起無心的資安事件，讓我們才有機會一睹 AI 巨頭們對於方法論的具體實踐。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2026/04/02/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2026/04/02/&text=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2026/04/02/&is_video=false&description=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=從 Claude Code 原始碼嘗試理解 Harness Engineering&body=Check out this article: https://blog.yiyu0x.org/2026/04/02/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2026/04/02/&title=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2026/04/02/&name=從 Claude Code 原始碼嘗試理解 Harness Engineering&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2026/04/02/&t=從 Claude Code 原始碼嘗試理解 Harness Engineering"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

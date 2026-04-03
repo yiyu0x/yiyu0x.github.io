@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。 Architecture EKS 只有維護 Control Plane，Worker 有 EC2 與 Fargate 可以選擇。其中 EC2 必須由使用者自行管理。 EKS Control Plane 的 VPC 與 Cluster 的 VPC 為不同的 VP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="建立 Reliable EKS 記錄">
+<meta property="og:url" content="https://blog.yiyu0x.org/2022/08/30/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。 Architecture EKS 只有維護 Control Plane，Worker 有 EC2 與 Fargate 可以選擇。其中 EC2 必須由使用者自行管理。 EKS Control Plane 的 VPC 與 Cluster 的 VPC 為不同的 VP">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2022-08-31T03:04:21.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.671Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="AWS">
+<meta property="article:tag" content="EKS">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>建立 Reliable EKS 記錄</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/09/05/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/07/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2022/08/30/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2022/08/30/&text=建立 Reliable EKS 記錄"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2022/08/30/&is_video=false&description=建立 Reliable EKS 記錄"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=建立 Reliable EKS 記錄&body=Check out this article: https://blog.yiyu0x.org/2022/08/30/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2022/08/30/&name=建立 Reliable EKS 記錄&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2022/08/30/&t=建立 Reliable EKS 記錄"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Architecture"><span class="toc-number">2.</span> <span class="toc-text">Architecture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nodegroup"><span class="toc-number">3.</span> <span class="toc-text">Nodegroup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#API-Endpoint"><span class="toc-number">4.</span> <span class="toc-text">API Endpoint</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#public-access"><span class="toc-number">4.1.</span> <span class="toc-text">public access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#private-access"><span class="toc-number">4.2.</span> <span class="toc-text">private access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#public-and-private-access"><span class="toc-number">4.3.</span> <span class="toc-text">public and private access</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Pod-Amount-Limit"><span class="toc-number">5.</span> <span class="toc-text">Pod Amount Limit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-subnet-CIDR"><span class="toc-number">5.1.</span> <span class="toc-text">limited by subnet CIDR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-EC2-instance-type"><span class="toc-number">5.2.</span> <span class="toc-text">limited by EC2 instance type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-insufficient-IP%E2%80%99s"><span class="toc-number">5.3.</span> <span class="toc-text">limited by insufficient IP’s</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Customize-kubelet-Arguments"><span class="toc-number">6.</span> <span class="toc-text">Customize kubelet Arguments</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">7.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        建立 Reliable EKS 記錄
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-08-31T03:04:21.000Z" class="dt-published" itemprop="datePublished">2022-08-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/AWS/" rel="tag">AWS</a>, <a class="p-category" href="/tags/EKS/" rel="tag">EKS</a>, <a class="p-category" href="/tags/Kubernetes/" rel="tag">Kubernetes</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>EKS 的建立方便快速，其中有些概念花了些時間才釐清，甚至有些拓墣一開始想錯了。經過幾週查閱文件與實驗後，寫個小的總結做個簡單的紀錄。</p>
+<h2 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h2><ul>
+<li>EKS 只有維護 Control Plane，Worker 有 EC2 與 Fargate 可以選擇。其中 EC2 必須由使用者自行管理。</li>
+<li>EKS Control Plane 的 VPC 與 Cluster 的 VPC 為不同的 VPC</li>
+<li>如果 EKS 有開啟 Private Access，會在 Cluster VPC 的 subnet 中安插 EKS-managed ENI 讓 Cluster VPC 流量穿透至 EKS 中</li>
+<li>EKS 建立時選擇的 VPC 是為了部署 EKS-managed ENI（最少兩個）使用</li>
+<li>EKS-managed ENI 直接存在於 subnet 之中，非 EC2 instance（or 其他 instance）之上</li>
+</ul>
+<h2 id="Nodegroup"><a href="#Nodegroup" class="headerlink" title="Nodegroup"></a>Nodegroup</h2><p>如果 Nodegroup 完全無法存取外網，同時也就無法拉取必要的 Container Image，導致節點無法建立成功</p>
+<p>Nodegroup 如果落在 private subnet，可以多開一台有 public subnet 的 EC2 作為 bastion 使用（同一個 VPC 下）</p>
+<h2 id="API-Endpoint"><a href="#API-Endpoint" class="headerlink" title="API Endpoint"></a>API Endpoint</h2><h3 id="public-access"><a href="#public-access" class="headerlink" title="public access"></a>public access</h3><p>API endpoint domain 會對應到一組 Public IP 做為 API Endpoint 入口</p>
+<p>可以使用 <code>kubectl cluster-info</code> 查看</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ec2-user@eks-bastion]$ kubectl cluster-info</span><br><span class="line">Kubernetes control plane is running at https://&lt;your api endpoint uuid&gt;.gr7.&lt;region&gt;.eks.amazonaws.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="private-access"><a href="#private-access" class="headerlink" title="private access"></a>private access</h3><p>根據<a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html">官方文件</a>描述，在 Cluster VPC 下會有 Route 53 private hosted zone 將 API endpoint 解析成該 VPC 下的 IP</p>
+<blockquote>
+<p>This private hosted zone is managed by Amazon EKS, and it doesn’t appear in your account’s Route 53 resources.</p>
+</blockquote>
+<p>經過實驗會發現解出兩組 VPC 中的 private IP，同時為 EKS-managed ENI 的 IP</p>
+<p>這組介面可以透過將 Cluster VPC 的流量直接導向至 EKS VPC 之中</p>
+<p>啟用條件為 Cluster VPC 必須將 <code>enableDnsHostnames</code>, <code>enableDnsSupport</code> 設定為 <code>true</code></p>
+<p>並且 <code>AmazonProvidedDNS</code> 要在 VPC DHCP 的 domain name servers list</p>
+<h3 id="public-and-private-access"><a href="#public-and-private-access" class="headerlink" title="public and private access"></a>public and private access</h3><p>外網因為沒有 Route 53 private hosted zone 所以會解析出外網 IP</p>
+<p>Cluster VPC 下有 Route 53 private hosted zone 所以會解析出 EKS-managed ENI 的 IP</p>
+<h2 id="Pod-Amount-Limit"><a href="#Pod-Amount-Limit" class="headerlink" title="Pod Amount Limit"></a>Pod Amount Limit</h2><p>Pod limit 的根本問題是因為不同的 EC2 instance type 有先天的 VPC IP 數量限制</p>
+<p>ENI 的數量有限制，每一個 ENI instance 可以指定的 IP 數量也有限制</p>
+<p>官方有給出一份計算後的限制列表可以進行查閱 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt">eni-max-pods.txt</a></p>
+<p>突破限制前先釐清自己的叢集為何被限制，以下為幾種可能</p>
+<h3 id="limited-by-subnet-CIDR"><a href="#limited-by-subnet-CIDR" class="headerlink" title="limited by subnet CIDR"></a>limited by subnet CIDR</h3><p>subnet 的 CIDR 一開始切太小，導致 Pod 數量超過 CIDR 範圍時，參考 VPC CNI 的 <a href="https://github.com/awslabs/amazon-eks-ami/blob/master/files/eni-max-pods.txt">AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG</a> 參數，來客製化 Pod 的 CIDR。</p>
+<h3 id="limited-by-EC2-instance-type"><a href="#limited-by-EC2-instance-type" class="headerlink" title="limited by EC2 instance type"></a>limited by EC2 instance type</h3><p>最常見的情況，達到 EC2 上的 IP 數量限制，因此 VPC CNI 無法成功索取 IP。</p>
+<p>方法一：</p>
+<p>直接抽換 AWS VPC CNI，換掉之後 Node 就不會再持續索取 secondary private IPv4 addresses，不過抽換後，沒有辦法讓 Pod 的 IP 直接屬於 VPC 下的 IP（理論效能會差一些，流量可能須經過 NAT 轉換）。</p>
+<p>方法二：</p>
+<p>使用 2021 年 EC2 新推出的功能 <code>prefix assignment</code>。開啟 AWS VPC CNI 中的 <code>ENABLE_PREFIX_DELEGATION</code> 參數。將每一個 ENI 上原本可以附加的 secondary private IPv4 addresses 變成變為 &#x2F;28 範圍（16 個 IPs）。</p>
+<p>參考 <a href="https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html">Increase the amount of available IP addresses for your Amazon EC2 nodes
+</a></p>
+<h3 id="limited-by-insufficient-IP’s"><a href="#limited-by-insufficient-IP’s" class="headerlink" title="limited by insufficient IP’s"></a>limited by insufficient IP’s</h3><p>該 subnet 下的 IP 被其他節點或是其他應用索取完畢，導致某些節點的 <code>aws-node</code> (VPC CNI) 沒有辦法正常索取 IP。解決方法為設定 <code>WARM_ENI_TARGET</code> 與 <code>WARM_IP_TARGET</code> 參數，來讓剛節點一被部署時就預先保留好可用的 IP，即時當時 Pod 還沒有被建立。</p>
+<h2 id="Customize-kubelet-Arguments"><a href="#Customize-kubelet-Arguments" class="headerlink" title="Customize kubelet Arguments"></a>Customize kubelet Arguments</h2><p>某些時候需要客製化我們的節點，例如修改 container runtime（EKS 1.23 已經將預設 container runtime 換成 containerd）</p>
+<p>Amazon EKS optimized Amazon Linux AMI 在開機時會呼叫 <code>/etc/eks/bootstrap.sh</code> 在執行必要的初始化</p>
+<p>然而該腳本就有提供參數可供調整，例如我想要替換 container runtime 可以在 launch template 中改寫 user-data 成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line">/etc/eks/bootstrap.sh demo-k8s --container-runtime containerd</span><br></pre></td></tr></table></figure>
+
+<p>想要修改 kubelet 的啟動參數可以用 <code>--kubelet-extra-args</code> 來修改</p>
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>以上為這幾週第一次使用 EKS 的紀錄以及個人認為比較容易混淆或是模糊的點，要建構一個可信賴的 EKS 要考量的內容五花八門。這還只是一些在架構上的概念釐清而已，如果要往叢集內部鑽研，有更多要注意與可以調教的地方。這篇文章同時也給以後的自己參考，未來有機會再寫其他文章探討不同層面需要考量的議題。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Architecture"><span class="toc-number">2.</span> <span class="toc-text">Architecture</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nodegroup"><span class="toc-number">3.</span> <span class="toc-text">Nodegroup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#API-Endpoint"><span class="toc-number">4.</span> <span class="toc-text">API Endpoint</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#public-access"><span class="toc-number">4.1.</span> <span class="toc-text">public access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#private-access"><span class="toc-number">4.2.</span> <span class="toc-text">private access</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#public-and-private-access"><span class="toc-number">4.3.</span> <span class="toc-text">public and private access</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Pod-Amount-Limit"><span class="toc-number">5.</span> <span class="toc-text">Pod Amount Limit</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-subnet-CIDR"><span class="toc-number">5.1.</span> <span class="toc-text">limited by subnet CIDR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-EC2-instance-type"><span class="toc-number">5.2.</span> <span class="toc-text">limited by EC2 instance type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#limited-by-insufficient-IP%E2%80%99s"><span class="toc-number">5.3.</span> <span class="toc-text">limited by insufficient IP’s</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Customize-kubelet-Arguments"><span class="toc-number">6.</span> <span class="toc-text">Customize kubelet Arguments</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">7.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2022/08/30/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2022/08/30/&text=建立 Reliable EKS 記錄"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2022/08/30/&is_video=false&description=建立 Reliable EKS 記錄"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=建立 Reliable EKS 記錄&body=Check out this article: https://blog.yiyu0x.org/2022/08/30/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2022/08/30/&title=建立 Reliable EKS 記錄"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2022/08/30/&name=建立 Reliable EKS 記錄&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2022/08/30/&t=建立 Reliable EKS 記錄"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

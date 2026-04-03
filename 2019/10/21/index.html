@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="緣起自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。 然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。 在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 docker 來輕鬆建構資料庫">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/10/21/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="緣起自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。 然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。 在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-10-22T04:13:35.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.669Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>使用 docker 來輕鬆建構資料庫</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/11/05/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/09/09/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/10/21/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/10/21/&text=使用 docker 來輕鬆建構資料庫"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/10/21/&is_video=false&description=使用 docker 來輕鬆建構資料庫"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 docker 來輕鬆建構資料庫&body=Check out this article: https://blog.yiyu0x.org/2019/10/21/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/10/21/&name=使用 docker 來輕鬆建構資料庫&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/10/21/&t=使用 docker 來輕鬆建構資料庫"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B7%A3%E8%B5%B7"><span class="toc-number">1.</span> <span class="toc-text">緣起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E6%A8%99"><span class="toc-number">2.</span> <span class="toc-text">目標</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-%E9%82%A3%E4%BA%9B%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E4%BA%8B"><span class="toc-number">3.</span> <span class="toc-text">Docker 那些容易混淆的事</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%92%B0%E5%AF%AB-Docker-file"><span class="toc-number">4.</span> <span class="toc-text">撰寫 Docker file</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%82%99%E4%BB%BD%E8%88%87%E5%BE%A9%E5%8E%9F"><span class="toc-number">5.</span> <span class="toc-text">備份與復原</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%82%99%E4%BB%BD"><span class="toc-number">5.1.</span> <span class="toc-text">備份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%A9%E5%8E%9F"><span class="toc-number">5.2.</span> <span class="toc-text">復原</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%81%E4%B9%85%E5%8C%96%E5%84%B2%E5%AD%98"><span class="toc-number">6.</span> <span class="toc-text">持久化儲存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">7.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        使用 docker 來輕鬆建構資料庫
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-10-22T04:13:35.000Z" class="dt-published" itemprop="datePublished">2019-10-21</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/docker/" rel="tag">docker</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="緣起"><a href="#緣起" class="headerlink" title="緣起"></a>緣起</h2><p>自從使用了 Docker 之後，凡是需要測試新的服務或是把玩新的工具第一個直覺就是去找有沒有 docker image。</p>
+<p>然而最近剛好手邊有一個 LINE Nofity 串接的案子，要管理不同使用者的 token 需要一個資料庫來儲存並且管理，於是打算將資料庫包進 Docker，方便日後部署或是備份檔案。</p>
+<p>在打包的過程中學習到了一些知識，記錄起來方便日後查詢用，畢竟 Docker file 不是天天寫，時常會忘記。</p>
+<h2 id="目標"><a href="#目標" class="headerlink" title="目標"></a>目標</h2><p>希望將 container 跑起來時，裡面的 database 是已經定義好 Schema 的情況，讓後端服務可以直接進行互動。長期目標是連資料庫內容都要映射到 container 之外，方便日後移轉。不過這篇文章不會提到。</p>
+<h2 id="Docker-那些容易混淆的事"><a href="#Docker-那些容易混淆的事" class="headerlink" title="Docker 那些容易混淆的事"></a>Docker 那些容易混淆的事</h2><p>最容易搞混的應該就是 <code>RUN</code>, <code>CMD</code>, <code>ENTRYPOINT</code> 這三個設定值</p>
+<p><code>RUN</code> 通常用來安裝套件，像是用來執行 apt 相關指令</p>
+<p><code>CMD</code> 用來執行啟動 container 之後的指令，但他可以被 <code>docker run</code> 之後的參數來取代，也就是 <code>docker run</code> 後面不加上使用者自訂的命令，就會執行 <code>CMD</code> 的內容</p>
+<p><code>ENTRYPOINT</code> 跟 <code>CMD</code> 類似，但是內容不會被 <code>docker run</code> 後面給的指令覆蓋掉，那些指令會附加在 <code>ENTRYPOINT</code> 之後</p>
+<p>除此之外將檔案複製進 container 要用 <code>COPY</code> 還是 <code>ADD</code> 也有一些不同看法。<code>ADD</code> 基本上就是 <code>COPY</code> 的增強版，除了可以將檔案複製進容器，也可以填入一串網址。如果填入的來源是壓縮檔，那麼會自動進行壓縮。</p>
+<p>所以沒有特別需求的話，單純想複製檔案進容器，還是推薦用 <code>COPY</code> 比較簡單明瞭一點。</p>
+<h2 id="撰寫-Docker-file"><a href="#撰寫-Docker-file" class="headerlink" title="撰寫 Docker file"></a>撰寫 Docker file</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mariadb:<span class="number">10.4</span>.<span class="number">8</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> init.sql /docker-entrypoint-initdb.d/</span></span><br><span class="line"><span class="keyword">ENV</span> MYSQL_ROOT_PASSWORD root</span><br><span class="line"><span class="keyword">ENV</span> MYSQL_DATABASE token_db</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3306</span></span><br></pre></td></tr></table></figure>
+
+<p>在撰寫 Docker file 時，記得 image 要附上版本，否則預設是 latest。往後部署到其他伺服器有可能最新版本已經不再是這一版了，此時就可能出現不同版本行為不一的情況。建議一定要指定版本號。</p>
+<p>我想要在容器跑起來時自動將 database schema 也一併創建好，此時可以將你的 .sql 檔案放入 <code>/docker-entrypoint-initdb.d</code> 這個目錄，此目錄中的 .sql 檔案會在資料庫啟動時自動被執行(在 MySQL image 也是)，如此一來可以省下不少寫 script 去自動表格的時間。</p>
+<p>接下來設定好環境變數讓你的 MariaDB  自動建立好資料庫以及設定 root 密碼，詳細有哪些環境變數可以設定，在 <a href="https://hub.docker.com/_/mariadb">MariaDB 的 image 文件中</a>。</p>
+<h2 id="備份與復原"><a href="#備份與復原" class="headerlink" title="備份與復原"></a>備份與復原</h2><p>使用容器部署服務時，可以很方便地將服務進行轉移。但今天的服務是資料庫，有時候我們希望將資料庫的內容從容器內備份出來，才不會因為容器意外停止了而遺失資料。</p>
+<p>做到這件事情的方法有很多，可以掛載目錄位置進容器，透過這樣的方式將資料庫相關的檔案與容器外的主機共用。但今天使用的方式是使用 <code>MySQL</code> 提供的 <code>mysqldump</code> 指令來將資料庫內容備份。</p>
+<h3 id="備份"><a href="#備份" class="headerlink" title="備份"></a>備份</h3><p><code>docker exec &lt;cotainer-id&gt; /usr/bin/mysqldump -u root --password=root &lt;db-name&gt; &gt; backup.sql</code></p>
+<p><code>backup.sql</code> 的名稱可以隨意命名，它是將資料庫內容匯出的 sql 檔案。</p>
+<h3 id="復原"><a href="#復原" class="headerlink" title="復原"></a>復原</h3><p><code>cat backup.sql | docker exec -i &lt;cotainer-id&gt; /usr/bin/mysql -u root --password=root &lt;db-name&gt;</code></p>
+<p>備份與復原可以幫助你在轉移服務到其他主機時，先將原本服務的資料庫內容取出，並且在其他主機回復內容。</p>
+<h2 id="持久化儲存"><a href="#持久化儲存" class="headerlink" title="持久化儲存"></a>持久化儲存</h2><p>以上方法很明顯有一個問題，那就是你無法得知 container 在哪一個時候遇到意外而終止，這樣子也無法在適當的時機備份，有可能造成資料遺失！</p>
+<p>想要達成持久化儲存勢必要使用到 <code>VOLUME</code> 功能，除此之外還需要一個背景知識，mariaDB（MySQL）的資料儲存位置在 <code>/var/lib/mysql</code>。</p>
+<p>要達成掛載的方式有很多種，在此使用個人覺得較為直覺的一種：</p>
+<p>新增一個 volume 結構並命名為 <code>db-data</code></p>
+<p><code>docker create volume db-data</code></p>
+<p>之後將容器跑起來時，指定容器內部的哪一個位置需要往外掛載至 <code>db-data</code></p>
+<p><code>docker run -it -d -v db-data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root db</code></p>
+<p>如此一來，容器內的 <code>/var/lib/mysql</code> 映射至外部的 <code>db-data</code>，不管容器存在與否 <code>db-data</code> 都會存在！</p>
+<p>我們也可以用 <code>docker volume inspect db-data</code> 來查看該 <code>VOLUME</code> 的資訊</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;CreatedAt&quot;: &quot;2019-11-14T02:17:21Z&quot;,</span><br><span class="line">        &quot;Driver&quot;: &quot;local&quot;,</span><br><span class="line">        &quot;Labels&quot;: &#123;&#125;,</span><br><span class="line">        &quot;Mountpoint&quot;: &quot;/var/lib/docker/volumes/db-data/_data&quot;,</span><br><span class="line">        &quot;Name&quot;: &quot;db-data&quot;,</span><br><span class="line">        &quot;Options&quot;: &#123;&#125;,</span><br><span class="line">        &quot;Scope&quot;: &quot;local&quot;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>可以發現它在本機位置的真實路徑為 <code>/var/lib/docker/volumes/db-data/_data</code>。</p>
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>有了 Docker 之後讓很多事情變得很方便，但是自己在學習撰寫 Dockerfile 的過程中以及部署 Docker 服務時，時常被一些類似的指令與行為搞混。希望藉由記錄建構環境流程，一方面加深自己印象，一方面讓更多有類似需求的夥伴可以參考 😊</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B7%A3%E8%B5%B7"><span class="toc-number">1.</span> <span class="toc-text">緣起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E6%A8%99"><span class="toc-number">2.</span> <span class="toc-text">目標</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-%E9%82%A3%E4%BA%9B%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E4%BA%8B"><span class="toc-number">3.</span> <span class="toc-text">Docker 那些容易混淆的事</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%92%B0%E5%AF%AB-Docker-file"><span class="toc-number">4.</span> <span class="toc-text">撰寫 Docker file</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%82%99%E4%BB%BD%E8%88%87%E5%BE%A9%E5%8E%9F"><span class="toc-number">5.</span> <span class="toc-text">備份與復原</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%82%99%E4%BB%BD"><span class="toc-number">5.1.</span> <span class="toc-text">備份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%A9%E5%8E%9F"><span class="toc-number">5.2.</span> <span class="toc-text">復原</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%81%E4%B9%85%E5%8C%96%E5%84%B2%E5%AD%98"><span class="toc-number">6.</span> <span class="toc-text">持久化儲存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">7.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/10/21/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/10/21/&text=使用 docker 來輕鬆建構資料庫"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/10/21/&is_video=false&description=使用 docker 來輕鬆建構資料庫"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 docker 來輕鬆建構資料庫&body=Check out this article: https://blog.yiyu0x.org/2019/10/21/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/10/21/&title=使用 docker 來輕鬆建構資料庫"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/10/21/&name=使用 docker 來輕鬆建構資料庫&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/10/21/&t=使用 docker 來輕鬆建構資料庫"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

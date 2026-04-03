@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下 JavaScript 在比較物件時到底是依據什麼規則。 先看幾種常見的情況12345678910&gt; 100 &gt; 10true&gt; 100 &gt; &quot;10&quot; &#x2F;&#x2F;(字串與數字比較，會將字串自動轉為數字來">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript 中物件比大小的依據到底是什麼？">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/06/13/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下 JavaScript 在比較物件時到底是依據什麼規則。 先看幾種常見的情況12345678910&gt; 100 &gt; 10true&gt; 100 &gt; &quot;10&quot; &#x2F;&#x2F;(字串與數字比較，會將字串自動轉為數字來">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-06-14T02:06:38.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.667Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="javascript">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>JavaScript 中物件比大小的依據到底是什麼？</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/07/01/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/06/03/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/06/13/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/06/13/&text=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/06/13/&is_video=false&description=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JavaScript 中物件比大小的依據到底是什麼？&body=Check out this article: https://blog.yiyu0x.org/2019/06/13/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/06/13/&name=JavaScript 中物件比大小的依據到底是什麼？&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/06/13/&t=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E7%9C%8B%E5%B9%BE%E7%A8%AE%E5%B8%B8%E8%A6%8B%E7%9A%84%E6%83%85%E6%B3%81"><span class="toc-number">2.</span> <span class="toc-text">先看幾種常見的情況</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E4%BB%B6%E7%9A%84%E6%AF%94%E8%BC%83%E8%A6%8F%E5%89%87"><span class="toc-number">3.</span> <span class="toc-text">物件的比較規則</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%86%E9%BB%9E%E7%A7%91%E6%99%AE"><span class="toc-number">3.1.</span> <span class="toc-text">來點科普</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%94%E8%BC%83%E7%9A%84%E4%BE%9D%E6%93%9A"><span class="toc-number">3.2.</span> <span class="toc-text">比較的依據</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%B2%E8%A1%8C%E5%AF%A6%E9%A9%97"><span class="toc-number">4.</span> <span class="toc-text">進行實驗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E4%BB%B6%E9%A0%90%E8%A8%AD%E7%9A%84-valueOf-toString"><span class="toc-number">5.</span> <span class="toc-text">物件預設的 valueOf, toString</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">6.</span> <span class="toc-text">結論</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        JavaScript 中物件比大小的依據到底是什麼？
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-06-14T02:06:38.000Z" class="dt-published" itemprop="datePublished">2019-06-13</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/javascript/" rel="tag">javascript</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 JavaScript 中很多比較的情況非常不符合邏輯，在今年 AIS3 (2019) pre-exam 中，有考到類似概念所引發的錯誤情形。於是記錄一下 JavaScript 在比較物件時到底是依據什麼規則。</p>
+<h2 id="先看幾種常見的情況"><a href="#先看幾種常見的情況" class="headerlink" title="先看幾種常見的情況"></a>先看幾種常見的情況</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="number">100</span> &gt; <span class="number">10</span></span><br><span class="line"><span class="literal">true</span></span><br><span class="line">&gt; <span class="number">100</span> &gt; <span class="string">&quot;10&quot;</span> <span class="comment">//(字串與數字比較，會將字串自動轉為數字來比較)</span></span><br><span class="line"><span class="literal">true</span></span><br><span class="line">&gt; <span class="string">&quot;100&quot;</span> &gt; <span class="string">&quot;10&quot;</span> <span class="comment">//(兩者都是字串，實際上是按照字母順序來比較，下面的例子較明顯。並不是將兩個字串轉成數字來比)</span></span><br><span class="line"><span class="literal">true</span></span><br><span class="line">&gt; <span class="string">&quot;abc&quot;</span> &gt; <span class="string">&quot;aaa&quot;</span></span><br><span class="line"><span class="literal">true</span></span><br><span class="line">&gt; <span class="string">&quot;ab&quot;</span> &gt; <span class="string">&quot;ac&quot;</span></span><br><span class="line"><span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="物件的比較規則"><a href="#物件的比較規則" class="headerlink" title="物件的比較規則"></a>物件的比較規則</h2><h3 id="來點科普"><a href="#來點科普" class="headerlink" title="來點科普"></a>來點科普</h3><p>這次的重點在於兩個物件的比較是依據何者來比較，首先要先知道 JS 有幾種型態</p>
+<ul>
+<li>null</li>
+<li>undefined</li>
+<li>boolean</li>
+<li>number</li>
+<li>string</li>
+<li>symbol</li>
+<li>object</li>
+</ul>
+<p>所以 JS 的型態都在這七種之內。然而，除了 object 以外，都屬於基本型態(<a href="https://developer.mozilla.org/zh-TW/docs/Glossary/Primitive">primitive data type</a>)。</p>
+<h3 id="比較的依據"><a href="#比較的依據" class="headerlink" title="比較的依據"></a>比較的依據</h3><p>物件的比較流程為以下(若成功則停，失敗則往下一步)：</p>
+<ol>
+<li>呼叫物件內的 valueOf 方法求得 return 值(值必須為 primitive data type)</li>
+</ol>
+<p>(若非 primitive data tpye 或是沒有 valueOf 方法則往下)</p>
+<ol start="2">
+<li>呼叫 toString 方法求得 return 值(值必須為 primitive data type)</li>
+</ol>
+<p>(若非 primitive data tpye 或是沒有 valueOf 方法則往下)</p>
+<ol start="3">
+<li>拋出錯誤 (TypeError: Cannot convert object to primitive value)</li>
+</ol>
+<h2 id="進行實驗"><a href="#進行實驗" class="headerlink" title="進行實驗"></a>進行實驗</h2><ol>
+<li>實驗一 (object 內的 valueOf)：</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">    <span class="title function_">valueOf</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">123</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">toString</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">if</span> (obj &gt; <span class="number">100</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="comment">//output: great!</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>實驗二 (valueOf 回傳值不是 primitive data type)：</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">    <span class="title function_">valueOf</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">toString</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">123</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (obj &gt; <span class="number">100</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="comment">//output: great!</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>實驗三 (valueOf 與 toString 的比較順序)：</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">    <span class="title function_">valueOf</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">200</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">toString</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">50</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (obj &gt; <span class="number">100</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="keyword">else</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;QQ&quot;</span>);</span><br><span class="line"><span class="comment">//output: great!</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">    <span class="title function_">valueOf</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">50</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">toString</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">200</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (obj &gt; <span class="number">100</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="keyword">else</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;QQ&quot;</span>);</span><br><span class="line"><span class="comment">//output: QQ</span></span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>實驗四（兩者回傳值都非為 primitive data type，拋出錯誤）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">    <span class="title function_">valueOf</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">toString</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (obj &gt; <span class="number">100</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="comment">//output:</span></span><br><span class="line"><span class="comment">//if (obj &gt; 100) console.log(&quot;great!&quot;);</span></span><br><span class="line"><span class="comment">//        ^</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//TypeError: Cannot convert object to primitive value</span></span><br><span class="line"><span class="comment">//    at Object.&lt;anonymous&gt; (/Users/yiyuchang/dev/tmp/article/example.js:10:9)</span></span><br><span class="line"><span class="comment">//    ......</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="物件預設的-valueOf-toString"><a href="#物件預設的-valueOf-toString" class="headerlink" title="物件預設的 valueOf, toString"></a>物件預設的 valueOf, toString</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;&#125;;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(obj.<span class="title function_">valueOf</span>());</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(obj.<span class="title function_">toString</span>());</span><br><span class="line"><span class="keyword">if</span> (obj == <span class="string">&quot;[object Object]&quot;</span>) <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;great!&quot;</span>);</span><br><span class="line"><span class="comment">//output:</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//&#123;&#125;</span></span><br><span class="line"><span class="comment">//[object Object]</span></span><br><span class="line"><span class="comment">//great!</span></span><br></pre></td></tr></table></figure>
+
+<p>預設情況下物件是的 valueOf 是回傳空物件 {}，而 toString 則是回傳 [object Object] 字串！</p>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>希望這篇物件比較的規則說明有幫助到大家，javascipt 真是一門神奇的語言(?) 😄</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E7%9C%8B%E5%B9%BE%E7%A8%AE%E5%B8%B8%E8%A6%8B%E7%9A%84%E6%83%85%E6%B3%81"><span class="toc-number">2.</span> <span class="toc-text">先看幾種常見的情況</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E4%BB%B6%E7%9A%84%E6%AF%94%E8%BC%83%E8%A6%8F%E5%89%87"><span class="toc-number">3.</span> <span class="toc-text">物件的比較規則</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%86%E9%BB%9E%E7%A7%91%E6%99%AE"><span class="toc-number">3.1.</span> <span class="toc-text">來點科普</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%94%E8%BC%83%E7%9A%84%E4%BE%9D%E6%93%9A"><span class="toc-number">3.2.</span> <span class="toc-text">比較的依據</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%B2%E8%A1%8C%E5%AF%A6%E9%A9%97"><span class="toc-number">4.</span> <span class="toc-text">進行實驗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E4%BB%B6%E9%A0%90%E8%A8%AD%E7%9A%84-valueOf-toString"><span class="toc-number">5.</span> <span class="toc-text">物件預設的 valueOf, toString</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">6.</span> <span class="toc-text">結論</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/06/13/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/06/13/&text=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/06/13/&is_video=false&description=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JavaScript 中物件比大小的依據到底是什麼？&body=Check out this article: https://blog.yiyu0x.org/2019/06/13/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/06/13/&title=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/06/13/&name=JavaScript 中物件比大小的依據到底是什麼？&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/06/13/&t=JavaScript 中物件比大小的依據到底是什麼？"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

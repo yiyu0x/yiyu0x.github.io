@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言昨天在卡斯伯大大的臉書上面看了一則有趣的貼文。  雖然馬上就有人在留言下方分享答案了，不過還是想記錄一下這個有意思的問題。 正確的概念是 b &#x3D; c 並且這條 statement 本身會有一個回傳值 (會是 c 的值)，然後 a 收到的其實是這個回傳值。 但是這看起來似乎與 b &#x3D; c, a &#x3D; b 的結果一樣，而且也沒什麼辦法可以用實驗去證明。(除了自己在 co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Javascript 中的連續賦值">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/08/13/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言昨天在卡斯伯大大的臉書上面看了一則有趣的貼文。  雖然馬上就有人在留言下方分享答案了，不過還是想記錄一下這個有意思的問題。 正確的概念是 b &#x3D; c 並且這條 statement 本身會有一個回傳值 (會是 c 的值)，然後 a 收到的其實是這個回傳值。 但是這看起來似乎與 b &#x3D; c, a &#x3D; b 的結果一樣，而且也沒什麼辦法可以用實驗去證明。(除了自己在 co">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://scontent-tpe1-1.xx.fbcdn.net/v/t1.0-9/67839896_808404392889119_7888086461377937408_n.png?_nc_cat=107&_nc_oc=AQnlzSfKJAo7OARVyT-i6gVGCcn-aMyO3IGuVQa7zGx54eVzW7q9goHk9lNSl7k2xKg&_nc_ht=scontent-tpe1-1.xx&oh=cd49adf668fab32c0de54fea69d86ff3&oe=5DCCB80C">
+<meta property="og:image" content="https://scontent-tpe1-1.xx.fbcdn.net/v/t1.0-9/67937173_808404412889117_3730474130764464128_n.png?_nc_cat=110&_nc_oc=AQlM7EDX3EI_je0puIbf7NdHSS0MhiqmOseoA4x_zNSKJYnJAz3-HO3a1w5b5rMnAns&_nc_ht=scontent-tpe1-1.xx&oh=43b9752e1340aab1e99364d70c3b3cdd&oe=5DC999B8">
+<meta property="article:published_time" content="2019-08-14T00:44:14.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.663Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="javascript">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://scontent-tpe1-1.xx.fbcdn.net/v/t1.0-9/67839896_808404392889119_7888086461377937408_n.png?_nc_cat=107&_nc_oc=AQnlzSfKJAo7OARVyT-i6gVGCcn-aMyO3IGuVQa7zGx54eVzW7q9goHk9lNSl7k2xKg&_nc_ht=scontent-tpe1-1.xx&oh=cd49adf668fab32c0de54fea69d86ff3&oe=5DCCB80C">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Javascript 中的連續賦值</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/09/09/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/07/18/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/08/13/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/08/13/&text=Javascript 中的連續賦值"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/08/13/&is_video=false&description=Javascript 中的連續賦值"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript 中的連續賦值&body=Check out this article: https://blog.yiyu0x.org/2019/08/13/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/08/13/&name=Javascript 中的連續賦值&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/08/13/&t=Javascript 中的連續賦值"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#PoC"><span class="toc-number">2.</span> <span class="toc-text">PoC</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Javascript 中的連續賦值
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-08-14T00:44:14.000Z" class="dt-published" itemprop="datePublished">2019-08-13</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/javascript/" rel="tag">javascript</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>昨天在<a href="https://www.facebook.com/WccCasper/">卡斯伯</a>大大的臉書上面看了一則有趣的貼文。</p>
+<p><img src="https://scontent-tpe1-1.xx.fbcdn.net/v/t1.0-9/67839896_808404392889119_7888086461377937408_n.png?_nc_cat=107&_nc_oc=AQnlzSfKJAo7OARVyT-i6gVGCcn-aMyO3IGuVQa7zGx54eVzW7q9goHk9lNSl7k2xKg&_nc_ht=scontent-tpe1-1.xx&oh=cd49adf668fab32c0de54fea69d86ff3&oe=5DCCB80C" alt="img"></p>
+<p>雖然馬上就有人在留言下方分享答案了，不過還是想記錄一下這個有意思的問題。</p>
+<p>正確的概念是 b &#x3D; c 並且這條 statement 本身會有一個回傳值 (會是 c 的值)，然後 a 收到的其實是這個回傳值。</p>
+<p>但是這看起來似乎與 b &#x3D; c, a &#x3D; b 的結果一樣，而且也沒什麼辦法可以用實驗去證明。(除了自己在 console 上面分解動作外)</p>
+<p>附上一個在 console 上的小的實驗：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Welcome</span> to <span class="title class_">Node</span>.<span class="property">js</span> v12<span class="number">.7</span><span class="number">.0</span>.</span><br><span class="line"><span class="title class_">Type</span> <span class="string">&quot;.help&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt; a=<span class="number">0</span>, b=<span class="number">0</span>, c=<span class="number">1</span> <span class="comment">// 初始化</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line">&gt; a = b = c</span><br><span class="line"><span class="number">1</span></span><br><span class="line">&gt; a</span><br><span class="line"><span class="number">1</span></span><br><span class="line">&gt; b             <span class="comment">// 可以發現 a, b 都拿到了與 c 一樣的值</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line">&gt; b = c         <span class="comment">// 實際上 b = c 會先被執行, 並且這一個 statement 會有一個回傳值 1 (這個回傳值也就是 c 的值)</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line">&gt; a = <span class="number">1</span>         <span class="comment">// 最後 a 其實是拿到 b = c 的回傳值</span></span><br><span class="line"><span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>還有一個有趣的地方是使用 var 與 let 來初始化，回傳值是 <code>undefined</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="keyword">let</span> x = <span class="number">3</span></span><br><span class="line"><span class="literal">undefined</span></span><br><span class="line">&gt; <span class="keyword">var</span> x2 = <span class="number">5</span></span><br><span class="line"><span class="literal">undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>也提醒大家以下這一條 statement 只有 a 是 let 屬性，其他變數 (b, c) 都是 global，不要搞混了！</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="keyword">let</span> a = b = c</span><br></pre></td></tr></table></figure>
+
+<h1 id="PoC"><a href="#PoC" class="headerlink" title="PoC"></a>PoC</h1><p>講了這麼多有一點離題了，看一下官方公布的證明方式！</p>
+<p><img src="https://scontent-tpe1-1.xx.fbcdn.net/v/t1.0-9/67937173_808404412889117_3730474130764464128_n.png?_nc_cat=110&_nc_oc=AQlM7EDX3EI_je0puIbf7NdHSS0MhiqmOseoA4x_zNSKJYnJAz3-HO3a1w5b5rMnAns&_nc_ht=scontent-tpe1-1.xx&oh=43b9752e1340aab1e99364d70c3b3cdd&oe=5DC999B8" alt="img"></p>
+<p>以上印出的東西是 <code>1 {}</code></p>
+<p>這個簡單的驗證方式勝過前面的千言萬語，我們可以發現 b 並沒有被寫入任何值， a 一樣拿到了 c 的值，而這個值實際上是 b.b &#x3D; c 的回傳值(即使沒有成功寫入，還是會回傳 c 本身的值)。</p>
+<p>之後有看到類似寫法，雖然知道結果為何，但同時也別忘了理解背後的概念！</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#PoC"><span class="toc-number">2.</span> <span class="toc-text">PoC</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/08/13/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/08/13/&text=Javascript 中的連續賦值"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/08/13/&is_video=false&description=Javascript 中的連續賦值"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript 中的連續賦值&body=Check out this article: https://blog.yiyu0x.org/2019/08/13/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/08/13/&title=Javascript 中的連續賦值"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/08/13/&name=Javascript 中的連續賦值&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/08/13/&t=Javascript 中的連續賦值"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

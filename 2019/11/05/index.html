@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。 正文情境是這樣的，我想要將一個正整數以及一個長度 3 的字串跟一個正整數結構化成 byte 的形式 很直覺的使用了 123import structstruct.pack(&quot;I3sI&quot;, 1, b&#x27;abc&#x27;, 1)# \x01">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python struct 模組的踩雷記錄">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/11/05/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。 正文情境是這樣的，我想要將一個正整數以及一個長度 3 的字串跟一個正整數結構化成 byte 的形式 很直覺的使用了 123import structstruct.pack(&quot;I3sI&quot;, 1, b&#x27;abc&#x27;, 1)# \x01">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-11-05T17:18:55.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.666Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="socket">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Python struct 模組的踩雷記錄</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/11/22/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/10/21/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/11/05/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/11/05/&text=Python struct 模組的踩雷記錄"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/11/05/&is_video=false&description=Python struct 模組的踩雷記錄"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Python struct 模組的踩雷記錄&body=Check out this article: https://blog.yiyu0x.org/2019/11/05/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/11/05/&name=Python struct 模組的踩雷記錄&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/11/05/&t=Python struct 模組的踩雷記錄"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-number">2.</span> <span class="toc-text">正文</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Python struct 模組的踩雷記錄
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-05T17:18:55.000Z" class="dt-published" itemprop="datePublished">2019-11-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/python/" rel="tag">python</a>, <a class="p-category" href="/tags/socket/" rel="tag">socket</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨日在寫 Python Socket Programming 作業時，遇到了一個關於 struct 模組的有趣的現象，記錄一下。</p>
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>情境是這樣的，我想要將一個正整數以及一個長度 3 的字串跟一個正整數結構化成 byte 的形式</p>
+<p>很直覺的使用了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> struct</span><br><span class="line">struct.pack(<span class="string">&quot;I3sI&quot;</span>, <span class="number">1</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># \x01\x00\x00\x00abc\x00\x01\x00\x00\x00</span></span><br></pre></td></tr></table></figure>
+
+<p>但這個輸出並不符合我的預期，<code>正整數 4 bytes</code> + <code>長度三的字串 3 bytes</code> + <code>正整數 4 bytes</code>，結果應該要是 <code>11 bytes</code>。但是輸出卻是 <code>\x01\x00\x00\x00abc\x00\x01\x00\x00\x00</code> -&gt; <code>12 bytes</code></p>
+<p>於是使用 calcsize 確認一下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">&quot;I3sI&quot;</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></table></figure>
+
+<p>的確也是 <code>12 bytes</code>，而且可以發現的是，是中間的字串變成了 <code>4 bytes</code></p>
+<p>於是實驗了一下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">struct.calcsize(<span class="string">&quot;3s&quot;</span>)</span><br><span class="line"><span class="comment"># 3</span></span><br><span class="line">struct.calcsize(<span class="string">&quot;3sI&quot;</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">&quot;4sI&quot;</span>)</span><br><span class="line"><span class="comment"># 8</span></span><br><span class="line">struct.calcsize(<span class="string">&quot;5sI&quot;</span>)</span><br><span class="line"><span class="comment"># 12</span></span><br></pre></td></tr></table></figure>
+
+<p>可以發現 <code>3s</code> 的確是 <code>3 bytes</code>，但是當後面還有有其他 bytes 的話，則會補齊 <code>4 bytes</code>，然而我用 <code>4sI</code> 可以發現還是 <code>8 bytes</code> 無誤。</p>
+<p>第一個直覺就是猜想，是不是 struct 自動做了 word 大小為 4 的對齊。</p>
+<p>查了一下文件</p>
+<blockquote>
+<p>By default, C types are represented in the machine’s native format and byte order, and properly aligned by skipping pad bytes if necessary (according to the rules used by the C compiler).</p>
+</blockquote>
+<p>到這邊真相已經大白，但是還是沒解決問題</p>
+<p>這個問題的解法就是在 fmt 前面補上一些符號來告訴 struct 模組需不需要自動做對齊</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">&quot;3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x00\x01\x00\x00\x00&#x27;</span></span><br><span class="line">struct.pack(<span class="string">&quot;@3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x00\x01\x00\x00\x00&#x27;</span></span><br><span class="line"><span class="comment"># 以上兩週是一樣的，預設就是用 @，代表自動對齊</span></span><br><span class="line"></span><br><span class="line">struct.pack(<span class="string">&quot;=3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x01\x00\x00\x00&#x27;</span></span><br><span class="line"><span class="comment"># 使用 =，代表不啟動對齊</span></span><br></pre></td></tr></table></figure>
+
+<p>文件還有貼心的寫下</p>
+<blockquote>
+<p>The form ‘!’ is available for those poor souls who claim they can’t remember whether network byte order is big-endian or little-endian.</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct.pack(<span class="string">&quot;!3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x00\x00\x00\x01&#x27;</span></span><br><span class="line">struct.pack(<span class="string">&quot;&gt;3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x00\x00\x00\x01&#x27;</span></span><br><span class="line"><span class="comment"># 使用網路相關傳輸可以直接用 !，省去記下網路傳輸是 big-endian</span></span><br><span class="line">struct.pack(<span class="string">&quot;&lt;3sI&quot;</span>, <span class="string">b&#x27;abc&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># b&#x27;abc\x01\x00\x00\x00&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>這些符號總共有 <code>@</code>, <code>=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>!</code>，有興趣可以到<a href="https://docs.python.org/3.8/library/struct.html#struct-alignment">官方文件</a>了解。有趣的是只有第一個(<code>@</code>)，也就是預設的模式會採用自動對齊！</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-number">2.</span> <span class="toc-text">正文</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/11/05/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/11/05/&text=Python struct 模組的踩雷記錄"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/11/05/&is_video=false&description=Python struct 模組的踩雷記錄"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Python struct 模組的踩雷記錄&body=Check out this article: https://blog.yiyu0x.org/2019/11/05/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/11/05/&title=Python struct 模組的踩雷記錄"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/11/05/&name=Python struct 模組的踩雷記錄&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/11/05/&t=Python struct 模組的踩雷記錄"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

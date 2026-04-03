@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言在 EKS 上要建立 ELB 會採用 service type 指定 LoadBalancer。此時 AWS 的 In-Tree LoadBalacner Controller 或是 AWS Load Balancer Controller 其中之一會協助我們建立對應的 ELB 出來。本文紀錄這兩種 LB Controller 的差異以及不同類型 ELB 使用時機（以獲取 Client IP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EKS ELB 獲取 Client IP 方法紀錄">
+<meta property="og:url" content="https://blog.yiyu0x.org/2022/09/05/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言在 EKS 上要建立 ELB 會採用 service type 指定 LoadBalancer。此時 AWS 的 In-Tree LoadBalacner Controller 或是 AWS Load Balancer Controller 其中之一會協助我們建立對應的 ELB 出來。本文紀錄這兩種 LB Controller 的差異以及不同類型 ELB 使用時機（以獲取 Client IP">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2022-09-05T21:13:08.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.663Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="AWS">
+<meta property="article:tag" content="EKS">
+<meta property="article:tag" content="ELB">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>EKS ELB 獲取 Client IP 方法紀錄</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2025/04/12/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/08/30/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2022/09/05/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2022/09/05/&text=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2022/09/05/&is_video=false&description=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=EKS ELB 獲取 Client IP 方法紀錄&body=Check out this article: https://blog.yiyu0x.org/2022/09/05/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2022/09/05/&name=EKS ELB 獲取 Client IP 方法紀錄&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2022/09/05/&t=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#In-Tree-LoadBalacner-Controller-CLB"><span class="toc-number">2.</span> <span class="toc-text">In-Tree LoadBalacner Controller - CLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#In-Tree-LoadBalacner-Controller-NLB"><span class="toc-number">3.</span> <span class="toc-text">In-Tree LoadBalacner Controller - NLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AWS-Load-Balancer-Controller-NLB"><span class="toc-number">4.</span> <span class="toc-text">AWS Load Balancer Controller - NLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AWS-Load-Balancer-Controller-ALB"><span class="toc-number">5.</span> <span class="toc-text">AWS Load Balancer Controller - ALB</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        EKS ELB 獲取 Client IP 方法紀錄
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-09-05T21:13:08.000Z" class="dt-published" itemprop="datePublished">2022-09-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/AWS/" rel="tag">AWS</a>, <a class="p-category" href="/tags/EKS/" rel="tag">EKS</a>, <a class="p-category" href="/tags/ELB/" rel="tag">ELB</a>, <a class="p-category" href="/tags/Kubernetes/" rel="tag">Kubernetes</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 EKS 上要建立 ELB 會採用 service type 指定 LoadBalancer。此時 AWS 的 In-Tree LoadBalacner Controller 或是 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller">AWS Load Balancer Controller</a> 其中之一會協助我們建立對應的 ELB 出來。本文紀錄這兩種 LB Controller 的差異以及不同類型 ELB 使用時機（以獲取 Client IP 為例）。</p>
+<h2 id="In-Tree-LoadBalacner-Controller-CLB"><a href="#In-Tree-LoadBalacner-Controller-CLB" class="headerlink" title="In-Tree LoadBalacner Controller - CLB"></a>In-Tree LoadBalacner Controller - CLB</h2><p>將 server type 指定成 <code>LoadBalancer</code> 此時 In-Tree LoadBalacner Controller 會 privosion 一個 CLB 出來</p>
+<p>流量從外部要進入叢集的路徑為</p>
+<p>CLB -&gt; Node:NodePort -&gt; Pod maybe in different node</p>
+<p>因為透過節點上的 NodePort 進行跳轉，所以 Pod 如果要獲得 Clinet IP 會拿到 Node 中的 IP。而獲取不到真正的 Client IP</p>
+<p>接著可以根據官方建議設定 <code>.spec.externalTrafficPolicy</code> 為 <code>Local</code>（預設為 <code>Cluster</code>）</p>
+<p>這樣的設定可以避免流量進入到沒有含 Destination Pod 的 Node 上，多做一個 hop 的跳轉，也避免 IP 被洗成該 Node 的 IP</p>
+<p>結果發現 Client IP 還是獲取不到，因為 CLB 在與後方的 instance 溝通時，是用該 subnet 介面的 IP 溝通，所以 Client IP 變成是 ELB 的 private IP（該 IP 可以從 ec2 的 network interfacae 找出來）</p>
+<p>現在的路徑變成</p>
+<p>CLB -&gt; Node:NodePort （Pod also in the node）</p>
+<p>開啟了 <code>externalTrafficPolicy</code> 需不需要擔心如果該節點上沒有 Pod，進而請求沒有辦法路由到正確的位置上</p>
+<p>答案是不需要，因為 CLB 會對後方的 instance 做健康檢查，若後方 instance 沒有 Pod，那某該 instance 不健康，流量自然不會導入過去</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：完全不需修改參數、不需安裝其他 controller</span><br><span class="line">缺點：無法保留 Client IP、不保留 Client IP 流量會多一跳、流量不平均（後面會提到）</span><br></pre></td></tr></table></figure>
+
+<h2 id="In-Tree-LoadBalacner-Controller-NLB"><a href="#In-Tree-LoadBalacner-Controller-NLB" class="headerlink" title="In-Tree LoadBalacner Controller - NLB"></a>In-Tree LoadBalacner Controller - NLB</h2><p>需要在 annotations 加上</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">    <span class="attr">service.beta.kubernetes.io/aws-load-balancer-type:</span> <span class="string">&quot;nlb&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>並且我們將 <code>externalTrafficPolicy</code> 同樣設定成 <code>Local</code></p>
+<p>發現就可以正常獲取 Client IP 了，代表 NLB 在轉發時，不會將 Source IP 介面切換成內網介面，同時後端也不是 instance 是另外一層抽象（target group）</p>
+<p>但試想一個一個情況，若我有 3 個 Pod (x, y, z)，2 個 (x, y) 落在節點 A，1 個 (z) 落在節點 B</p>
+<p>那麼流量進入 NLB 時會先進行 1&#x2F;2 的機率選擇節點 (A, B)，假設進入節點 A 又會有 1&#x2F;2 的機率選擇 x, y 這兩個 Pod</p>
+<p>那麼 Pod 被選中的機率變成</p>
+<p>x: 1&#x2F;2 * 1&#x2F;2 &#x3D; 1&#x2F;4<br>y: 1&#x2F;2 * 1&#x2F;2 &#x3D; 1&#x2F;4<br>z: 1&#x2F;2</p>
+<p>可以發現流量並沒有真的平均轉發都後端的 Pod 上</p>
+<p>但 In-Tree Controller 只能建立出這兩種 ELB（並且能修改的參數有限），剩下一種 ALB 必須安裝 <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller">AWS Load Balancer Controller</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：不需安裝其他 controller、可以保留 Client IP</span><br><span class="line">缺點：不保留 Client IP 流量會多一跳、流量不平均</span><br></pre></td></tr></table></figure>
+
+<h2 id="AWS-Load-Balancer-Controller-NLB"><a href="#AWS-Load-Balancer-Controller-NLB" class="headerlink" title="AWS Load Balancer Controller - NLB"></a>AWS Load Balancer Controller - NLB</h2><p>安裝 AWS Load Balancer Controller 後，在使用上必須指定 <code>loadBalancerClass: service.k8s.aws/nlb</code></p>
+<p>並且 AWS Load Balancer Controller 有提供 <code>ip</code> 與 <code>instance</code> mode（使用 in-tree controller 建立出來的 mode 就是 instance mode）</p>
+<p><em>該功能需要配合 AWS VPC CNI 使用</em></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip</span><br><span class="line">spec:</span><br><span class="line">    loadBalancerClass: service.k8s.aws/nlb</span><br></pre></td></tr></table></figure>
+
+<p>此時會發現 NLB 後方的 target group 直接對應到 Pod IP，可以省去多一次跳轉，並且解決流量不平均的問題</p>
+<p>但 Client IP 還是沒有保留，我們可以調整 NLB 參數</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">annotations:</span><br><span class="line">    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true</span><br></pre></td></tr></table></figure>
+
+<p>將 NLB 提供的功能 preserve_client_ip 打開，即可完成配置，也不需要透過設定 <code>externalTrafficPolicy</code> 參數即可獲取 Client IP</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></table></figure>
+
+<h2 id="AWS-Load-Balancer-Controller-ALB"><a href="#AWS-Load-Balancer-Controller-ALB" class="headerlink" title="AWS Load Balancer Controller - ALB"></a>AWS Load Balancer Controller - ALB</h2><p>使用 Ingress 資源建立出 ALB，但是無法設定 <code>preserve_client_ip</code></p>
+<p>如果去 management console 檢查對應 target group，會發現找不到 Preserve client IP addresses 但是多了 Load balancing algorithm 可以選擇</p>
+<p>因為是 L7 支援，所以將 Client IP 放入 HTTP header 的 XFF 欄位即可</p>
+<p>一樣有 <code>instance</code> 與 <code>ip</code> mode 可以選擇</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">優點：保留 Client IP（放在 L7 的 HTTP header 中）、流量不會多一跳、流量平均</span><br><span class="line">缺點：需安裝其他 controller</span><br></pre></td></tr></table></figure>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#In-Tree-LoadBalacner-Controller-CLB"><span class="toc-number">2.</span> <span class="toc-text">In-Tree LoadBalacner Controller - CLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#In-Tree-LoadBalacner-Controller-NLB"><span class="toc-number">3.</span> <span class="toc-text">In-Tree LoadBalacner Controller - NLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AWS-Load-Balancer-Controller-NLB"><span class="toc-number">4.</span> <span class="toc-text">AWS Load Balancer Controller - NLB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AWS-Load-Balancer-Controller-ALB"><span class="toc-number">5.</span> <span class="toc-text">AWS Load Balancer Controller - ALB</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2022/09/05/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2022/09/05/&text=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2022/09/05/&is_video=false&description=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=EKS ELB 獲取 Client IP 方法紀錄&body=Check out this article: https://blog.yiyu0x.org/2022/09/05/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2022/09/05/&title=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2022/09/05/&name=EKS ELB 獲取 Client IP 方法紀錄&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2022/09/05/&t=EKS ELB 獲取 Client IP 方法紀錄"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

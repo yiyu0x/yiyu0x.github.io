@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="序言Kubernetes 中的狀態都是用 etcd 這套 key-value 儲存工具來維持，也就是說我們只要備份好 etcd 後，就可以很輕易的重建一個一模一樣的 Cluster 起來。 要備份 etcd 可以使用 etcdctl 這套 cli 工具來簡單完成 因為 etcd 分了 v2, v3 兩種版本，彼此不相容，所以在使用 cli 工具時需要指定版本 在操作時，我們會需要 cert 位置與">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何備份 Kubernetes 中的 etcd">
+<meta property="og:url" content="https://blog.yiyu0x.org/2021/05/21/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="序言Kubernetes 中的狀態都是用 etcd 這套 key-value 儲存工具來維持，也就是說我們只要備份好 etcd 後，就可以很輕易的重建一個一模一樣的 Cluster 起來。 要備份 etcd 可以使用 etcdctl 這套 cli 工具來簡單完成 因為 etcd 分了 v2, v3 兩種版本，彼此不相容，所以在使用 cli 工具時需要指定版本 在操作時，我們會需要 cert 位置與">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2021-05-22T03:29:50.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.670Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="kubernetes">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>如何備份 Kubernetes 中的 etcd</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/11/07/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/04/29/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2021/05/21/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2021/05/21/&text=如何備份 Kubernetes 中的 etcd"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2021/05/21/&is_video=false&description=如何備份 Kubernetes 中的 etcd"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何備份 Kubernetes 中的 etcd&body=Check out this article: https://blog.yiyu0x.org/2021/05/21/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2021/05/21/&name=如何備份 Kubernetes 中的 etcd&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2021/05/21/&t=如何備份 Kubernetes 中的 etcd"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%8F%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">序言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%AF%E5%87%BA"><span class="toc-number">2.</span> <span class="toc-text">匯出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%AF%E5%85%A5"><span class="toc-number">3.</span> <span class="toc-text">匯入</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        如何備份 Kubernetes 中的 etcd
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-05-22T03:29:50.000Z" class="dt-published" itemprop="datePublished">2021-05-21</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/kubernetes/" rel="tag">kubernetes</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h2><p>Kubernetes 中的狀態都是用 etcd 這套 key-value 儲存工具來維持，也就是說我們只要備份好 etcd 後，就可以很輕易的重建一個一模一樣的 Cluster 起來。</p>
+<p>要備份 etcd 可以使用 etcdctl 這套 cli 工具來簡單完成</p>
+<p>因為 etcd 分了 v2, v3 兩種版本，彼此不相容，所以在使用 cli 工具時需要指定版本</p>
+<p>在操作時，我們會需要 cert 位置與 key 的位置，如果你的 Cluster 是透過 kubeadm 安裝，那麼位置都會在 <code>/etc/kubernetes/pki/etcd</code> 中</p>
+<p>我們可以先透過 <code>etcdctl member list</code> 來確認是否可以正確連線到我們的 etcd</p>
+<p>以下都假設我的 etcd 位置在 <code>10.10.10.10</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl member list \</span><br><span class="line">--endpoints https://10.10.10.10:2379 \</span><br><span class="line">--cert=/etc/kubernetes/pki/etcd/server.crt \</span><br><span class="line">--key=/etc/kubernetes/pki/etcd/server.key \</span><br><span class="line">--insecure-skip-tls-verify</span><br></pre></td></tr></table></figure>
+
+<p>如果覺得指令太長的話，etcdctl 預設會去吃環境變數，也可以在環境變數中設定</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export ETCDCTL_CERT_FILE=&#x27;/etc/kubernetes/pki/etcd/server.crt&#x27;</span><br><span class="line">export ETCDCTL_KEY_FILE=&#x27;/etc/kubernetes/pki/etcd/server.key&#x27;</span><br><span class="line">export ETCDCTL_ENDPOINTS=&#x27;https://10.10.10.10:2379&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>不確定這些資訊在哪裡的話，可以直接去看你 etcd 的 yaml 就可以看到了，這些資訊會在 etcd 的啟動參數中</p>
+<h2 id="匯出"><a href="#匯出" class="headerlink" title="匯出"></a>匯出</h2><p>確認可以連線之後，我們將 etcd 的內容完整的匯出，命名為 <code>etcd-snapshot-$(date +%Y%m%d).db</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl snapshot save /root/etcd-snapshot-$(date +%Y%m%d).db \</span><br><span class="line">--endpoints https://10.10.10.10:2379 \</span><br><span class="line">--cert=/etc/kubernetes/pki/etcd/server.crt \</span><br><span class="line">--key=/etc/kubernetes/pki/etcd/server.key \</span><br><span class="line">--insecure-skip-tls-verify</span><br></pre></td></tr></table></figure>
+
+<p>output:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Snapshot saved at /root/etcd-snapshot-20210521.db</span><br></pre></td></tr></table></figure>
+
+<h2 id="匯入"><a href="#匯入" class="headerlink" title="匯入"></a>匯入</h2><p>匯出相較匯出麻煩一些，我們需要先讓 api-server 與 etcd 都終止，重新將 etcd 的資料匯入之後再重新打開它們。</p>
+<p>我的 api-server 與 etcd 都是以 static pod 的方式存在，所以只要將對應的 yaml 檔案暫時移除 static pod 目錄即可</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mv /etc/kubernetes/manifests/etcd.yaml /root/etcd.yaml</span><br><span class="line">mv /etc/kubernetes/manifests/kube-apiserver.yaml /root/kube-apiserver.yaml</span><br></pre></td></tr></table></figure>
+
+<p>接著我們將舊的 etcd 資料暫時移開（同時進行備份）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mv /var/lib/etcd/default.etcd /var/lib/etcd/default.etcd.bak</span><br></pre></td></tr></table></figure>
+
+<p>將新的剛才匯出的 etcd 資料重新匯入</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ETCDCTL_API=3 etcdctl snapshot restore /root/etcd-snapshot-20210521.db \</span><br><span class="line">--name etcd-0 \</span><br><span class="line">--initial-cluster &quot;etcd-0=https://10.10.10.10:2380&quot; \</span><br><span class="line">--initial-cluster-token etcd-cluster \</span><br><span class="line">--initial-advertise-peer-urls https://10.10.10.10:2380 \</span><br><span class="line">--data-dir=/var/lib/etcd/default.etcd</span><br></pre></td></tr></table></figure>
+<p>output:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2021-05-21 07:42:36.826573 I | mvcc: restore compact to 3969180</span><br><span class="line">2021-05-21 07:42:36.840090 I | etcdserver/membership: added member 9ce23f330769428b [https://10.10.10.10:2380] to cluster 457ee8b0c2eda630</span><br></pre></td></tr></table></figure>
+
+<p>匯出之後再把 api-server 與 etcd 重啟就可以了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mv /root/etcd.yaml /etc/kubernetes/manifests/etcd.yaml</span><br><span class="line">mv /root/kube-apiserver.yaml /etc/kubernetes/manifests/kube-apiserver.yaml</span><br></pre></td></tr></table></figure>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%8F%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">序言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%AF%E5%87%BA"><span class="toc-number">2.</span> <span class="toc-text">匯出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%AF%E5%85%A5"><span class="toc-number">3.</span> <span class="toc-text">匯入</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2021/05/21/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2021/05/21/&text=如何備份 Kubernetes 中的 etcd"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2021/05/21/&is_video=false&description=如何備份 Kubernetes 中的 etcd"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何備份 Kubernetes 中的 etcd&body=Check out this article: https://blog.yiyu0x.org/2021/05/21/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2021/05/21/&title=如何備份 Kubernetes 中的 etcd"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2021/05/21/&name=如何備份 Kubernetes 中的 etcd&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2021/05/21/&t=如何備份 Kubernetes 中的 etcd"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

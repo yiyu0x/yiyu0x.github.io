@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言最近受朋友委託，協助改善了一個現有的 CI&#x2F;CD Pipeline 流程。對方的專案主要是一群熟悉軟體的設計的開發者所開發，但團隊中並沒有人對於維護 Pipeline 有相關經驗，於是我接下任務，一方面也想看一下在調教前與調教之後可以得到多大的效益提升。對於一個沒有開發該專案的人來說，最快了解專案整體的整合與部署流程的方式就是直接去看現有的 Pipeline。於是我打算從檢視 Pip">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次 CI&#x2F;CD 調教經驗">
+<meta property="og:url" content="https://blog.yiyu0x.org/2021/11/07/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言最近受朋友委託，協助改善了一個現有的 CI&#x2F;CD Pipeline 流程。對方的專案主要是一群熟悉軟體的設計的開發者所開發，但團隊中並沒有人對於維護 Pipeline 有相關經驗，於是我接下任務，一方面也想看一下在調教前與調教之後可以得到多大的效益提升。對於一個沒有開發該專案的人來說，最快了解專案整體的整合與部署流程的方式就是直接去看現有的 Pipeline。於是我打算從檢視 Pip">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2021-11-08T03:05:24.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.668Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="DroneCI">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>一次 CI/CD 調教經驗</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/12/13/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/05/21/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2021/11/07/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2021/11/07/&text=一次 CI/CD 調教經驗"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2021/11/07/&is_video=false&description=一次 CI/CD 調教經驗"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一次 CI/CD 調教經驗&body=Check out this article: https://blog.yiyu0x.org/2021/11/07/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2021/11/07/&name=一次 CI/CD 調教經驗&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2021/11/07/&t=一次 CI/CD 調教經驗"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Runner-%E7%9A%84%E9%81%B8%E6%93%87"><span class="toc-number">2.</span> <span class="toc-text">Runner 的選擇</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-in-Docker"><span class="toc-number">3.</span> <span class="toc-text">Docker in Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latest-tag-%E9%80%A0%E6%88%90%E7%9A%84%E9%9A%B1%E5%90%AB%E8%A1%8C%E7%82%BA"><span class="toc-number">4.</span> <span class="toc-text">latest tag 造成的隱含行為</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">5.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        一次 CI/CD 調教經驗
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-11-08T03:05:24.000Z" class="dt-published" itemprop="datePublished">2021-11-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/CI-CD/" rel="tag">CI/CD</a>, <a class="p-category" href="/tags/Docker/" rel="tag">Docker</a>, <a class="p-category" href="/tags/DroneCI/" rel="tag">DroneCI</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近受朋友委託，協助改善了一個現有的 CI&#x2F;CD Pipeline 流程。對方的專案主要是一群熟悉軟體的設計的開發者所開發，但團隊中並沒有人對於維護 Pipeline 有相關經驗，於是我接下任務，一方面也想看一下在調教前與調教之後可以得到多大的效益提升。對於一個沒有開發該專案的人來說，最快了解專案整體的整合與部署流程的方式就是直接去看現有的 Pipeline。於是我打算從檢視 Pipeline 開始下手，看有哪些地方可以改良。</p>
+<h2 id="Runner-的選擇"><a href="#Runner-的選擇" class="headerlink" title="Runner 的選擇"></a>Runner 的選擇</h2><p>對方當時為了快速將 Pipeline 搭建上線，所以在選擇 Runner 的時候選擇了一個最快速（但可能不安全）的 Runner，也就是 Exec Runner（對方採用的 CI 工具為 Drone CI ）。然而因為移植性的關係，我們都會希望自己的 Pipeline 環境可以跑在容器之中，方便後續的遷移以及不耦合於特定作業系統。於是我將對方伺服器上的 Runner 重新架設了 Docker Runner，並且將原有的 <code>.drone.yml</code> 設定檔由 Exec Runner 形式轉換成 Docker Runner，結果馬上遇到了第一個問題</p>
+<blockquote>
+<p>原本的 CI 整合測試的時間由 2 分鐘直接變成了 8 分鐘。</p>
+</blockquote>
+<p>經過後續的排查才發現原來對方的 Exec Runner 在執行 Maven 打包時，因為是直接在作業系統上開啟 Process 來處理，所以每一次執行都是一樣的環境，造成後續進行打包的時候都是共用 <code>/root/.m2/repository</code> 裡面的套件，造成每一次 CI 其實都在快取之前用過的套件，並不是完全乾淨的環境。若使用 Docker Runner，也想要類似的快取行為，就只能透過共享特定 host 上的目錄來達成，在 DroneCI 中此類的設定也是非常好撰寫。</p>
+<h2 id="Docker-in-Docker"><a href="#Docker-in-Docker" class="headerlink" title="Docker in Docker"></a>Docker in Docker</h2><p>接下來這個問題幾乎是所有 CI&#x2F;CD 平台 的 Docker Runner 都會遇到的問題。如何在 CI&#x2F;CD Stage 中使用 Docker 指令來建構 Docker Image？這個問題的解法大致上可分為兩種（DinD 與 DooD）。然而最快的方法是直接將 <code>/var/run/docker.sock</code> 掛載於 Stage 的 Container 中，來達到可以在容器之中透過 UNIX Sock 與 host 上的 Docker Engine 溝通（當然還要有 docker cli）。實際上在執行 Pipeline 時，發現在對方專案中的 testcontainer 在進行整合測試時，嘗試去連線自己（Maven 中的 testcontainer）所建立出來 testcontainers&#x2F;ryuk 容器，並且因為無法正常連線至該容器而導致錯誤。後來查看了系統環境才發現對方 Runner 的機器上使用 ufw 去管理防火牆</p>
+<blockquote>
+<p>ufw 會將 iptables 中的 INPUT chain (filter table) Policy 改成 DROP</p>
+</blockquote>
+<p>造成 Drone CI Stage 中的 Container 無法正常存取其他 Container，主要因為 Drone CI 因為安全原因所以將這些 Stage 開出來的 Container 都放在獨立的 Linux Bridge 之下，而不是預設的 docker0，這時候跨介面的通訊會因為 iptables 規則而被擋下（當時 ufw 為開啟狀態）。</p>
+<h2 id="latest-tag-造成的隱含行為"><a href="#latest-tag-造成的隱含行為" class="headerlink" title="latest tag 造成的隱含行為"></a>latest tag 造成的隱含行為</h2><p>將 Pipeline 整理得差不多時，發現在 CD 階段時的基礎設施都是用 docker-compose 執行，可是這些 Image 並沒有指定 Image tag（預設採用 latest）。於是使用了 docker images 指令發現這些 Image 都是在數個月之前被拉到本地端的，無法得知當時版本，也就沒辦法指定特定版本來維持專案的移植性。使用 Image 的 id 在 docker hub 上面搜尋可能是一個辦法，但是 docker hub 並沒有提供讓用戶直接用 Image id 來搜尋的方式。在網路上找了一些工具也沒有解決想知道這些 Image 到底是哪一個版本的問題。在最後使用 docker inspect 時無意間看到</p>
+<blockquote>
+<p>ContainerConfig 欄位，其中的 Env 欄位中有應用程式的版本資訊</p>
+</blockquote>
+<p>雖然沒有辦法完全知道 Image 的 tag，但是知道 Image 中應用程式的版本也可以方便使用這些版本來進行測試，測試沒問題後就將這些版本都固定，避免日後轉移時因為 latest 標籤而無法確定版本。</p>
+<h2 id="後記"><a href="#後記" class="headerlink" title="後記"></a>後記</h2><p>這篇為這幾天最佳化 Pipeline 後的紀錄小總結，在將這些初步的最佳化完成之後。之後則會進行一些設計方向的最佳化，包含</p>
+<ul>
+<li>如何規劃快取才可以加速流程但不希望因此而造成測試不乾淨</li>
+<li>如何設計一個可以在 monorepo 的專案中，不用因為改了 A，就將全部的微服務（A, B, C）重新打包</li>
+<li>使否需要一個儲存敏感資訊的區域，讓多個 Runner 在部署時可以去拉取資訊（而不透過 host 共享檔案）</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Runner-%E7%9A%84%E9%81%B8%E6%93%87"><span class="toc-number">2.</span> <span class="toc-text">Runner 的選擇</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-in-Docker"><span class="toc-number">3.</span> <span class="toc-text">Docker in Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latest-tag-%E9%80%A0%E6%88%90%E7%9A%84%E9%9A%B1%E5%90%AB%E8%A1%8C%E7%82%BA"><span class="toc-number">4.</span> <span class="toc-text">latest tag 造成的隱含行為</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%8C%E8%A8%98"><span class="toc-number">5.</span> <span class="toc-text">後記</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2021/11/07/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2021/11/07/&text=一次 CI/CD 調教經驗"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2021/11/07/&is_video=false&description=一次 CI/CD 調教經驗"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一次 CI/CD 調教經驗&body=Check out this article: https://blog.yiyu0x.org/2021/11/07/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2021/11/07/&title=一次 CI/CD 調教經驗"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2021/11/07/&name=一次 CI/CD 調教經驗&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2021/11/07/&t=一次 CI/CD 調教經驗"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言前幾週看到 developer-roadmap 中的後端能力技能樹，看到了 OAuth2 這個聽過多次但是沒有實際實作過的驗證機制。於是開啟了自己實作的想法。 完整的做法放在 oAuth-fb-tutorial 中，以下紀錄了如何配置以及申請 token。 setup 首先，先在 facebook for developers 註冊應用程式  在此專案目錄下建立 .env, 並且將你的資料填入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="實作 facebook OAuth2 登入機制">
+<meta property="og:url" content="https://blog.yiyu0x.org/2019/05/19/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言前幾週看到 developer-roadmap 中的後端能力技能樹，看到了 OAuth2 這個聽過多次但是沒有實際實作過的驗證機制。於是開啟了自己實作的想法。 完整的做法放在 oAuth-fb-tutorial 中，以下紀錄了如何配置以及申請 token。 setup 首先，先在 facebook for developers 註冊應用程式  在此專案目錄下建立 .env, 並且將你的資料填入">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://blog.yiyu0x.org/fb-dev.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/ngrok.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/fb-dev2.png">
+<meta property="og:image" content="https://blog.yiyu0x.org/demo.png">
+<meta property="article:published_time" content="2019-05-19T21:44:03.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.670Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="oauth2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.yiyu0x.org/fb-dev.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>實作 facebook OAuth2 登入機制</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/05/19/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/05/07/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/05/19/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/05/19/&text=實作 facebook OAuth2 登入機制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/05/19/&is_video=false&description=實作 facebook OAuth2 登入機制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=實作 facebook OAuth2 登入機制&body=Check out this article: https://blog.yiyu0x.org/2019/05/19/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/05/19/&name=實作 facebook OAuth2 登入機制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/05/19/&t=實作 facebook OAuth2 登入機制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#setup"><span class="toc-number">2.</span> <span class="toc-text">setup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#demo"><span class="toc-number">3.</span> <span class="toc-text">demo</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        實作 facebook OAuth2 登入機制
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-05-19T21:44:03.000Z" class="dt-published" itemprop="datePublished">2019-05-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/oauth2/" rel="tag">oauth2</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前幾週看到 <a href="https://github.com/kamranahmedse/developer-roadmap">developer-roadmap</a> 中的後端能力技能樹，看到了 OAuth2 這個聽過多次但是沒有實際實作過的驗證機制。於是開啟了自己實作的想法。</p>
+<p>完整的做法放在 <a href="https://github.com/yiyu0x/oAuth2-fb-tutorial">oAuth-fb-tutorial</a> 中，以下紀錄了如何配置以及申請 token。</p>
+<h2 id="setup"><a href="#setup" class="headerlink" title="setup"></a>setup</h2><ol start="0">
+<li><p>首先，先在 <a href="https://developers.facebook.com/">facebook for developers</a> 註冊應用程式</p>
+</li>
+<li><p>在此專案目錄下建立 .env, 並且將你的資料填入</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">facebook_client_id=</span><br><span class="line">facebook_secret_id=</span><br><span class="line">redirect_uri=</span><br><span class="line">facebook_console_id=</span><br></pre></td></tr></table></figure>
+
+<p><code>facebook_client_id</code> 以及 <code>facebook_secret_id</code> 在註冊完的應用程式設定中可以找到</p>
+<!-- {% asset_img fb-dev.png %} -->
+<p><img src="/fb-dev.png" alt="1"></p>
+<p>分別為 <code>應用程式編號</code> 以及 <code>應用程式密鑰</code></p>
+<p><code>redirect_uri</code> 則填入 ip:3000&#x2F;facebook&#x2F;callback ，這邊要注意的是臉書不允許用 http，所以無法只接用 localhost， 這邊推薦大家用 <a href="https://ngrok.com/">ngrok</a> 來將一個外網網址映射到 localhost:3000&#x2F;callback&#x2F;facebook</p>
+<!-- {% asset_img ngrok.png %} -->
+<p><img src="/ngrok.png" alt="2"></p>
+<p>例如我的 ngrok 幫我映射的 URL 為 <a href="https://7bfbb3ed.ngrok.io/">https://7bfbb3ed.ngrok.io</a></p>
+<p>則 <code>redirect_uri</code> 就填入 <code>https://7bfbb3ed.ngrok.io/facebook/callback</code></p>
+<p>除了在 <code>.env</code> 填入以外， 也要記得在剛才應用程式設定中填入 <code>有效的 OAuth 重新導向 URI</code> 之中</p>
+<!-- {% asset_img fb-dev2.png %} -->
+<p><img src="/fb-dev2.png" alt="3"></p>
+<p>最後一個 <code>facebook_console_id</code> 則是自己的 facebook 帳戶 token</p>
+<p>取得方式為:</p>
+<p><code>curl -X GET &quot;https://graph.facebook.com/oauth/access_token?client_id=&#123;id&#125;&amp;client_secret=&#123;id&#125;&amp;grant_type=client_credentials&quot;</code></p>
+<p><code>client_id</code> 與 <code>client_secret</code> 與 .env 的前兩個欄位相同</p>
+<ol start="2">
+<li><p><code>npm i</code><br>(安裝所需套件)</p>
+</li>
+<li><p><code>npm run server</code><br>(此時瀏覽 localhost:3000 即可)</p>
+</li>
+</ol>
+<h2 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h2><!-- {% asset_img demo.png %} -->
+<p><img src="/demo.png" alt="4"></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#setup"><span class="toc-number">2.</span> <span class="toc-text">setup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#demo"><span class="toc-number">3.</span> <span class="toc-text">demo</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2019/05/19/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2019/05/19/&text=實作 facebook OAuth2 登入機制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2019/05/19/&is_video=false&description=實作 facebook OAuth2 登入機制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=實作 facebook OAuth2 登入機制&body=Check out this article: https://blog.yiyu0x.org/2019/05/19/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2019/05/19/&title=實作 facebook OAuth2 登入機制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2019/05/19/&name=實作 facebook OAuth2 登入機制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2019/05/19/&t=實作 facebook OAuth2 登入機制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

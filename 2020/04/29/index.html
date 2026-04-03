@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前言對於 Linux 使用者或是軟體工程師來說，終端機是每天必須用到的軟體之一。尤其是那些注重開發效率以及有在維護伺服器的工程師來說，我們都不希望雙手離開鍵盤，分散注意力。這種情況下，當我們要稍微檢視檔案內容時，會使用到以下幾個常用的工具：  cat less more vim  然而我們透過工具所看到的檔案內容，可以完全相信嗎？ 眼見為憑？cat  看過上述例子之後，你還敢只用 cat 確認檔案">
+<meta property="og:type" content="article">
+<meta property="og:title" content="眼見為憑？利用終端機特性藏匿惡意指令">
+<meta property="og:url" content="https://blog.yiyu0x.org/2020/04/29/index.html">
+<meta property="og:site_name" content="Kyle&#39;s Error Log">
+<meta property="og:description" content="前言對於 Linux 使用者或是軟體工程師來說，終端機是每天必須用到的軟體之一。尤其是那些注重開發效率以及有在維護伺服器的工程師來說，我們都不希望雙手離開鍵盤，分散注意力。這種情況下，當我們要稍微檢視檔案內容時，會使用到以下幾個常用的工具：  cat less more vim  然而我們透過工具所看到的檔案內容，可以完全相信嗎？ 眼見為憑？cat  看過上述例子之後，你還敢只用 cat 確認檔案">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2020-04-29T21:19:30.000Z">
+<meta property="article:modified_time" content="2026-03-18T06:19:07.673Z">
+<meta property="article:author" content="yiyu0x">
+<meta property="article:tag" content="資訊安全">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>眼見為憑？利用終端機特性藏匿惡意指令</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VTX1JXE6LR"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VTX1JXE6LR');
+  </script>
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Kyle's Error Log" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/07/11/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/03/16/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2020/04/29/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2020/04/29/&text=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2020/04/29/&is_video=false&description=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=眼見為憑？利用終端機特性藏匿惡意指令&body=Check out this article: https://blog.yiyu0x.org/2020/04/29/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2020/04/29/&name=眼見為憑？利用終端機特性藏匿惡意指令&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2020/04/29/&t=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9C%BC%E8%A6%8B%E7%82%BA%E6%86%91%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">眼見為憑？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cat"><span class="toc-number">2.1.</span> <span class="toc-text">cat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#curl"><span class="toc-number">2.2.</span> <span class="toc-text">curl</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">2.3.</span> <span class="toc-text">結論</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        眼見為憑？利用終端機特性藏匿惡意指令
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">yiyu0x</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-04-29T21:19:30.000Z" class="dt-published" itemprop="datePublished">2020-04-29</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/" rel="tag">資訊安全</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>對於 Linux 使用者或是軟體工程師來說，終端機是每天必須用到的軟體之一。尤其是那些注重開發效率以及有在維護伺服器的工程師來說，我們都不希望雙手離開鍵盤，分散注意力。這種情況下，當我們要稍微檢視檔案內容時，會使用到以下幾個常用的工具：</p>
+<ul>
+<li>cat</li>
+<li>less</li>
+<li>more</li>
+<li>vim</li>
+</ul>
+<p>然而我們透過工具所看到的檔案內容，可以完全相信嗎？</p>
+<h2 id="眼見為憑？"><a href="#眼見為憑？" class="headerlink" title="眼見為憑？"></a>眼見為憑？</h2><h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><script type="text/javascript" src="https://asciinema.org/a/325079.js" id="asciicast-325079" async></script>
+
+<p>看過上述例子之後，你還敢只用 <code>cat</code> 確認檔案內容嗎？</p>
+<p>為何會發生這種事？原因在於終端機本身就會辨認幾個具有意義的特殊字元，你可能用過一些特別的工具可以讓終端機印出有顏色的字，就是利用到這種特性。</p>
+<p>那這些特殊字元可以操作終端機的哪些行為呢？</p>
+<ul>
+<li>移動游標到任意位置</li>
+<li>刪除任意印出的字元</li>
+<li>操作終端機視窗</li>
+<li>將不同按鍵對應到的終端機行為進行覆寫</li>
+</ul>
+<p>上述範例，就是透過移動終端機游標，讓兩行指令都印在同一個位置上（位置重疊，只會顯示覆蓋的指令），如此一來就可以隱藏被覆蓋的指令。</p>
+<h3 id="curl"><a href="#curl" class="headerlink" title="curl"></a>curl</h3><p>我們換 <code>curl -s</code> 試試</p>
+<script type="text/javascript" src="https://asciinema.org/a/325095.js" id="asciicast-325095" async></script>
+
+<p>看完這個例子之後，我相信你再也不敢相信肉眼看到的內容。</p>
+<h3 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h3><p>如果要確認檔案的內容想要用 <code>cat</code> 的話，可以加上參數 <code>v</code>，顯示不可視字元。</p>
+<p>以第一個例子來說：<code>cat -v script.sh</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;evil!&quot;</span></span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">^[[2Aecho <span class="string">&quot;Hello World!&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>^[[2A</code> 就是告訴終端機將游標往上移動兩行，繼續從該位置印出（覆蓋原本的 echo “evil!”）。</p>
+<p>可以的話，還是建議使用文字編輯器打開確認內容會比起直接印出內容在終端機來得可信。</p>
+<p>如果想要自己測試的話可以使用以下指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -e <span class="string">&#x27;#!/bin/sh\n\necho &quot;evil!&quot;\nexit 0\n\033[2Aecho &quot;Hello World!&quot;\n&#x27;</span> &gt; script.sh</span><br><span class="line"><span class="built_in">chmod</span> a+x script.sh</span><br></pre></td></tr></table></figure>
+
+<p>或是你想深入了解終端機控制字元以及不同終端機的狀況可以參考 <a href="https://www.infosecmatter.com/terminal-escape-injection/#what-are-the-escape-sequences">Terminal Escape Injection</a>。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/yiyu0x">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9C%BC%E8%A6%8B%E7%82%BA%E6%86%91%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">眼見為憑？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cat"><span class="toc-number">2.1.</span> <span class="toc-text">cat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#curl"><span class="toc-number">2.2.</span> <span class="toc-text">curl</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">2.3.</span> <span class="toc-text">結論</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.yiyu0x.org/2020/04/29/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.yiyu0x.org/2020/04/29/&text=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.yiyu0x.org/2020/04/29/&is_video=false&description=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=眼見為憑？利用終端機特性藏匿惡意指令&body=Check out this article: https://blog.yiyu0x.org/2020/04/29/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.yiyu0x.org/2020/04/29/&title=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.yiyu0x.org/2020/04/29/&name=眼見為憑？利用終端機特性藏匿惡意指令&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://blog.yiyu0x.org/2020/04/29/&t=眼見為憑？利用終端機特性藏匿惡意指令"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    yiyu0x
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="http://github.com/yiyu0x">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
